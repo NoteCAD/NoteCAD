@@ -26,6 +26,7 @@ public static class GaussianMethod {
 
 	public static void Solve(double[,] A, double[] B, ref double[] X) {
 
+		UnityEngine.Profiling.Profiler.BeginSample("GaussianMethod.Solve");
 		var rows = A.GetLength(0);
 		var cols = A.GetLength(1);
 		double t = 0.0;
@@ -49,8 +50,8 @@ public static class GaussianMethod {
 			}
 
 			t = B[r];
-			B[mr] = B[r];
-			B[r] = t;
+			B[r] = B[mr];
+			B[mr] = t;
 
 			// normalize
 			/*
@@ -79,6 +80,7 @@ public static class GaussianMethod {
 			}
 			X[r] = xx;
 		}
+		UnityEngine.Profiling.Profiler.EndSample();
 	}
 
 }

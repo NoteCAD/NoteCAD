@@ -50,6 +50,11 @@ public class Exp {
 		this.op = Op.Const;
 	}
 
+	public Exp(Param p) {
+		this.param = p;
+		this.op = Op.Param;
+	}
+
 	public static implicit operator Exp(Param param) {
 		Exp result = new Exp();
 		result.param = param;
@@ -72,13 +77,54 @@ public class Exp {
 		this.op = op;
 	}
 
-	static public Exp operator+(Exp a, Exp b) { return new Exp(Op.Add, a, b); }
-	static public Exp operator-(Exp a, Exp b) { return new Exp(Op.Sub, a, b); }
-	static public Exp operator*(Exp a, Exp b) { return new Exp(Op.Mul, a, b); }
-	static public Exp operator/(Exp a, Exp b) { return new Exp(Op.Div, a, b); }
+	static public Exp operator+(Exp a, Exp b) {
+		if(a.IsZeroConst()) return b;
+		if(b.IsZeroConst()) return a;
+		if(b.op == Op.Neg) return a - b.a;
+		return new Exp(Op.Add, a, b);
+	}
+
+	static public Exp operator-(Exp a, Exp b) {
+		if(a.IsZeroConst()) return -b;
+		if(b.IsZeroConst()) return a;
+		return new Exp(Op.Sub, a, b);
+	}
+
+	static public Exp operator*(Exp a, Exp b) {
+		if(a.IsZeroConst()) return zero;
+		if(b.IsZeroConst()) return zero;
+		if(a.IsOneConst()) return b;
+		if(b.IsOneConst()) return a;
+		if(a.IsMinusOneConst()) {
+			return -b;
+		}
+		if(b.IsMinusOneConst()) {
+			return -a;
+		}
+		if(a.IsConst() && b.IsConst()) {
+			return a.value * b.value;
+		}
+		if(a.Eval() == -1 || b.Eval() == -1) {
+			bool stop = true;
+		}
+
+		return new Exp(Op.Mul, a, b);
+	}
+
+	static public Exp operator/(Exp a, Exp b) {
+		if(b.IsOneConst()) return a;
+		if(a.IsZeroConst()) return zero;
+		if(b.IsMinusOneConst()) return -a;
+		return new Exp(Op.Div, a, b);
+	}
 	//static public Exp operator^(Exp a, Exp b) { return new Exp(Op.Pow, a, b); }
 
-	static public Exp operator-(Exp a) { return new Exp(Op.Neg, a, null); }
+	static public Exp operator-(Exp a) {
+		if(a.IsZeroConst()) return a;
+		if(a.IsConst()) return -a.value;
+		if(a.op == Op.Neg) return a.a;
+		return new Exp(Op.Neg, a, null);
+	}
 
 	static public Exp Sin  (Exp x) { return new Exp(Op.Sin,   x, null); }
 	static public Exp Cos  (Exp x) { return new Exp(Op.Cos,   x, null); }
@@ -114,6 +160,11 @@ public class Exp {
 		return 0.0;
 	}
 
+	public bool IsZeroConst()		{ return op == Op.Const && value ==  0.0; }
+	public bool IsOneConst()		{ return op == Op.Const && value ==  1.0; }
+	public bool IsMinusOneConst()	{ return op == Op.Const && value == -1.0; }
+	public bool IsConst()			{ return op == Op.Const; }
+
 	public bool IsUnary() {
 		switch(op) {
 			case Op.Const:
@@ -132,8 +183,22 @@ public class Exp {
 		return false;
 	}
 
+	public bool IsAdditive() {
+		switch(op) {
+			case Op.Sub:
+			case Op.Add:
+				return true;
+		}
+		return false;
+	}
+
 	string Quoted() {
 		if(IsUnary()) return ToString();
+		return "(" + ToString() + ")";
+	}
+
+	string QuotedAdd() {
+		if(!IsAdditive()) return ToString();
 		return "(" + ToString() + ")";
 	}
 
@@ -142,9 +207,9 @@ public class Exp {
 			case Op.Const:	return value.ToString();
 			case Op.Param:	return param.name;
 			case Op.Add:	return a.ToString() + " + " + b.ToString();
-			case Op.Sub:	return a.ToString() + " - " + b.Quoted();
-			case Op.Mul:    return a.Quoted() + " * " + b.Quoted();
-			case Op.Div:    return a.Quoted() + " / " + b.Quoted();
+			case Op.Sub:	return a.ToString() + " - " + b.QuotedAdd();
+			case Op.Mul:    return a.QuotedAdd() + " * " + b.QuotedAdd();
+			case Op.Div:    return a.QuotedAdd() + " / " + b.Quoted();
 			case Op.Sin:    return "sin(" + a.ToString() + ")";
 			case Op.Cos:    return "cos(" + a.ToString() + ")";
 			case Op.ASin:	return "asin(" + a.ToString() + ")";
