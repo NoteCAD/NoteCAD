@@ -5,7 +5,7 @@ public static class GaussianMethod {
 	public const double epsilon = 1e-10;
 
 
-	public static string Print(this double[,] A) {
+	public static string Print<T>(this T[,] A) {
 		string result = "";
 		for(int r = 0; r < A.GetLength(0); r++) {
 			for(int c = 0; c < A.GetLength(1); c++) {
@@ -16,7 +16,7 @@ public static class GaussianMethod {
 		return result;
 	}
 
-	public static string Print(this double[] A) {
+	public static string Print<T>(this T[] A) {
 		string result = "";
 		for(int r = 0; r < A.GetLength(0); r++) {
 			result += A[r].ToString() + "\n";

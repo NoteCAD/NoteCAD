@@ -2,9 +2,9 @@
 
 public class PointEntity : Entity {
 
-	Param x = new Param("x");
-	Param y = new Param("y");
-	Param z = new Param("z");
+	public Param x = new Param("x");
+	public Param y = new Param("y");
+	public Param z = new Param("z");
 
 	PointBehaviour behaviour;
 
@@ -24,6 +24,10 @@ public class PointEntity : Entity {
 	}
 
 	public ExpVector GetPositionExp() {
+		return new ExpVector(x, y, z);
+	}
+
+	public ExpVector PE() {
 		return new ExpVector(x, y, z);
 	}
 

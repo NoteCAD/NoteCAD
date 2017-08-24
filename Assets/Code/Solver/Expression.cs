@@ -133,27 +133,27 @@ public class Exp {
 	}
 
 	string Quoted() {
-		if(IsUnary()) return Print();
-		return "(" + Print() + ")";
+		if(IsUnary()) return ToString();
+		return "(" + ToString() + ")";
 	}
 
-	public string Print() {
+	public override string ToString() {
 		switch(op) {
 			case Op.Const:	return value.ToString();
 			case Op.Param:	return param.name;
-			case Op.Add:	return a.Print() + " + " + b.Print();
-			case Op.Sub:	return a.Print() + " - " + b.Quoted();
+			case Op.Add:	return a.ToString() + " + " + b.ToString();
+			case Op.Sub:	return a.ToString() + " - " + b.Quoted();
 			case Op.Mul:    return a.Quoted() + " * " + b.Quoted();
 			case Op.Div:    return a.Quoted() + " / " + b.Quoted();
-			case Op.Sin:    return "sin(" + a.Print() + ")";
-			case Op.Cos:    return "cos(" + a.Print() + ")";
-			case Op.ASin:	return "asin(" + a.Print() + ")";
-			case Op.ACos:	return "acos(" + a.Print() + ")";
-			case Op.Sqrt:	return "sqrt(" + a.Print() + ")";
+			case Op.Sin:    return "sin(" + a.ToString() + ")";
+			case Op.Cos:    return "cos(" + a.ToString() + ")";
+			case Op.ASin:	return "asin(" + a.ToString() + ")";
+			case Op.ACos:	return "acos(" + a.ToString() + ")";
+			case Op.Sqrt:	return "sqrt(" + a.ToString() + ")";
 			case Op.Sqr:	return a.Quoted() + " ^ 2";
-			case Op.Abs:	return "abs(" + a.Print() + ")";
-			case Op.Sign:	return "sign(" + a.Print() + ")";
-			case Op.Atan2:	return "atan2(" + a.Print() + ", " + b.Print() + ")";
+			case Op.Abs:	return "abs(" + a.ToString() + ")";
+			case Op.Sign:	return "sign(" + a.ToString() + ")";
+			case Op.Atan2:	return "atan2(" + a.ToString() + ", " + b.ToString() + ")";
 			case Op.Neg:	return "-" + a.Quoted();
 			//case Op.Pow:	return Quoted(a) + " ^ " + Quoted(b);
 		}

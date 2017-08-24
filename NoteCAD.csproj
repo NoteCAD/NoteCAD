@@ -85,9 +85,11 @@
     <Compile Include="Assets\Code\Entities\LineEntity.cs" />
     <Compile Include="Assets\Code\Entities\PointEntity.cs" />
     <Compile Include="Assets\Code\Sketch\Sketch.cs" />
+    <Compile Include="Assets\Code\Solver\EquationSystem.cs" />
     <Compile Include="Assets\Code\Solver\ExpVector.cs" />
     <Compile Include="Assets\Code\Solver\Expression.cs" />
     <Compile Include="Assets\Code\Solver\GaussianMethod.cs" />
+    <Compile Include="Assets\Code\Solver\NewtonSolver.cs" />
     <Compile Include="Assets\Code\Test.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
