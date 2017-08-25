@@ -1,8 +1,8 @@
 ﻿
 public class ExpVector {
-	Exp x;
-	Exp y;
-	Exp z;
+	public Exp x;
+	public Exp y;
+	public Exp z;
 
 	public ExpVector(Exp x, Exp y, Exp z) {
 		this.x = x;

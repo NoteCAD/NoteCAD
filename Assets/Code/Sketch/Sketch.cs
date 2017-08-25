@@ -1,4 +1,4 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,7 +10,6 @@ public class Sketch : MonoBehaviour {
 	public Text matrixText;
 	public Text resultText;
 	EquationSystem sys = new EquationSystem();
-	PointEntity[] p;
 
 	private void Start() {
 		instance = this;

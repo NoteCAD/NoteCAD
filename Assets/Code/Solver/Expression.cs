@@ -95,19 +95,9 @@ public class Exp {
 		if(b.IsZeroConst()) return zero;
 		if(a.IsOneConst()) return b;
 		if(b.IsOneConst()) return a;
-		if(a.IsMinusOneConst()) {
-			return -b;
-		}
-		if(b.IsMinusOneConst()) {
-			return -a;
-		}
-		if(a.IsConst() && b.IsConst()) {
-			return a.value * b.value;
-		}
-		if(a.Eval() == -1 || b.Eval() == -1) {
-			bool stop = true;
-		}
-
+		if(a.IsMinusOneConst()) return -b;
+		if(b.IsMinusOneConst()) return -a;
+		if(a.IsConst() && b.IsConst()) return a.value * b.value;
 		return new Exp(Op.Mul, a, b);
 	}
 
@@ -142,20 +132,20 @@ public class Exp {
 			case Op.Const:	return value;
 			case Op.Param:	return param.value;
 			case Op.Add:	return a.Eval() + b.Eval();
-			case Op.Sub:    return a.Eval() - b.Eval();
-			case Op.Mul:    return a.Eval() * b.Eval();
-			case Op.Div:    return a.Eval() / b.Eval();
-			case Op.Sin:    return Math.Sin(a.Eval());
-			case Op.Cos:    return Math.Cos(a.Eval());
+			case Op.Sub:	return a.Eval() - b.Eval();
+			case Op.Mul:	return a.Eval() * b.Eval();
+			case Op.Div:	return a.Eval() / b.Eval();
+			case Op.Sin:	return Math.Sin(a.Eval());
+			case Op.Cos:	return Math.Cos(a.Eval());
 			case Op.ACos:	return Math.Acos(a.Eval());
 			case Op.ASin:	return Math.Asin(a.Eval());
 			case Op.Sqrt:	return Math.Sqrt(a.Eval());
-			case Op.Sqr:    {  double av = a.Eval(); return av * av; }
+			case Op.Sqr:	{  double av = a.Eval(); return av * av; }
 			case Op.Atan2:	return Math.Atan2(a.Eval(), b.Eval());
 			case Op.Abs:	return Math.Abs(a.Eval());
 			case Op.Sign:	return Math.Sign(a.Eval());
 			case Op.Neg:	return -a.Eval();
-			//case Op.Pow:    return Math.Pow(a.Eval(), b.Eval());
+			//case Op.Pow:	return Math.Pow(a.Eval(), b.Eval());
 		}
 		return 0.0;
 	}
@@ -208,10 +198,10 @@ public class Exp {
 			case Op.Param:	return param.name;
 			case Op.Add:	return a.ToString() + " + " + b.ToString();
 			case Op.Sub:	return a.ToString() + " - " + b.QuotedAdd();
-			case Op.Mul:    return a.QuotedAdd() + " * " + b.QuotedAdd();
-			case Op.Div:    return a.QuotedAdd() + " / " + b.Quoted();
-			case Op.Sin:    return "sin(" + a.ToString() + ")";
-			case Op.Cos:    return "cos(" + a.ToString() + ")";
+			case Op.Mul:	return a.QuotedAdd() + " * " + b.QuotedAdd();
+			case Op.Div:	return a.QuotedAdd() + " / " + b.Quoted();
+			case Op.Sin:	return "sin(" + a.ToString() + ")";
+			case Op.Cos:	return "cos(" + a.ToString() + ")";
 			case Op.ASin:	return "asin(" + a.ToString() + ")";
 			case Op.ACos:	return "acos(" + a.ToString() + ")";
 			case Op.Sqrt:	return "sqrt(" + a.ToString() + ")";
@@ -235,10 +225,10 @@ public class Exp {
 			case Op.Param:	return (param == p) ? one : zero;
 			case Op.Add:	return a.d(p) + b.d(p);
 			case Op.Sub:	return a.d(p) - b.d(p);
-			case Op.Mul:    return a.d(p) * b + a * b.d(p);
-			case Op.Div:    return (a.d(p) * b - a * b.d(p)) / Sqr(b);
-			case Op.Sin:    return a.d(p) * Cos(a);
-			case Op.Cos:    return a.d(p) * -Sin(a);
+			case Op.Mul:	return a.d(p) * b + a * b.d(p);
+			case Op.Div:	return (a.d(p) * b - a * b.d(p)) / Sqr(b);
+			case Op.Sin:	return a.d(p) * Cos(a);
+			case Op.Cos:	return a.d(p) * -Sin(a);
 			case Op.ASin:	return a.d(p) * one / Sqrt(one - Sqr(a));
 			case Op.ACos:	return a.d(p) * mOne / Sqrt(one - Sqr(a));
 			case Op.Sqrt:	return a.d(p) * one / (two * Sqrt(a));

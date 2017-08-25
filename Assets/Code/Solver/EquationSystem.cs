@@ -15,8 +15,10 @@ public class EquationSystem  {
 
 	Exp[,] J;
 	double[,] A;
+	double[,] AAT;
 	double[] B;
 	double[] X;
+	double[] Z;
 	double[] oldParamValues;
 
 	List<Exp> equations = new List<Exp>();
@@ -88,36 +90,33 @@ public class EquationSystem  {
 		UnityEngine.Profiling.Profiler.EndSample();
 	}
 
-	public static void SolveLeastSquares(double[,] A, double[] B, ref double[] X) {
+	public void SolveLeastSquares(double[,] A, double[] B, ref double[] X) {
 
 		// A^T * A * X = A^T * B
 		var rows = A.GetLength(0);
 		var cols = A.GetLength(1);
 
-		var AAT = new double[rows, rows];
-
 		UnityEngine.Profiling.Profiler.BeginSample("SolveLeastSquares: A^T * A");
 		for(int r = 0; r < rows; r++) {
 			for(int c = 0; c < rows; c++) {
-                double sum = 0.0;
+				double sum = 0.0;
 				for(int i = 0; i < cols; i++) {
 					sum += A[r, i] * A[c, i];
 				}
-                AAT[r, c] = sum;
+				AAT[r, c] = sum;
 			}
 		}
 		UnityEngine.Profiling.Profiler.EndSample();
 
-        var Z = new double[rows];
-        GaussianMethod.Solve(AAT, B, ref Z);
+		GaussianMethod.Solve(AAT, B, ref Z);
 
-        for(int c = 0; c < cols; c++) {
-            double sum = 0.0;
-            for(int r = 0; r < rows; r++) {
-                sum += Z[r] * A[r, c];
-            }
-            X[c] = sum;
-        }
+		for(int c = 0; c < cols; c++) {
+			double sum = 0.0;
+			for(int r = 0; r < rows; r++) {
+				sum += Z[r] * A[r, c];
+			}
+			X[c] = sum;
+		}
 
 	}
 
@@ -128,6 +127,8 @@ public class EquationSystem  {
 			A = new double[J.GetLength(0), J.GetLength(1)];
 			B = new double[equations.Count];
 			X = new double[parameters.Count];
+			Z = new double[A.GetLength(0)];
+			AAT = new double[A.GetLength(0), A.GetLength(0)];
 			oldParamValues = new double[parameters.Count];
 			isDirty = false;
 		}
