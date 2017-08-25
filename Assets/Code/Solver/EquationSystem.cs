@@ -12,6 +12,7 @@ public class EquationSystem  {
 
 	bool isDirty = true;
 	public int maxSteps = 20;
+	public int dragSteps = 3;
 
 	Exp[,] J;
 	double[,] A;
@@ -29,27 +30,39 @@ public class EquationSystem  {
 		isDirty = true;
 	}
 
+	public void RemoveEquation(Exp eq) {
+		equations.Remove(eq);
+		isDirty = true;
+	}
+
 	public void AddParameter(Param p) {
 		parameters.Add(p);
 		isDirty = true;
 	}
 
-	public void Eval(ref double[] B) {
-		UnityEngine.Profiling.Profiler.BeginSample("EvalB");
-		for(int i = 0; i < equations.Count; i++) {
-			B[i] = equations[i].Eval();
-		}
-		UnityEngine.Profiling.Profiler.EndSample();
+	public void RemoveParameter(Exp eq) {
+		equations.Remove(eq);
+		isDirty = true;
 	}
 
-	public bool IsConverged() {
-		UnityEngine.Profiling.Profiler.BeginSample("IsConverged");
+	public void Eval(ref double[] B, bool clearDrag) {
 		for(int i = 0; i < equations.Count; i++) {
-			if(Math.Abs(equations[i].Eval()) < GaussianMethod.epsilon) continue;
-			UnityEngine.Profiling.Profiler.EndSample();
+			if(clearDrag && equations[i].IsDrag()) {
+				B[i] = 0.0;
+				continue;
+			}
+			B[i] = equations[i].Eval();
+		}
+	}
+
+	public bool IsConverged(bool checkDrag) {
+		for(int i = 0; i < equations.Count; i++) {
+			if(!checkDrag && equations[i].IsDrag()) {
+				continue;
+			}
+			if(Math.Abs(B[i]) < GaussianMethod.epsilon) continue;
 			return false;
 		}
-		UnityEngine.Profiling.Profiler.EndSample();
 		return true;
 	}
 
@@ -72,17 +85,25 @@ public class EquationSystem  {
 			for(int c = 0; c < parameters.Count; c++) {
 				var u = parameters[c];
 				J[r, c] = eq.Deriv(u);
+				/*
 				if(!J[r, c].IsZeroConst()) {
 					Debug.Log(J[r, c].ToString() + "\n");
 				}
+				*/
 			}
 		}
 		return J;
 	}
 
-	public static void EvalJacobian(Exp[,] J, ref double[,] A) {
+	public void EvalJacobian(Exp[,] J, ref double[,] A, bool clearDrag) {
 		UnityEngine.Profiling.Profiler.BeginSample("EvalJacobian");
 		for(int r = 0; r < J.GetLength(0); r++) {
+			if(clearDrag && equations[r].IsDrag()) {
+				for(int c = 0; c < J.GetLength(1); c++) {
+					A[r, c] = 0.0;
+				}
+				continue;
+			}
 			for(int c = 0; c < J.GetLength(1); c++) {
 				A[r, c] = J[r, c].Eval();
 			}
@@ -136,14 +157,18 @@ public class EquationSystem  {
 		StoreParams();
 		int steps = 0;
 		do {
-			EvalJacobian(J, ref A);
-			Eval(ref B);
+			bool isDragStep = steps <= dragSteps;
+			Eval(ref B, clearDrag: !isDragStep);
+			if(IsConverged(checkDrag: isDragStep)) {
+				if(steps > 0) {
+					Debug.Log("solved in " + steps + " steps");
+				}
+				return SolveResult.OKAY;
+			}
+			EvalJacobian(J, ref A, clearDrag: !isDragStep);
 			SolveLeastSquares(A, B, ref X);
 			for(int i = 0; i < parameters.Count; i++) {
 				parameters[i].value -= X[i];
-			}
-			if(IsConverged()) {
-				return SolveResult.OKAY;
 			}
 		} while(steps++ <= maxSteps);
 		RevertParams();

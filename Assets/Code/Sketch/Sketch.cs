@@ -10,6 +10,8 @@ public class Sketch : MonoBehaviour {
 	public Text matrixText;
 	public Text resultText;
 	EquationSystem sys = new EquationSystem();
+	Exp dragX;
+	Exp dragY;
 
 	private void Start() {
 		instance = this;
@@ -22,7 +24,22 @@ public class Sketch : MonoBehaviour {
 			}
 			pr = nr;
 		}
+		sys.AddEquation(new Exp(pr[3].x));
+		sys.AddEquation(new Exp(pr[3].y));
 	}
+
+	public void SetDrag(Exp dragX, Exp dragY) {
+		if(this.dragX != dragX) {
+			if(this.dragX != null) sys.RemoveEquation(this.dragX);
+			this.dragX = dragX;
+			if(dragX != null) sys.AddEquation(dragX);
+		}
+		if(this.dragY != dragY) {
+			if(this.dragY != null) sys.RemoveEquation(this.dragY);
+			this.dragY = dragY;
+			if(dragY != null) sys.AddEquation(dragY);
+		}
+	} 
 
 	PointEntity[] CreateRectangle(Vector3 pos) {
 		var p = new PointEntity[4];

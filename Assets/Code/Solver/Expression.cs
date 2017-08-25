@@ -28,6 +28,7 @@ public class Exp {
 		Abs,
 		Sign,
 		Neg,
+		Drag,
 		//Pow,
 	}
 
@@ -127,11 +128,16 @@ public class Exp {
 	static public Exp Atan2(Exp x, Exp y) { return new Exp(Op.Atan2, x, y); }
 	static public Exp Pow  (Exp x, Exp y) { return new Exp(Op.Sign,  x, y); }
 
+	public Exp Drag(Exp to) {
+		return new Exp(Op.Drag, this, to);
+	}
+
 	public double Eval() {
 		switch(op) {
 			case Op.Const:	return value;
 			case Op.Param:	return param.value;
 			case Op.Add:	return a.Eval() + b.Eval();
+			case Op.Drag:
 			case Op.Sub:	return a.Eval() - b.Eval();
 			case Op.Mul:	return a.Eval() * b.Eval();
 			case Op.Div:	return a.Eval() / b.Eval();
@@ -154,6 +160,7 @@ public class Exp {
 	public bool IsOneConst()		{ return op == Op.Const && value ==  1.0; }
 	public bool IsMinusOneConst()	{ return op == Op.Const && value == -1.0; }
 	public bool IsConst()			{ return op == Op.Const; }
+	public bool IsDrag()			{ return op == Op.Drag; }
 
 	public bool IsUnary() {
 		switch(op) {
@@ -175,6 +182,7 @@ public class Exp {
 
 	public bool IsAdditive() {
 		switch(op) {
+			case Op.Drag:
 			case Op.Sub:
 			case Op.Add:
 				return true;
@@ -210,6 +218,7 @@ public class Exp {
 			case Op.Sign:	return "sign(" + a.ToString() + ")";
 			case Op.Atan2:	return "atan2(" + a.ToString() + ", " + b.ToString() + ")";
 			case Op.Neg:	return "-" + a.Quoted();
+			case Op.Drag:   return a.ToString() + " ≈ " + b.QuotedAdd();
 			//case Op.Pow:	return Quoted(a) + " ^ " + Quoted(b);
 		}
 		return "";
@@ -224,6 +233,7 @@ public class Exp {
 			case Op.Const:	return zero;
 			case Op.Param:	return (param == p) ? one : zero;
 			case Op.Add:	return a.d(p) + b.d(p);
+			case Op.Drag:
 			case Op.Sub:	return a.d(p) - b.d(p);
 			case Op.Mul:	return a.d(p) * b + a * b.d(p);
 			case Op.Div:	return (a.d(p) * b - a * b.d(p)) / Sqr(b);
