@@ -3,9 +3,11 @@
 public class Param {
 	public string name;
 	public double value;
+	public Exp exp { get; private set; }
 
 	public Param(string name) {
 		this.name = name;
+		exp = new Exp(this);
 	}
 }
 
@@ -51,16 +53,13 @@ public class Exp {
 		this.op = Op.Const;
 	}
 
-	public Exp(Param p) {
+	internal Exp(Param p) {
 		this.param = p;
 		this.op = Op.Param;
 	}
 
 	public static implicit operator Exp(Param param) {
-		Exp result = new Exp();
-		result.param = param;
-		result.op = Op.Param;
-		return result;
+		return param.exp;
 	}
 
 	public static implicit operator Exp(double value) {

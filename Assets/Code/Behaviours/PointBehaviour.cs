@@ -10,22 +10,18 @@ public class PointBehaviour : MonoBehaviour {
 	Exp dragY;
 	Param dragXP = new Param("dragX");
 	Param dragYP = new Param("dragY");
+	Color color;
 
-	void Update () {
+	void Start() {
+		color = GetComponent<Renderer>().material.color;
+	}
+
+	void Update() {
 		transform.position = point.GetPosition();
 	}
 
-
-	public static Vector3 GetMousePos() {
-		var plane = new Plane(Camera.main.transform.forward, Vector3.zero);
-		var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-		float cast;
-		plane.Raycast(ray, out cast);
-		return ray.GetPoint(cast);
-	}
-
 	public void OnMouseDown() {
-		oldPos = GetMousePos();
+		oldPos = Tool.MousePos;
 		dragXP.value = oldPos.x;
 		dragYP.value = oldPos.y;
 		dragX = new Exp(point.x).Drag(dragXP);
@@ -33,12 +29,21 @@ public class PointBehaviour : MonoBehaviour {
 		Sketch.instance.SetDrag(dragX, dragY);
 	}
 
+	public void OnMouseEnter() {
+		Sketch.instance.hovered = point;
+	}
+
+	public void OnMouseExit() {
+		if(Sketch.instance.hovered != point) return;
+		Sketch.instance.hovered = null;
+	}
+
 	public void OnMouseUp() {
 		Sketch.instance.SetDrag(null, null);
 	}
 
 	public void OnMouseDrag() {
-		var curPos = GetMousePos();
+		var curPos = Tool.MousePos;
 		//point.SetPosition(point.GetPosition() + curPos - oldPos);
 		oldPos = curPos;
 		dragXP.value = oldPos.x;

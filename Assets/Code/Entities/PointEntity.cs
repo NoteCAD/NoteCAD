@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class PointEntity : Entity {
 
@@ -27,10 +28,20 @@ public class PointEntity : Entity {
 		return new ExpVector(x, y, z);
 	}
 
-	public ExpVector PE() {
-		return new ExpVector(x, y, z);
+	public ExpVector exp {
+		get {
+			return new ExpVector(x, y, z);
+		}
 	}
 
 	public override GameObject gameObject { get { return behaviour.gameObject; } }
+
+	public override IEnumerable<Param> parameters {
+		get {
+			yield return x;
+			yield return y;
+			yield return z;
+		}
+	}
 
 }

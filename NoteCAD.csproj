@@ -81,14 +81,24 @@
     <Compile Include="Assets\Code\Behaviours\EntityConfig.cs" />
     <Compile Include="Assets\Code\Behaviours\LineBehaviour.cs" />
     <Compile Include="Assets\Code\Behaviours\PointBehaviour.cs" />
+    <Compile Include="Assets\Code\Constraints\Constraint.cs" />
+    <Compile Include="Assets\Code\Constraints\PointsCoincident.cs" />
+    <Compile Include="Assets\Code\Constraints\PointsDistance.cs" />
     <Compile Include="Assets\Code\Entities\Entity.cs" />
     <Compile Include="Assets\Code\Entities\LineEntity.cs" />
     <Compile Include="Assets\Code\Entities\PointEntity.cs" />
     <Compile Include="Assets\Code\Sketch\Sketch.cs" />
+    <Compile Include="Assets\Code\Sketch\SketchObject.cs" />
     <Compile Include="Assets\Code\Solver\EquationSystem.cs" />
     <Compile Include="Assets\Code\Solver\ExpVector.cs" />
     <Compile Include="Assets\Code\Solver\Expression.cs" />
     <Compile Include="Assets\Code\Solver\GaussianMethod.cs" />
+    <Compile Include="Assets\Code\Tools\DistanceTool.cs" />
+    <Compile Include="Assets\Code\Tools\LineTool.cs" />
+    <Compile Include="Assets\Code\Tools\PointTool.cs" />
+    <Compile Include="Assets\Code\Tools\PointsCoincidentTool.cs" />
+    <Compile Include="Assets\Code\Tools\Tool.cs" />
+    <Compile Include="Assets\Code\Tools\ToolBar.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

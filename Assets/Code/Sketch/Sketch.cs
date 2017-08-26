@@ -5,16 +5,38 @@ using UnityEngine.UI;
 
 public class Sketch : MonoBehaviour {
 	List<Entity> entities = new List<Entity>();
+	List<Constraint> constraints = new List<Constraint>();
 	public static Sketch instance;
-	public Text distanceText;
-	public Text matrixText;
 	public Text resultText;
+	bool sysDirty;
 	EquationSystem sys = new EquationSystem();
 	Exp dragX;
 	Exp dragY;
 
+	Entity hovered_;
+	Color oldColor;
+	public Entity hovered {
+		get {
+			return hovered_;
+		}
+		set {
+			if(hovered_ == value) return;
+			if(hovered_ != null) {
+				var r = hovered_.gameObject.GetComponent<Renderer>();
+				r.material.color = oldColor;
+			}
+			hovered_ = value;
+			if(hovered_ != null) {
+				var r = hovered_.gameObject.GetComponent<Renderer>();
+				oldColor = r.material.color;
+				r.material.color = Color.yellow;
+			}
+		}
+	}
+
 	private void Start() {
 		instance = this;
+		/*
 		PointEntity[] pr = null;
 		for(int i = 0; i < 10; i++) {
 			var nr = CreateRectangle(new Vector3(i * 5, 0, 0));
@@ -26,6 +48,7 @@ public class Sketch : MonoBehaviour {
 		}
 		sys.AddEquation(new Exp(pr[3].x));
 		sys.AddEquation(new Exp(pr[3].y));
+		*/
 	}
 
 	public void SetDrag(Exp dragX, Exp dragY) {
@@ -45,8 +68,6 @@ public class Sketch : MonoBehaviour {
 		var p = new PointEntity[4];
 		for(int i = 0; i < p.Length; i++) {
 			p[i] = CreatePoint();
-			sys.AddParameter(p[i].x);
-			sys.AddParameter(p[i].y);
 			p[i].x.name = "x" + i.ToString();
 			p[i].y.name = "y" + i.ToString();
 		}
@@ -62,8 +83,8 @@ public class Sketch : MonoBehaviour {
 		sys.AddEquation((p[0].GetPositionExp() - p[1].GetPositionExp()).Magnitude() - 5.0);
 		sys.AddEquation((p[1].GetPositionExp() - p[2].GetPositionExp()).Magnitude() - 10.0);
 		sys.AddEquation((p[2].GetPositionExp() - p[3].GetPositionExp()).Magnitude() - 5.0);
-		sys.AddEquation(DirCos(p[0].PE() - p[1].PE(), p[2].PE() - p[1].PE()));
-		sys.AddEquation(DirCos(p[1].PE() - p[2].PE(), p[3].PE() - p[2].PE()));
+		sys.AddEquation(DirCos(p[0].exp - p[1].exp, p[2].exp - p[1].exp));
+		sys.AddEquation(DirCos(p[1].exp - p[2].exp, p[3].exp - p[2].exp));
 		return p;
 	}
 
@@ -85,18 +106,35 @@ public class Sketch : MonoBehaviour {
 	}
 
 	public void AddEntity(Entity e) {
+		if(entities.Contains(e)) return;
 		entities.Add(e);
+		sysDirty = true;
+	}
+
+	public void AddConstraint(Constraint c) {
+		if(constraints.Contains(c)) return;
+		constraints.Add(c);
+		sysDirty = true;
+	}
+
+
+	void UpdateSystem() {
+		if(!sysDirty) return;
+		sys.Clear();
+		foreach(var e in entities) {
+			sys.AddParameters(e.parameters);
+			sys.AddEquations(e.equations);
+		}
+		foreach(var c in constraints) {
+			sys.AddParameters(c.parameters);
+			sys.AddEquations(c.equations);
+		}
+		sysDirty = false;
 	}
 
 	private void Update() {
+		UpdateSystem();
 		var result = sys.Solve();
 		resultText.text = result.ToString();
-		if(entities.Count > 1 && entities[0] is PointEntity && entities[1] is PointEntity) {
-			var p0 = entities[0] as PointEntity;
-			var p1 = entities[1] as PointEntity;
-
-			var distance = ExpVector.Distance(p0.GetPositionExp(), p1.GetPositionExp());
-			distanceText.text = distance.Eval().ToString();
-		}
 	}
 }

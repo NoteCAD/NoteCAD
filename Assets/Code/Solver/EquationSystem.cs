@@ -30,6 +30,11 @@ public class EquationSystem  {
 		isDirty = true;
 	}
 
+	public void AddEquations(IEnumerable<Exp> eq) {
+		equations.AddRange(eq);
+		isDirty = true;
+	}
+
 	public void RemoveEquation(Exp eq) {
 		equations.Remove(eq);
 		isDirty = true;
@@ -37,6 +42,11 @@ public class EquationSystem  {
 
 	public void AddParameter(Param p) {
 		parameters.Add(p);
+		isDirty = true;
+	}
+
+	public void AddParameters(IEnumerable<Param> p) {
+		parameters.AddRange(p);
 		isDirty = true;
 	}
 
@@ -141,8 +151,14 @@ public class EquationSystem  {
 
 	}
 
-	public SolveResult Solve() {
+	public void Clear() {
+		parameters.Clear();
+		equations.Clear();
+		isDirty = true;
+		UpdateDirty();
+	}
 
+	void UpdateDirty() {
 		if(isDirty) {
 			J = WriteJacobian(equations, parameters);
 			A = new double[J.GetLength(0), J.GetLength(1)];
@@ -153,7 +169,10 @@ public class EquationSystem  {
 			oldParamValues = new double[parameters.Count];
 			isDirty = false;
 		}
+	}
 
+	public SolveResult Solve() {
+		UpdateDirty();
 		StoreParams();
 		int steps = 0;
 		do {

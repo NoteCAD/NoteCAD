@@ -21,11 +21,11 @@ public class LineBehaviour : MonoBehaviour {
 	}
 
 	public void OnMouseDown() {
-		oldPos = PointBehaviour.GetMousePos();
+		oldPos = Tool.MousePos;
 	}
 
 	public void OnMouseDrag() {
-		var curPos = PointBehaviour.GetMousePos();
+		var curPos = Tool.MousePos;
 		var delta = curPos - oldPos;
 		line.p0.SetPosition(line.p0.GetPosition() + delta);
 		line.p1.SetPosition(line.p1.GetPosition() + delta);
