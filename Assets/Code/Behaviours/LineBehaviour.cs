@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LineBehaviour : MonoBehaviour {
-
-	public LineEntity line;
-	public Vector3 oldPos;
+public class LineBehaviour : EntityBehaviour {
 
 	void Update() {
+		var line = entity as LineEntity;
 		var p0 = line.p0.GetPosition();
 		var p1 = line.p1.GetPosition();
 		var dir = p1 - p0;
@@ -19,18 +17,4 @@ public class LineBehaviour : MonoBehaviour {
 		}
 		transform.position = (p1 + p0) * 0.5f;
 	}
-
-	public void OnMouseDown() {
-		oldPos = Tool.MousePos;
-	}
-
-	public void OnMouseDrag() {
-		var curPos = Tool.MousePos;
-		var delta = curPos - oldPos;
-		line.p0.SetPosition(line.p0.GetPosition() + delta);
-		line.p1.SetPosition(line.p1.GetPosition() + delta);
-		oldPos = curPos;
-	}
-
-
 }

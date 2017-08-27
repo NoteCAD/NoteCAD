@@ -11,7 +11,7 @@ public class PointEntity : Entity {
 
 	public PointEntity(Sketch sk) : base(sk) {
 		behaviour = GameObject.Instantiate(EntityConfig.instance.pointPrefab);
-		behaviour.point = this;
+		behaviour.entity = this;
 	}
 
 	public Vector3 GetPosition() {
@@ -41,6 +41,12 @@ public class PointEntity : Entity {
 			yield return x;
 			yield return y;
 			yield return z;
+		}
+	}
+
+	public override IEnumerable<PointEntity> points {
+		get {
+			yield return this;
 		}
 	}
 

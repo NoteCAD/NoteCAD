@@ -9,7 +9,5 @@ public abstract class Entity : SketchObject {
 
 	public abstract GameObject gameObject { get; }
 
-	public virtual IEnumerable<Param> parameters { get { yield break; } }
-	public virtual IEnumerable<Exp> equations { get { yield break; } }
-
+	public virtual IEnumerable<PointEntity> points { get { yield break; } }
 }

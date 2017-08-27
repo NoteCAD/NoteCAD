@@ -78,6 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Code\Behaviours\EntityBehaviour.cs" />
     <Compile Include="Assets\Code\Behaviours\EntityConfig.cs" />
     <Compile Include="Assets\Code\Behaviours\LineBehaviour.cs" />
     <Compile Include="Assets\Code\Behaviours\PointBehaviour.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="Assets\Code\Solver\GaussianMethod.cs" />
     <Compile Include="Assets\Code\Tools\DistanceTool.cs" />
     <Compile Include="Assets\Code\Tools\LineTool.cs" />
+    <Compile Include="Assets\Code\Tools\MoveTool.cs" />
     <Compile Include="Assets\Code\Tools\PointTool.cs" />
     <Compile Include="Assets\Code\Tools\PointsCoincidentTool.cs" />
     <Compile Include="Assets\Code\Tools\Tool.cs" />

@@ -13,12 +13,19 @@ public class LineEntity : Entity {
 		p0 = new PointEntity(sk);
 		p1 = new PointEntity(sk);
 		behaviour = GameObject.Instantiate(EntityConfig.instance.linePrefab);
-		behaviour.line = this;
+		behaviour.entity = this;
 	}
 
 	public override GameObject gameObject {
 		get {
 			return behaviour.gameObject;
+		}
+	}
+
+	public override IEnumerable<PointEntity> points {
+		get {
+			yield return p0;
+			yield return p1;
 		}
 	}
 }
