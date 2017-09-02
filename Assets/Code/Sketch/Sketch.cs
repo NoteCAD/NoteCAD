@@ -137,4 +137,24 @@ public class Sketch : MonoBehaviour {
 		var result = sys.Solve();
 		resultText.text = result.ToString();
 	}
+
+	private void LateUpdate() {
+		foreach(var c in constraints) {
+			c.Draw();
+		}
+		MarkUnchanged();
+	}
+
+	public void MarkUnchanged() {
+		foreach(var e in entities) {
+			foreach(var p in e.parameters) {
+				p.changed = false;
+			}
+		}
+		foreach(var c in constraints) {
+			foreach(var p in c.parameters) {
+				p.changed = false;
+			}
+		}
+	}
 }

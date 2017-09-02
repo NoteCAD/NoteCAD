@@ -50,4 +50,8 @@ public class PointEntity : Entity {
 		}
 	}
 
+	public bool IsChanged() {
+		return x.changed || y.changed || z.changed;
+	}
+
 }

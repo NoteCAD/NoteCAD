@@ -81,6 +81,7 @@
     <Compile Include="Assets\Code\Behaviours\EntityBehaviour.cs" />
     <Compile Include="Assets\Code\Behaviours\EntityConfig.cs" />
     <Compile Include="Assets\Code\Behaviours\LineBehaviour.cs" />
+    <Compile Include="Assets\Code\Behaviours\LineCanvas.cs" />
     <Compile Include="Assets\Code\Behaviours\PointBehaviour.cs" />
     <Compile Include="Assets\Code\Constraints\Constraint.cs" />
     <Compile Include="Assets\Code\Constraints\PointsCoincident.cs" />
