@@ -34,7 +34,7 @@ public class PointEntity : Entity {
 		}
 	}
 
-	public override GameObject gameObject { get { return behaviour.gameObject; } }
+	protected override GameObject gameObject { get { return behaviour.gameObject; } }
 
 	public override IEnumerable<Param> parameters {
 		get {

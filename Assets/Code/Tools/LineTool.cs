@@ -13,9 +13,15 @@ public class LineTool : Tool {
 
 		if(current != null) {
 			current.p1.SetPosition(pos);
+			current.p1.isSelectable = true;
+			current.p0.isSelectable = true;
+			current.isSelectable = true;
 			new PointsCoincident(current.sketch, current.p1, newLine.p0);
 		}
 		current = newLine;
+		current.isSelectable = false;
+		current.p0.isSelectable = false;
+		current.p1.isSelectable = false;
 	}
 
 	protected override void OnMouseMove(Vector3 pos, Entity entity) {
@@ -25,6 +31,11 @@ public class LineTool : Tool {
 	}
 
 	protected override void OnDeactivate() {
+		if(current != null) {
+			current.isSelectable = true;
+			current.p0.isSelectable = true;
+			current.p1.isSelectable = true;
+		}
 		current = null;
 	}
 

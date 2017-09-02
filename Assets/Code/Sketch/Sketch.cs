@@ -22,14 +22,11 @@ public class Sketch : MonoBehaviour {
 		set {
 			if(hovered_ == value) return;
 			if(hovered_ != null) {
-				var r = hovered_.gameObject.GetComponent<Renderer>();
-				r.material.color = oldColor;
+				hovered_.isHovered = false;
 			}
 			hovered_ = value;
 			if(hovered_ != null) {
-				var r = hovered_.gameObject.GetComponent<Renderer>();
-				oldColor = r.material.color;
-				r.material.color = Color.yellow;
+				hovered_.isHovered = true;
 			}
 		}
 	}

@@ -16,7 +16,7 @@ public class LineEntity : Entity {
 		behaviour.entity = this;
 	}
 
-	public override GameObject gameObject {
+	protected override GameObject gameObject {
 		get {
 			return behaviour.gameObject;
 		}
