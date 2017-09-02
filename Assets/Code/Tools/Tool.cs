@@ -9,6 +9,8 @@ public class Tool : MonoBehaviour {
 	[HideInInspector] public ToolBar toolbar;
 	public KeyCode[] hotkeys;
 
+	public bool shouldStop { get; private set; }
+
 	void Start() {
 		GetComponent<Button>().onClick.AddListener(Click);
 	}
@@ -25,6 +27,7 @@ public class Tool : MonoBehaviour {
 	protected virtual void OnMouseMove(Vector3 pos, Entity entity) { }
 
 	public void Activate() {
+		shouldStop = false;
 		OnActivate();
 	}
 
@@ -60,6 +63,10 @@ public class Tool : MonoBehaviour {
 			plane.Raycast(ray, out cast);
 			return ray.GetPoint(cast);
 		}
+	}
+
+	public void StopTool() {
+		shouldStop = true;
 	}
 
 }

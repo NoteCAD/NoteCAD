@@ -7,7 +7,7 @@ public class ToolBar : MonoBehaviour {
 
 	Tool[] tools;
 	Tool activeTool;
-	public Tool startupTool;
+	public Tool defaultTool;
 
 	public Tool ActiveTool {
 		get {
@@ -24,7 +24,7 @@ public class ToolBar : MonoBehaviour {
 		foreach(var t in tools) {
 			t.toolbar = this;
 		}
-		ActiveTool = startupTool;
+		ActiveTool = defaultTool;
 	}
 
 	void Update() {
@@ -52,6 +52,10 @@ public class ToolBar : MonoBehaviour {
 		if(activeTool != null) {
 			activeTool.DoUpdate();
 		}
+
+		if(activeTool.shouldStop) {
+			ActivateDefaultTool();
+		}
 	}
 
 	void ActivateTool(Tool tool) {
@@ -72,6 +76,10 @@ public class ToolBar : MonoBehaviour {
 			btn.colors = cb;
 			activeTool.Activate();
 		}
+	}
+
+	public void ActivateDefaultTool() {
+		ActiveTool = defaultTool;
 	}
 
 }

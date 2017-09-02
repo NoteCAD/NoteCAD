@@ -978,6 +978,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb5a765d03d0b744ca074921bbfd887a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  defaultTool: {fileID: 816085488}
   startupTool: {fileID: 816085488}
 --- !u!114 &1316827473
 MonoBehaviour:
