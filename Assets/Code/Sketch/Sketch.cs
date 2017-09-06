@@ -9,6 +9,7 @@ public class Sketch : MonoBehaviour {
 	public static Sketch instance;
 	public Text resultText;
 	public Canvas canvas;
+	public GameObject labelParent;
 	bool sysDirty;
 	EquationSystem sys = new EquationSystem();
 	Exp dragX;

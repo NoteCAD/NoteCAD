@@ -14,6 +14,7 @@ public class LineEntity : Entity {
 		p1 = new PointEntity(sk);
 		behaviour = GameObject.Instantiate(EntityConfig.instance.linePrefab);
 		behaviour.entity = this;
+		behaviour.Update();
 	}
 
 	protected override GameObject gameObject {

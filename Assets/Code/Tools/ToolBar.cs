@@ -27,7 +27,10 @@ public class ToolBar : MonoBehaviour {
 		ActiveTool = defaultTool;
 	}
 
+
+	float doubleClickTime;
 	void Update() {
+		doubleClickTime += Time.deltaTime;
 		foreach(var t in tools) {
 			foreach(var hk in t.hotkeys) {
 				if(Input.GetKeyDown(hk)) {
@@ -38,7 +41,11 @@ public class ToolBar : MonoBehaviour {
 		}
 
 		if(activeTool != null && Input.GetKeyDown(KeyCode.Mouse0)) {
+			if(doubleClickTime < 0.3f) {
+				activeTool.MouseDoubleClick(Tool.MousePos, Sketch.instance.hovered);
+			}
 			activeTool.MouseDown(Tool.MousePos, Sketch.instance.hovered);
+			doubleClickTime = 0f;
 		}
 
 		if(activeTool != null && Input.GetKeyUp(KeyCode.Mouse0)) {

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class LineBehaviour : EntityBehaviour {
 
-	void Update() {
+	public void Update() {
 		var line = entity as LineEntity;
 		var p0 = line.p0.GetPosition();
 		var p1 = line.p1.GetPosition();

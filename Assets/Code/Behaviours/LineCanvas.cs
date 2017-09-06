@@ -16,8 +16,8 @@ public class LineCanvas : MonoBehaviour {
 		var go = GameObject.Instantiate(EntityConfig.instance.lineCanvasPrefab, transform);
 		var lines = go.GetComponent<LineRenderer>();
 		lines.positionCount = 2;
-		lines.SetPosition(lines.positionCount - 2, p0);
-		lines.SetPosition(lines.positionCount - 1, p1);
+		lines.SetPosition(lines.positionCount - 2, p0 - new Vector3(0f, 0f, 1f));
+		lines.SetPosition(lines.positionCount - 1, p1 - new Vector3(0f, 0f, 1f));
 	}
 	
 }

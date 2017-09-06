@@ -25,6 +25,7 @@ public class Tool : MonoBehaviour {
 	protected virtual void OnMouseDown(Vector3 pos, SketchObject entity) { }
 	protected virtual void OnMouseUp(Vector3 pos, SketchObject entity) { }
 	protected virtual void OnMouseMove(Vector3 pos, SketchObject entity) { }
+	protected virtual void OnMouseDoubleClick(Vector3 pos, SketchObject entity) { }
 
 	public void Activate() {
 		shouldStop = false;
@@ -49,6 +50,10 @@ public class Tool : MonoBehaviour {
 
 	public void MouseMove(Vector3 pos, SketchObject entity) {
 		OnMouseMove(pos, entity);
+	}
+
+	public void MouseDoubleClick(Vector3 pos, SketchObject entity) {
+		OnMouseDoubleClick(pos, entity);
 	}
 
 	public bool IsActive() {

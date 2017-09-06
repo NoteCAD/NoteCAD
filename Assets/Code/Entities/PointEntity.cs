@@ -22,6 +22,7 @@ public class PointEntity : Entity {
 		x.value = pos.x;
 		y.value = pos.y;
 		z.value = pos.z;
+		behaviour.Update();
 	}
 
 	public ExpVector GetPositionExp() {

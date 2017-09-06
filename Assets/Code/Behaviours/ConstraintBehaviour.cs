@@ -7,11 +7,11 @@ public class ConstraintBehaviour : MonoBehaviour {
 	public ValueConstraint constraint;
 	public Text text;
 
-	private void Start() {
-		text = GameObject.Instantiate(EntityConfig.instance.labelPrefab, Sketch.instance.canvas.transform);
+	private void Awake() {
+		text = GameObject.Instantiate(EntityConfig.instance.labelPrefab, Sketch.instance.labelParent.transform);
 	}
 
-	private void Update() {
+	public void Update() {
 		transform.position = constraint.position;
 		text.transform.position = Camera.main.WorldToScreenPoint(transform.position);
 		text.text = constraint.GetValue().ToString("F2");

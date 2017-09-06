@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEngine.UI;
 
 public class MoveTool : Tool {
 
@@ -12,9 +13,16 @@ public class MoveTool : Tool {
 	Exp dragY;
 	Param dragXP = new Param("dragX");
 	Param dragYP = new Param("dragY");
+	ValueConstraint valueConstraint;
+	public InputField input;
+
+	private void Start() {
+		input.onEndEdit.AddListener(OnEndEdit);
+	}
 
 	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
-		OnDeactivate();
+		ClearDrag();
+		if(valueConstraint != null) return;
 		if(sko == null) return;
 		var entity = sko as Entity;
 		current = sko;
@@ -33,13 +41,19 @@ public class MoveTool : Tool {
 		}
 	}
 
-	protected override void OnDeactivate() {
+	void ClearDrag() {
 		current = null;
 		if(dragX != null) {
 			Sketch.instance.SetDrag(null, null);
 		}
 		dragX = null;
 		dragY = null;
+	}
+
+	protected override void OnDeactivate() {
+		ClearDrag();
+		valueConstraint = null;
+		input.gameObject.SetActive(false);
 	}
 
 	protected override void OnMouseMove(Vector3 pos, SketchObject entity) {
@@ -55,9 +69,34 @@ public class MoveTool : Tool {
 	}
 
 	protected override void OnMouseUp(Vector3 pos, SketchObject entity) {
-		OnDeactivate();
+		ClearDrag();
+	}
+	
+	protected override void OnMouseDoubleClick(Vector3 pos, SketchObject sko) {
+		if(sko is ValueConstraint) {
+			valueConstraint = sko as ValueConstraint;
+			input.gameObject.SetActive(true);
+			input.text = valueConstraint.GetValue().ToString();
+			input.Select();
+			UpdateInputPosition();
+		}
 	}
 
+	void UpdateInputPosition() {
+		if(valueConstraint != null) {
+			input.gameObject.transform.position = Camera.main.WorldToScreenPoint(valueConstraint.position);
+		}
+	}
 
+	private void Update() {
+		UpdateInputPosition();
+	}
+
+	void OnEndEdit(string value) {
+		if(valueConstraint == null) return;
+		valueConstraint.SetValue(double.Parse(value));
+		valueConstraint = null;
+		input.gameObject.SetActive(false);
+	}
 
 }

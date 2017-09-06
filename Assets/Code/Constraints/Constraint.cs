@@ -48,6 +48,7 @@ public class ValueConstraint : Constraint {
 			if(position_ == newPos) return;
 			position_ = newPos;
 			changed = true;
+			behaviour.Update();
 		}
 	}
 	//public bool changed;
