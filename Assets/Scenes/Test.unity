@@ -215,6 +215,10 @@ MonoBehaviour:
     type: 2}
   lineCanvasPrefab: {fileID: 120205134362679356, guid: f4d0ecd347652384ab7d4fc7fe03775e,
     type: 2}
+  constraint: {fileID: 114535091400964726, guid: 621c8d3e349442b4d9b86a41791e6dcb,
+    type: 2}
+  labelPrefab: {fileID: 114292428029599408, guid: 54b8416142c3e664eae9620fd0a390ea,
+    type: 2}
 --- !u!4 &242438336
 Transform:
   m_ObjectHideFlags: 0
@@ -270,6 +274,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   resultText: {fileID: 312927957}
+  canvas: {fileID: 1583535564}
 --- !u!1 &312927955
 GameObject:
   m_ObjectHideFlags: 0
@@ -979,7 +984,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   defaultTool: {fileID: 816085488}
-  startupTool: {fileID: 816085488}
 --- !u!114 &1316827473
 MonoBehaviour:
   m_ObjectHideFlags: 0

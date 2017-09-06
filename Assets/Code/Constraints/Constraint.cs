@@ -5,6 +5,8 @@ public class Constraint : SketchObject {
 
 	LineCanvas canvas;
 	bool firstDrawn = false;
+	public bool changed;
+	protected override GameObject gameObject { get { return canvas.gameObject; } }
 
 	public Constraint(Sketch sk) : base(sk) {
 		sk.AddConstraint(this);
@@ -19,7 +21,11 @@ public class Constraint : SketchObject {
 		OnDraw(canvas);
 	}
 	
-	protected virtual bool IsChanged() {
+	public virtual bool IsChanged() {
+		return OnIsChanged();
+	}
+
+	protected virtual bool OnIsChanged() {
 		return false;
 	}
 
@@ -32,8 +38,25 @@ public class ValueConstraint : Constraint {
 
 	protected Param value = new Param("value");
 	public bool reference;
+	Vector3 position_;
+	public Vector3 position {
+		get {
+			return GetBasis().MultiplyPoint(position_);
+		}
+		set {
+			var newPos = GetBasis().inverse.MultiplyPoint(value);
+			if(position_ == newPos) return;
+			position_ = newPos;
+			changed = true;
+		}
+	}
+	//public bool changed;
+	ConstraintBehaviour behaviour;
+	protected override GameObject gameObject { get { return behaviour.text.gameObject; } }
 
 	public ValueConstraint(Sketch sk) : base(sk) {
+		behaviour = GameObject.Instantiate(EntityConfig.instance.constraint);
+		behaviour.constraint = this;
 	}
 
 	public override IEnumerable<Param> parameters {
@@ -42,6 +65,32 @@ public class ValueConstraint : Constraint {
 			yield return value;
 		}
 	}
+
+	protected override void OnDrag(Vector3 delta) {
+		if(delta == Vector3.zero) return;
+		position += delta;
+	}
+
+	public override bool IsChanged() {
+		return base.IsChanged() || changed;
+	}
+
+
+	public Matrix4x4 GetBasis() {
+		return OnGetBasis();
+	}
+
+	protected virtual Matrix4x4 OnGetBasis() {
+		return Matrix4x4.identity;
+	}
+
+	public double GetValue() {
+		return value.value;
+	}
+
+	public void SetValue(double v) {
+		value.value = v;
+	} 
 
 }
 

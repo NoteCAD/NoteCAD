@@ -6,19 +6,30 @@ public class DistanceTool : Tool {
 
 
 	PointEntity p0;
+	PointsDistance constraint;
+	Vector3 click;
 
-	protected override void OnMouseDown(Vector3 pos, Entity entity) {
+	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
+		click = pos;
+		if(constraint != null) {
+			constraint = null;
+			return;
+		}
+		var entity = sko as Entity;
 		if(entity == null) return;
 
 		if(p0 == null && entity is LineEntity) {
 			var line = entity as LineEntity;
-			new PointsDistance(line.sketch, line.p0, line.p1);
+			constraint = new PointsDistance(line.sketch, line.p0, line.p1);
+			constraint.position = pos;
+			return;
 		}
 
 		if(!(entity is PointEntity)) return;
 		var p = entity as PointEntity;
 		if(p0 != null) {
-			var c = new PointsDistance(entity.sketch, p0, p);
+			constraint = new PointsDistance(entity.sketch, p0, p);
+			constraint.position = pos;
 			p0 = null;
 		} else {
 			p0 = p;
@@ -27,5 +38,14 @@ public class DistanceTool : Tool {
 
 	protected override void OnDeactivate() {
 		p0 = null;
+		constraint = null;
 	}
+
+	protected override void OnMouseMove(Vector3 pos, SketchObject entity) {
+		if(constraint != null) {
+			constraint.Drag(pos - click);
+		}
+		click = pos;
+	}
+
 }

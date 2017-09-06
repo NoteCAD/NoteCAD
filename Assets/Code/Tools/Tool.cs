@@ -22,9 +22,9 @@ public class Tool : MonoBehaviour {
 	protected virtual void OnActivate() { }
 	protected virtual void OnDeactivate() { }
 	protected virtual void OnUpdate() { }
-	protected virtual void OnMouseDown(Vector3 pos, Entity entity) { }
-	protected virtual void OnMouseUp(Vector3 pos, Entity entity) { }
-	protected virtual void OnMouseMove(Vector3 pos, Entity entity) { }
+	protected virtual void OnMouseDown(Vector3 pos, SketchObject entity) { }
+	protected virtual void OnMouseUp(Vector3 pos, SketchObject entity) { }
+	protected virtual void OnMouseMove(Vector3 pos, SketchObject entity) { }
 
 	public void Activate() {
 		shouldStop = false;
@@ -39,15 +39,15 @@ public class Tool : MonoBehaviour {
 		OnUpdate();
 	}
 
-	public void MouseDown(Vector3 pos, Entity entity) {
+	public void MouseDown(Vector3 pos, SketchObject entity) {
 		OnMouseDown(pos, entity);
 	}
 
-	public void MouseUp(Vector3 pos, Entity entity) {
+	public void MouseUp(Vector3 pos, SketchObject entity) {
 		OnMouseUp(pos, entity);
 	}
 
-	public void MouseMove(Vector3 pos, Entity entity) {
+	public void MouseMove(Vector3 pos, SketchObject entity) {
 		OnMouseMove(pos, entity);
 	}
 

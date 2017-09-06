@@ -5,7 +5,7 @@ using System.Linq;
 
 public class MoveTool : Tool {
 
-	Entity current;
+	SketchObject current;
 	Vector3 click;
 
 	Exp dragX;
@@ -13,12 +13,14 @@ public class MoveTool : Tool {
 	Param dragXP = new Param("dragX");
 	Param dragYP = new Param("dragY");
 
-	protected override void OnMouseDown(Vector3 pos, Entity entity) {
+	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
 		OnDeactivate();
-		if(entity == null) return;
-		current = entity;
+		if(sko == null) return;
+		var entity = sko as Entity;
+		current = sko;
 		click = pos;
-		int count = entity.points.Count();
+		int count = 0;
+		if(entity != null) count = entity.points.Count();
 		if(count == 0) return;
 
 		if(count == 1) {
@@ -40,22 +42,19 @@ public class MoveTool : Tool {
 		dragY = null;
 	}
 
-	protected override void OnMouseMove(Vector3 pos, Entity entity) {
+	protected override void OnMouseMove(Vector3 pos, SketchObject entity) {
 		if(current == null) return;
 		var delta = pos - click;
 		if(dragX != null) {
 			dragXP.value += delta.x;
 			dragYP.value += delta.y;
 		} else {
-			foreach(var p in current.points) {
-				p.x.value += delta.x;
-				p.y.value += delta.y;
-			}
+			current.Drag(delta);
 		}
 		click = pos;
 	}
 
-	protected override void OnMouseUp(Vector3 pos, Entity entity) {
+	protected override void OnMouseUp(Vector3 pos, SketchObject entity) {
 		OnDeactivate();
 	}
 

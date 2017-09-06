@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class PointTool : Tool {
 
-	protected override void OnMouseDown(Vector3 pos, Entity entity) {
-		var p = Sketch.instance.CreatePoint();
+	protected override void OnMouseDown(Vector3 pos, SketchObject entity) {
+		var p = new PointEntity(Sketch.instance);
 		p.SetPosition(pos);
 	}
 

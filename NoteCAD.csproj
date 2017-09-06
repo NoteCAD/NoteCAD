@@ -78,6 +78,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Code\Behaviours\ConstraintBehaviour.cs" />
     <Compile Include="Assets\Code\Behaviours\EntityBehaviour.cs" />
     <Compile Include="Assets\Code\Behaviours\EntityConfig.cs" />
     <Compile Include="Assets\Code\Behaviours\LineBehaviour.cs" />

@@ -16,14 +16,14 @@ public class LineTool : Tool {
 		return false;
 	}
 
-	protected override void OnMouseDown(Vector3 pos, Entity entity) {
+	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
 
 		if(current != null) {
 			current.p1.SetPosition(pos);
 			current.p1.isSelectable = true;
 			current.p0.isSelectable = true;
 			current.isSelectable = true;
-			if(AutoConstrainCoincident(current.p1, entity)) {
+			if(AutoConstrainCoincident(current.p1, sko as Entity)) {
 				StopTool();
 				return;
 			}
@@ -33,7 +33,7 @@ public class LineTool : Tool {
 		newLine.p0.SetPosition(pos);
 		newLine.p1.SetPosition(pos);
 		if(current == null) {
-			AutoConstrainCoincident(newLine.p0, entity);
+			AutoConstrainCoincident(newLine.p0, sko as Entity);
 		} else {
 			new PointsCoincident(current.sketch, current.p1, newLine.p0);
 		}
@@ -44,7 +44,7 @@ public class LineTool : Tool {
 		current.p1.isSelectable = false;
 	}
 
-	protected override void OnMouseMove(Vector3 pos, Entity entity) {
+	protected override void OnMouseMove(Vector3 pos, SketchObject entity) {
 		if(current != null) {
 			current.p1.SetPosition(pos);
 		}

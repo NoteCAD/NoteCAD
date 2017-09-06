@@ -8,14 +8,14 @@ public class Sketch : MonoBehaviour {
 	List<Constraint> constraints = new List<Constraint>();
 	public static Sketch instance;
 	public Text resultText;
+	public Canvas canvas;
 	bool sysDirty;
 	EquationSystem sys = new EquationSystem();
 	Exp dragX;
 	Exp dragY;
 
-	Entity hovered_;
-	Color oldColor;
-	public Entity hovered {
+	SketchObject hovered_;
+	public SketchObject hovered {
 		get {
 			return hovered_;
 		}
@@ -61,47 +61,6 @@ public class Sketch : MonoBehaviour {
 		}
 	} 
 
-	PointEntity[] CreateRectangle(Vector3 pos) {
-		var p = new PointEntity[4];
-		for(int i = 0; i < p.Length; i++) {
-			p[i] = CreatePoint();
-			p[i].x.name = "x" + i.ToString();
-			p[i].y.name = "y" + i.ToString();
-		}
-
-		p[0].SetPosition(new Vector3(0, 0, 0));
-		p[1].SetPosition(new Vector3(5, 0, 0));
-		p[2].SetPosition(new Vector3(5, 10, 0));
-		p[3].SetPosition(new Vector3(0, 10, 0));
-		for(int i = 0; i < p.Length; i++) {
-			p[i].SetPosition(p[i].GetPosition() + pos);
-		}
-		
-		sys.AddEquation((p[0].GetPositionExp() - p[1].GetPositionExp()).Magnitude() - 5.0);
-		sys.AddEquation((p[1].GetPositionExp() - p[2].GetPositionExp()).Magnitude() - 10.0);
-		sys.AddEquation((p[2].GetPositionExp() - p[3].GetPositionExp()).Magnitude() - 5.0);
-		sys.AddEquation(DirCos(p[0].exp - p[1].exp, p[2].exp - p[1].exp));
-		sys.AddEquation(DirCos(p[1].exp - p[2].exp, p[3].exp - p[2].exp));
-		return p;
-	}
-
-
-	Exp DirCos(ExpVector a, ExpVector b) {
-		return ExpVector.Dot(a, b) / (a.Magnitude() * b.Magnitude());
-	}
-
-	float DirCos(Vector3 a, Vector3 b) {
-		return Vector3.Dot(a, b) / (a.magnitude * b.magnitude);
-	}
-
-	public PointEntity CreatePoint() {
-		return new PointEntity(this);
-	}
-
-	public void CreateLine() {
-		new LineEntity(this);
-	}
-
 	public void AddEntity(Entity e) {
 		if(entities.Contains(e)) return;
 		entities.Add(e);
@@ -113,7 +72,6 @@ public class Sketch : MonoBehaviour {
 		constraints.Add(c);
 		sysDirty = true;
 	}
-
 
 	void UpdateSystem() {
 		if(!sysDirty) return;
@@ -152,6 +110,7 @@ public class Sketch : MonoBehaviour {
 			foreach(var p in c.parameters) {
 				p.changed = false;
 			}
+			c.changed = false;
 		}
 	}
 }

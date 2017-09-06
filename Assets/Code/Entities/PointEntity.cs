@@ -54,4 +54,10 @@ public class PointEntity : Entity {
 		return x.changed || y.changed || z.changed;
 	}
 
+	protected override void OnDrag(Vector3 delta) {
+		x.value += delta.x;
+		y.value += delta.y;
+		z.value += delta.z;
+	}
+
 }
