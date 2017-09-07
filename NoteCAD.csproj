@@ -103,6 +103,7 @@
     <Compile Include="Assets\Code\Tools\PointsCoincidentTool.cs" />
     <Compile Include="Assets\Code\Tools\Tool.cs" />
     <Compile Include="Assets\Code\Tools\ToolBar.cs" />
+    <Compile Include="Assets\Code\Utils\CameraController.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
