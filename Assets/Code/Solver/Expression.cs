@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 public class Param {
 	public string name;
@@ -136,7 +137,7 @@ public class Exp {
 	static public Exp Abs  (Exp x) { return new Exp(Op.Abs,   x, null); }
 	static public Exp Sign (Exp x) { return new Exp(Op.Sign,  x, null); }
 	static public Exp Atan2(Exp x, Exp y) { return new Exp(Op.Atan2, x, y); }
-	static public Exp Pow  (Exp x, Exp y) { return new Exp(Op.Sign,  x, y); }
+	//static public Exp Pow  (Exp x, Exp y) { return new Exp(Op.Pow,   x, y); }
 
 	public Exp Drag(Exp to) {
 		return new Exp(Op.Drag, this, to);
@@ -150,7 +151,14 @@ public class Exp {
 			case Op.Drag:
 			case Op.Sub:	return a.Eval() - b.Eval();
 			case Op.Mul:	return a.Eval() * b.Eval();
-			case Op.Div:	return a.Eval() / b.Eval();
+			case Op.Div: {
+					var bv = b.Eval();
+					if(Math.Abs(bv) < 1e-10) {
+						Debug.Log("Division by zero");
+						bv = 1.0;
+					}
+					return a.Eval() / bv;
+			}
 			case Op.Sin:	return Math.Sin(a.Eval());
 			case Op.Cos:	return Math.Cos(a.Eval());
 			case Op.ACos:	return Math.Acos(a.Eval());
@@ -249,13 +257,14 @@ public class Exp {
 			case Op.Div:	return (a.d(p) * b - a * b.d(p)) / Sqr(b);
 			case Op.Sin:	return a.d(p) * Cos(a);
 			case Op.Cos:	return a.d(p) * -Sin(a);
-			case Op.ASin:	return a.d(p) * one / Sqrt(one - Sqr(a));
+			case Op.ASin:	return a.d(p) / Sqrt(one - Sqr(a));
 			case Op.ACos:	return a.d(p) * mOne / Sqrt(one - Sqr(a));
-			case Op.Sqrt:	return a.d(p) * one / (two * Sqrt(a));
+			case Op.Sqrt:	return a.d(p) / (two * Sqrt(a));
 			case Op.Sqr:	return a.d(p) * two * a;
 			case Op.Abs:	return a.d(p) * Sign(a);
 			case Op.Sign:	return zero;
-			case Op.Atan2:	return (a * b.d(p) - b * a.d(p)) / (Sqr(a) + Sqr(b));
+			case Op.Neg:	return -a.d(p);
+			case Op.Atan2:	return (b * a.d(p) - a * b.d(p)) / (Sqr(a) + Sqr(b));
 		}
 		return zero;
 	}

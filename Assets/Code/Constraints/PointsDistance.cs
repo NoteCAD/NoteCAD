@@ -9,7 +9,7 @@ public class PointsDistance : ValueConstraint {
 	public PointsDistance(Sketch sk, PointEntity p0, PointEntity p1) : base(sk) {
 		this.p0 = p0;
 		this.p1 = p1;
-		value.value = (p0.GetPosition() - p1.GetPosition()).magnitude;
+		Satisfy();
 	}
 
 	public override IEnumerable<Exp> equations {

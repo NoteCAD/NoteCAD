@@ -86,12 +86,30 @@ public class ValueConstraint : Constraint {
 	}
 
 	public double GetValue() {
-		return value.value;
+		return ValueToLabel(value.value);
 	}
 
 	public void SetValue(double v) {
-		value.value = v;
-	} 
+		value.value = LabelToValue(v);
+	}
 
+	public virtual double ValueToLabel(double value) {
+		return value;
+	}
+
+	public virtual double LabelToValue(double label) {
+		return label;
+	}
+
+	protected virtual bool OnSatisfy() {
+		EquationSystem sys = new EquationSystem();
+		sys.AddParameter(value);
+		sys.AddEquations(equations);
+		return sys.Solve() == EquationSystem.SolveResult.OKAY;
+	}
+
+	public bool Satisfy() {
+		return OnSatisfy();
+	}
 }
 
