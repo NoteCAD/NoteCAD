@@ -76,7 +76,6 @@ public class ValueConstraint : Constraint {
 		return base.IsChanged() || changed;
 	}
 
-
 	public Matrix4x4 GetBasis() {
 		return OnGetBasis();
 	}

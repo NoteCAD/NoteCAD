@@ -150,7 +150,7 @@ QualitySettings:
     blendWeights: 4
     textureQuality: 0
     anisotropicTextures: 2
-    antiAliasing: 2
+    antiAliasing: 4
     softParticles: 0
     softVegetation: 1
     realtimeReflectionProbes: 1
@@ -173,7 +173,7 @@ QualitySettings:
     Switch: 5
     Tizen: 2
     Web: 5
-    WebGL: 3
+    WebGL: 5
     WiiU: 5
     Windows Store Apps: 5
     XboxOne: 5
