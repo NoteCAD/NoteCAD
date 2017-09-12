@@ -1,17 +1,48 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+public abstract partial class Entity {
+
+	internal void AddConstraint(Constraint c) {
+		constraints.Add(c);
+	}
+
+	internal void RemoveConstraint(Constraint c) {
+		constraints.Remove(c);
+	}
+}
+
 public class Constraint : SketchObject {
 
 	LineCanvas canvas;
 	bool firstDrawn = false;
 	public bool changed;
 	protected override GameObject gameObject { get { return canvas.gameObject; } }
+	List<Entity> entities = new List<Entity>();
+
+	protected T AddEntity<T>(T e) where T : Entity {
+		e.AddConstraint(this);
+		entities.Add(e);
+		return e;
+	}
 
 	public Constraint(Sketch sk) : base(sk) {
 		sk.AddConstraint(this);
 		var go = new GameObject("constraint");
 		canvas = go.AddComponent<LineCanvas>();
+	}
+
+	public override void Destroy() {
+		if(isDestroyed) return;
+		base.Destroy();
+		foreach(var e in entities) {
+			e.RemoveConstraint(this);
+		}
+		GameObject.Destroy(canvas.gameObject);
+	}
+
+	protected override void OnDestroy() {
+
 	}
 
 	public void Draw() {
@@ -58,6 +89,10 @@ public class ValueConstraint : Constraint {
 	public ValueConstraint(Sketch sk) : base(sk) {
 		behaviour = GameObject.Instantiate(EntityConfig.instance.constraint);
 		behaviour.constraint = this;
+	}
+
+	protected override void OnDestroy() {
+		GameObject.Destroy(behaviour.gameObject);
 	}
 
 	public override IEnumerable<Param> parameters {

@@ -8,8 +8,8 @@ public class AngleConstraint : ValueConstraint {
 	public LineEntity l1 { get; private set; }
 
 	public AngleConstraint(Sketch sk, LineEntity l0, LineEntity l1) : base(sk) {
-		this.l0 = l0;
-		this.l1 = l1;
+		this.l0 = AddEntity(l0);
+		this.l1 = AddEntity(l1);
 		Satisfy();
 	}
 

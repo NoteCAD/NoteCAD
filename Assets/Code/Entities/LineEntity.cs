@@ -10,8 +10,8 @@ public class LineEntity : Entity {
 	LineBehaviour behaviour;
 
 	public LineEntity(Sketch sk) : base(sk) {
-		p0 = new PointEntity(sk);
-		p1 = new PointEntity(sk);
+		p0 = AddChild(new PointEntity(sk));
+		p1 = AddChild(new PointEntity(sk));
 		behaviour = GameObject.Instantiate(EntityConfig.instance.linePrefab);
 		behaviour.entity = this;
 		behaviour.Update();
@@ -19,6 +19,9 @@ public class LineEntity : Entity {
 
 	protected override GameObject gameObject {
 		get {
+			if(behaviour == null) {
+				bool stop = true;
+			}
 			return behaviour.gameObject;
 		}
 	}
@@ -29,4 +32,5 @@ public class LineEntity : Entity {
 			yield return p1;
 		}
 	}
+
 }

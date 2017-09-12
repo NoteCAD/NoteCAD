@@ -34,19 +34,6 @@ public class Sketch : MonoBehaviour {
 
 	private void Start() {
 		instance = this;
-		/*
-		PointEntity[] pr = null;
-		for(int i = 0; i < 10; i++) {
-			var nr = CreateRectangle(new Vector3(i * 5, 0, 0));
-			if(pr != null) {
-				sys.AddEquation(new Exp(pr[1].x) - nr[0].x);
-				sys.AddEquation(new Exp(pr[1].y) - nr[0].y);
-			}
-			pr = nr;
-		}
-		sys.AddEquation(new Exp(pr[3].x));
-		sys.AddEquation(new Exp(pr[3].y));
-		*/
 	}
 
 	public void SetDrag(Exp dragX, Exp dragY) {
@@ -114,4 +101,33 @@ public class Sketch : MonoBehaviour {
 			c.changed = false;
 		}
 	}
+
+	public void Remove(SketchObject sko) {
+		if(sko.sketch != this) {
+			Debug.Log("Can't remove this constraint!");
+			return;
+		}
+		if(hovered == sko) {
+			hovered = null;
+		}
+		if(sko is Constraint) {
+			var c = sko as Constraint;
+			if(constraints.Remove(c)) {
+				c.Destroy();
+				sysDirty = true;
+			} else {
+				Debug.Log("Can't remove this constraint!");
+			}
+		}
+		if(sko is Entity) {
+			var e = sko as Entity;
+			if(entities.Remove(e)) {
+				e.Destroy();
+				sysDirty = true;
+			} else {
+				Debug.Log("Can't remove this entity!");
+			}
+		}
+	}
+
 }

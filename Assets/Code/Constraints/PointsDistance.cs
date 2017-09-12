@@ -7,8 +7,8 @@ public class PointsDistance : ValueConstraint {
 	public PointEntity p1 { get; private set; }
 
 	public PointsDistance(Sketch sk, PointEntity p0, PointEntity p1) : base(sk) {
-		this.p0 = p0;
-		this.p1 = p1;
+		this.p0 = AddEntity(p0);
+		this.p1 = AddEntity(p1);
 		Satisfy();
 	}
 

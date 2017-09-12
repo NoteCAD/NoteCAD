@@ -105,6 +105,7 @@
     <Compile Include="Assets\Code\Tools\MoveTool.cs" />
     <Compile Include="Assets\Code\Tools\PointTool.cs" />
     <Compile Include="Assets\Code\Tools\PointsCoincidentTool.cs" />
+    <Compile Include="Assets\Code\Tools\RemoveTool.cs" />
     <Compile Include="Assets\Code\Tools\Tool.cs" />
     <Compile Include="Assets\Code\Tools\ToolBar.cs" />
     <Compile Include="Assets\Code\Utils\CameraController.cs" />

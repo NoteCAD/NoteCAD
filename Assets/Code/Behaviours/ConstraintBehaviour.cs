@@ -26,4 +26,8 @@ public class ConstraintBehaviour : MonoBehaviour {
 		Sketch.instance.hovered = null;
 	}
 
+	private void OnDestroy() {
+		GameObject.Destroy(text.gameObject);
+	}
+
 }

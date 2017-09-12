@@ -22,10 +22,10 @@ public class Tool : MonoBehaviour {
 	protected virtual void OnActivate() { }
 	protected virtual void OnDeactivate() { }
 	protected virtual void OnUpdate() { }
-	protected virtual void OnMouseDown(Vector3 pos, SketchObject entity) { }
-	protected virtual void OnMouseUp(Vector3 pos, SketchObject entity) { }
-	protected virtual void OnMouseMove(Vector3 pos, SketchObject entity) { }
-	protected virtual void OnMouseDoubleClick(Vector3 pos, SketchObject entity) { }
+	protected virtual void OnMouseDown(Vector3 pos, SketchObject sko) { }
+	protected virtual void OnMouseUp(Vector3 pos, SketchObject sko) { }
+	protected virtual void OnMouseMove(Vector3 pos, SketchObject sko) { }
+	protected virtual void OnMouseDoubleClick(Vector3 pos, SketchObject sko) { }
 
 	public void Activate() {
 		shouldStop = false;

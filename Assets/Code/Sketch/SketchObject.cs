@@ -5,6 +5,7 @@ public abstract class SketchObject {
 
 	Sketch sk;
 	public Sketch sketch { get { return sk; } }
+	public bool isDestroyed { get; private set; }
 
 	public SketchObject(Sketch sketch) {
 		sk = sketch;
@@ -64,6 +65,17 @@ public abstract class SketchObject {
 			if(c == null) return;
 			c.enabled = selectable;
 		}
+	}
+
+	public virtual void Destroy() {
+		if(isDestroyed) return;
+		isDestroyed = true;
+		sketch.Remove(this);
+		OnDestroy();
+	}
+
+	protected virtual void OnDestroy() {
+
 	}
 
 }
