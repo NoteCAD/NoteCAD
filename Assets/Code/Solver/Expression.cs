@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class Param {
 	public string name;
-	public double v;
+	private double v;
 	public bool changed;
 
 	public double value {
