@@ -4,11 +4,11 @@ using UnityEngine;
 public abstract partial class Entity {
 
 	internal void AddConstraint(Constraint c) {
-		constraints.Add(c);
+		usedInConstraints.Add(c);
 	}
 
 	internal void RemoveConstraint(Constraint c) {
-		constraints.Remove(c);
+		usedInConstraints.Remove(c);
 	}
 }
 

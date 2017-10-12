@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public abstract partial class Entity : SketchObject {
 
-	List<Constraint> constraints = new List<Constraint>();
+	List<Constraint> usedInConstraints = new List<Constraint>();
 	List<Entity> children = new List<Entity>();
 	public Entity parent { get; private set; }
+
+	public IEnumerable<Constraint> constraints { get { return usedInConstraints.AsEnumerable(); } }
 
 	protected T AddChild<T>(T e) where T : Entity {
 		children.Add(e);
@@ -31,8 +34,8 @@ public abstract partial class Entity : SketchObject {
 		if(parent != null) {
 			parent.Destroy();
 		}
-		while(constraints.Count > 0) {
-			constraints[0].Destroy();
+		while(usedInConstraints.Count > 0) {
+			usedInConstraints[0].Destroy();
 		}
 		while(children.Count > 0) {
 			children[0].Destroy();
@@ -40,5 +43,13 @@ public abstract partial class Entity : SketchObject {
 		}
 		GameObject.Destroy(gameObject);
 	}
+}
 
+public interface ISegmentaryEntity {
+	PointEntity begin { get; }
+	PointEntity end { get; }
+	IEnumerable<Vector3> segmentPoints { get; }
+}
+
+public interface ILoopEnitity {
 }

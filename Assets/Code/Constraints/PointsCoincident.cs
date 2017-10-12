@@ -17,4 +17,9 @@ public class PointsCoincident : Constraint {
 			yield return p0.z.exp - p1.z;
 		}
 	}
+
+	public PointEntity GetOtherPoint(PointEntity p) {
+		if(p0 == p) return p1;
+		return p0;
+	}
 }

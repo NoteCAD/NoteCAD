@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 public class Sketch : MonoBehaviour {
 	List<Entity> entities = new List<Entity>();
@@ -57,7 +58,7 @@ public class Sketch : MonoBehaviour {
 
 	public void AddConstraint(Constraint c) {
 		if(constraints.Contains(c)) return;
-		constraints.Add(c);
+			constraints.Add(c);
 		sysDirty = true;
 	}
 
@@ -100,6 +101,25 @@ public class Sketch : MonoBehaviour {
 			}
 			c.changed = false;
 		}
+	}
+
+	void GenerateLoops() {
+		var all = entities.OfType<ISegmentaryEntity>().ToList();
+		var first = all.FirstOrDefault();
+		var current = first;
+		PointEntity prev = null;
+		List<Entity> loop = new List<Entity>();
+		while(current != null) {
+			var entity = current as Entity;
+			loop.Add(entity);
+			var connected = current.end.constraints
+				.OfType<PointsCoincident>()
+				.Select(pc => pc.GetOtherPoint(current.end))
+				.Where(p => p != prev);
+			//prev = current;
+			//current = connected.FirstOrDefault();
+		}
+
 	}
 
 	public void Remove(SketchObject sko) {

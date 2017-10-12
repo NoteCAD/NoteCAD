@@ -15,12 +15,21 @@ public class AngleConstraint : ValueConstraint {
 
 	public override IEnumerable<Exp> equations {
 		get {
-			ExpVector d0 = l0.p1.exp - l0.p0.exp;
-			ExpVector d1 = l1.p1.exp - l1.p0.exp;
+			var p = GetPoints();
+			ExpVector d0 = p[0].exp - p[1].exp;
+			ExpVector d1 = p[3].exp - p[2].exp;
 			Exp du = d1.x * d0.x + d1.y * d0.y;
 			Exp dv = d0.x * d1.y - d0.y * d1.x;
 			yield return Exp.Atan2(dv, du) - value;
 		}
+	}
+
+	PointEntity[] GetPoints() {
+		if(l0.p0.IsCoincidentWith(l1.p0)) return new PointEntity[4] { l0.p1, l0.p0, l1.p0, l1.p1 };
+		if(l0.p0.IsCoincidentWith(l1.p1)) return new PointEntity[4] { l0.p1, l0.p0, l1.p1, l1.p0 };
+		if(l0.p1.IsCoincidentWith(l1.p0)) return new PointEntity[4] { l0.p0, l0.p1, l1.p0, l1.p1 };
+		if(l0.p1.IsCoincidentWith(l1.p1)) return new PointEntity[4] { l0.p0, l0.p1, l1.p1, l1.p0 };
+		return new PointEntity[4] { l0.p0, l0.p1, l1.p0, l1.p1 };
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
@@ -63,12 +72,12 @@ public class AngleConstraint : ValueConstraint {
 	}
 
 	protected override bool OnIsChanged() {
-		//return l0.IsChanged() || l1.IsChanged();
-		return false;
+		return l0.IsChanged() || l1.IsChanged();
 	}
 	
 	protected override Matrix4x4 OnGetBasis() {
-		var pos = l0.p0.GetPosition();
+		var points = GetPoints();
+		var pos = points[1].GetPosition();
 		var dir = l0.p0.GetPosition() - l0.p1.GetPosition();
 		var ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 		var rot = Quaternion.AngleAxis(ang, Vector3.forward);

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class PointEntity : Entity {
 
@@ -59,6 +60,18 @@ public class PointEntity : Entity {
 		x.value += delta.x;
 		y.value += delta.y;
 		z.value += delta.z;
+	}
+
+	
+	private bool IsCoincidentWith(PointEntity point, PointEntity exclude) {
+		return constraints.
+			OfType<PointsCoincident>().
+			Select(c => c.GetOtherPoint(this)).
+			Any(p => p == point || p != exclude && p.IsCoincidentWith(point, this));
+	}
+
+	public bool IsCoincidentWith(PointEntity point) {
+		return IsCoincidentWith(point, null);
 	}
 
 }
