@@ -25,7 +25,14 @@ public class CameraController : MonoBehaviour {
 			camera.transform.position -= pos - click;
 			click = Tool.MousePos;
 		}
-		camera.orthographicSize -= Input.mouseScrollDelta.y;
-		if(camera.orthographicSize < 0.001f) camera.orthographicSize = 0.001f;
+		if(Input.mouseScrollDelta.y != 0f) {
+			var factor = 1f - Input.mouseScrollDelta.y * 0.1f;
+			var mousePos = camera.ScreenToWorldPoint(Input.mousePosition);
+			var centerPos = camera.ViewportToWorldPoint(new Vector3(0.5f, 0.5f, 0.0f));
+			var delta = (centerPos - mousePos) * (factor - 1f);
+			delta.z = 0f;
+			camera.transform.position += delta;
+			camera.orthographicSize *= factor;
+		}
 	}
 }
