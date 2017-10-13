@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 
 public abstract class SketchObject {
@@ -75,6 +76,14 @@ public abstract class SketchObject {
 	}
 
 	protected virtual void OnDestroy() {
+
+	}
+
+	public virtual void Write(XmlTextWriter xml) {
+		OnWrite(xml);
+	}
+
+	protected virtual void OnWrite(XmlTextWriter xml) {
 
 	}
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System.Xml;
 
 public class PointEntity : Entity {
 
@@ -74,4 +75,9 @@ public class PointEntity : Entity {
 		return IsCoincidentWith(point, null);
 	}
 
+	protected override void OnWrite(XmlTextWriter xml) {
+		xml.WriteAttributeString("x", x.value.ToString());
+		xml.WriteAttributeString("y", y.value.ToString());
+		xml.WriteAttributeString("z", z.value.ToString());
+	}
 }

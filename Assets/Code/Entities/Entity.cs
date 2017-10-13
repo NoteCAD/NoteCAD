@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System.Xml;
 
 public abstract partial class Entity : SketchObject {
 
@@ -43,6 +44,21 @@ public abstract partial class Entity : SketchObject {
 		}
 		GameObject.Destroy(gameObject);
 	}
+
+	public override void Write(XmlTextWriter xml) {
+		xml.WriteStartElement("entity");
+		xml.WriteAttributeString("type", this.GetType().Name);
+		OnWrite(xml);
+		if(children.Count > 0) {
+			xml.WriteStartElement("children");
+			foreach(var c in children) {
+				c.Write(xml);
+			}
+			xml.WriteEndElement();
+		}
+		xml.WriteEndElement();
+	}
+
 }
 
 public interface ISegmentaryEntity {

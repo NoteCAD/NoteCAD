@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using System.IO;
+using System.Xml;
 
 public class Sketch : MonoBehaviour {
 	List<Entity> entities = new List<Entity>();
@@ -120,6 +122,37 @@ public class Sketch : MonoBehaviour {
 			//current = connected.FirstOrDefault();
 		}
 
+	}
+
+	public string WriteXml() {
+		var text = new StringWriter();
+		var xml = new XmlTextWriter(text);
+		xml.Formatting = Formatting.Indented;
+		xml.IndentChar = '\t';
+		xml.Indentation = 1;
+		xml.WriteStartDocument();
+		xml.WriteStartElement("sketch");
+		foreach(var e in entities) {
+			if(e.parent != null) continue;
+			e.Write(xml);
+		}
+		xml.WriteEndElement();
+		return text.ToString();
+	}
+
+	public void ReadXml(string str) {
+		var text = new StringReader(str);
+		var xml = new XmlTextReader(text);
+
+		Type[] types = { typeof(Sketch) };
+		object[] param = { this };
+
+		xml.ReadStartElement("sketch");
+		while(xml.Read() && xml.Name == "entity") {
+			var type = xml.GetAttribute("type");
+			var entity = Type.GetType(type).GetConstructor(types).Invoke(param);
+			//entity.Read(xml);
+		}
 	}
 
 	public void Remove(SketchObject sko) {
