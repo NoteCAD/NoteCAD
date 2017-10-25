@@ -16,6 +16,6 @@ public class LoadTool : Tool, IPointerDownHandler {
 	}
 
 	void DataLoaded(string data) {
-		GetComponentInChildren<Text>().text = data;
+		Sketch.instance.ReadXml(data);
 	}
 }

@@ -6,6 +6,8 @@ public class PointsDistance : ValueConstraint {
 	public PointEntity p0 { get; private set; }
 	public PointEntity p1 { get; private set; }
 
+	public PointsDistance(Sketch sk) : base(sk) { }
+
 	public PointsDistance(Sketch sk, PointEntity p0, PointEntity p1) : base(sk) {
 		this.p0 = AddEntity(p0);
 		this.p1 = AddEntity(p1);
@@ -66,4 +68,10 @@ public class PointsDistance : ValueConstraint {
 		var rot = Quaternion.AngleAxis(ang, Vector3.forward);
 		return Matrix4x4.TRS(pos, rot, Vector3.one); 
 	}
+		
+	protected override void OnRead(System.Xml.XmlNode xml) {
+		p0 = GetEntity(0) as PointEntity;
+		p1 = GetEntity(1) as PointEntity;
+	}
+
 }

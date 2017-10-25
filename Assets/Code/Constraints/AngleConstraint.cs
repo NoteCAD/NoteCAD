@@ -7,6 +7,8 @@ public class AngleConstraint : ValueConstraint {
 	public LineEntity l0 { get; private set; }
 	public LineEntity l1 { get; private set; }
 
+	public AngleConstraint(Sketch sk) : base(sk) { }
+
 	public AngleConstraint(Sketch sk, LineEntity l0, LineEntity l1) : base(sk) {
 		this.l0 = AddEntity(l0);
 		this.l1 = AddEntity(l1);
@@ -91,4 +93,10 @@ public class AngleConstraint : ValueConstraint {
 	public override double ValueToLabel(double value) {
 		return value / Math.PI * 180.0;
 	}
+
+	protected override void OnRead(System.Xml.XmlNode xml) {
+		l0 = GetEntity(0) as LineEntity;
+		l1 = GetEntity(1) as LineEntity;
+	}
+
 }

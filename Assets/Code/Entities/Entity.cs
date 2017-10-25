@@ -48,7 +48,7 @@ public abstract partial class Entity : SketchObject {
 	public override void Write(XmlTextWriter xml) {
 		xml.WriteStartElement("entity");
 		xml.WriteAttributeString("type", this.GetType().Name);
-		OnWrite(xml);
+		base.Write(xml);
 		if(children.Count > 0) {
 			xml.WriteStartElement("children");
 			foreach(var c in children) {
@@ -59,6 +59,18 @@ public abstract partial class Entity : SketchObject {
 		xml.WriteEndElement();
 	}
 
+	public override void Read(XmlNode xml) {
+		base.Read(xml);
+		foreach(XmlNode xmlChildren in xml.ChildNodes) {
+			if(xmlChildren.Name != "children") continue;
+			int i = 0;
+			foreach(XmlNode xmlChild in xmlChildren.ChildNodes) {
+				children[i].Read(xmlChild);
+				i++;
+			}
+		}
+	}
+		
 }
 
 public interface ISegmentaryEntity {

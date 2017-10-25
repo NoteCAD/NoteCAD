@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Xml;
+using System;
 using UnityEngine;
 
 public abstract partial class Entity {
@@ -62,6 +64,32 @@ public class Constraint : SketchObject {
 
 	protected virtual void OnDraw(LineCanvas canvas) {
 		
+	}
+
+	public override void Write(XmlTextWriter xml) {
+		xml.WriteStartElement("constraint");
+		xml.WriteAttributeString("type", this.GetType().Name);
+		base.Write(xml);
+		foreach(var e in entities) {
+			xml.WriteStartElement("entity");
+			xml.WriteAttributeString("guid", e.guid.ToString());
+			xml.WriteEndElement();
+		}
+		xml.WriteEndElement();
+	}
+
+	public override void Read(XmlNode xml) {
+		foreach(XmlNode node in xml.ChildNodes) {
+			if(node.Name != "entity") continue;
+			var guid = new Guid(node.Attributes["guid"].Value);
+			var entity = sketch.GetEntity(guid);
+			AddEntity(entity);
+		}
+		base.Read(xml);
+	}
+
+	public Entity GetEntity(int i) {
+		return entities[i];
 	}
 }
 
@@ -144,6 +172,23 @@ public class ValueConstraint : Constraint {
 
 	public bool Satisfy() {
 		return OnSatisfy();
+	}
+
+	protected override void OnWrite(XmlTextWriter xml) {
+		xml.WriteAttributeString("x", position.x.ToString());
+		xml.WriteAttributeString("y", position.y.ToString());
+		xml.WriteAttributeString("z", position.z.ToString());
+		xml.WriteAttributeString("value", GetValue().ToString());
+	}
+
+	public override void Read(XmlNode xml) {
+		base.Read(xml);
+		Vector3 pos;
+		pos.x = float.Parse(xml.Attributes["x"].Value);
+		pos.y = float.Parse(xml.Attributes["y"].Value);
+		pos.z = float.Parse(xml.Attributes["z"].Value);
+		position = pos;
+		SetValue(double.Parse(xml.Attributes["value"].Value));
 	}
 }
 

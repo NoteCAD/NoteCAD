@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Xml;
+using System;
 using UnityEngine;
 
 public abstract class SketchObject {
@@ -7,9 +8,11 @@ public abstract class SketchObject {
 	Sketch sk;
 	public Sketch sketch { get { return sk; } }
 	public bool isDestroyed { get; private set; }
+	public Guid guid { get; private set; }
 
 	public SketchObject(Sketch sketch) {
 		sk = sketch;
+		guid = Guid.NewGuid();
 	}
 	protected abstract GameObject gameObject { get; }
 
@@ -80,11 +83,21 @@ public abstract class SketchObject {
 	}
 
 	public virtual void Write(XmlTextWriter xml) {
+		xml.WriteAttributeString("guid", guid.ToString());
 		OnWrite(xml);
 	}
 
 	protected virtual void OnWrite(XmlTextWriter xml) {
 
+	}
+
+	public virtual void Read(XmlNode xml) {
+		guid = new Guid(xml.Attributes["guid"].Value);
+		OnRead(xml);
+	}
+
+	protected virtual void OnRead(XmlNode xml)  {
+	
 	}
 
 }

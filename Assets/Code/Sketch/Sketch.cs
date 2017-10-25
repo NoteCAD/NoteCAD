@@ -58,6 +58,10 @@ public class Sketch : MonoBehaviour {
 		sysDirty = true;
 	}
 
+	public Entity GetEntity(Guid guid) {
+		return entities.Find(e => e.guid == guid);
+	}
+
 	public void AddConstraint(Constraint c) {
 		if(constraints.Contains(c)) return;
 			constraints.Add(c);
@@ -132,26 +136,47 @@ public class Sketch : MonoBehaviour {
 		xml.Indentation = 1;
 		xml.WriteStartDocument();
 		xml.WriteStartElement("sketch");
+		xml.WriteStartElement("entities");
 		foreach(var e in entities) {
 			if(e.parent != null) continue;
 			e.Write(xml);
 		}
 		xml.WriteEndElement();
+
+		xml.WriteStartElement("constraints");
+		foreach(var c in constraints) {
+			c.Write(xml);
+		}
+		xml.WriteEndElement();
+
+		xml.WriteEndElement();
 		return text.ToString();
 	}
 
 	public void ReadXml(string str) {
-		var text = new StringReader(str);
-		var xml = new XmlTextReader(text);
+		var xml = new XmlDocument();
+		xml.LoadXml(str);
 
 		Type[] types = { typeof(Sketch) };
 		object[] param = { this };
-
-		xml.ReadStartElement("sketch");
-		while(xml.Read() && xml.Name == "entity") {
-			var type = xml.GetAttribute("type");
-			var entity = Type.GetType(type).GetConstructor(types).Invoke(param);
-			//entity.Read(xml);
+		foreach(XmlNode nodeKind in xml.DocumentElement.ChildNodes) {
+			if(nodeKind.Name == "entities") {
+				foreach(XmlNode node in nodeKind.ChildNodes) {
+					if(node.Name != "entity") continue;
+					var type = node.Attributes["type"].Value;
+					var entity = Type.GetType(type).GetConstructor(types).Invoke(param) as Entity;
+					entity.Read(node);
+				}
+			}
+			if(nodeKind.Name == "constraints") {
+				foreach(XmlNode node in nodeKind.ChildNodes) {
+					if(node.Name != "constraint") continue;
+					var type = node.Attributes["type"].Value;
+					var t = Type.GetType(type).GetConstructor(types);
+					var constraint = Type.GetType(type).GetConstructor(types).Invoke(param) as Constraint;
+					constraint.Read(node);
+				}
+			}
 		}
 	}
 

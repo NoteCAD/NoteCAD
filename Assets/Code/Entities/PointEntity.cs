@@ -80,4 +80,10 @@ public class PointEntity : Entity {
 		xml.WriteAttributeString("y", y.value.ToString());
 		xml.WriteAttributeString("z", z.value.ToString());
 	}
+
+	protected override void OnRead(XmlNode xml) {
+		x.value = double.Parse(xml.Attributes["x"].Value);
+		y.value = double.Parse(xml.Attributes["y"].Value);
+		z.value = double.Parse(xml.Attributes["z"].Value);
+	}
 }
