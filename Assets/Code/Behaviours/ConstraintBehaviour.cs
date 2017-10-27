@@ -27,7 +27,9 @@ public class ConstraintBehaviour : MonoBehaviour {
 	}
 
 	private void OnDestroy() {
-		GameObject.Destroy(text.gameObject);
+		if(text != null) {
+			GameObject.Destroy(text.gameObject);
+		}
 	}
 
 }
