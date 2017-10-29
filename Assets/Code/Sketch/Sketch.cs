@@ -70,6 +70,7 @@ public class Sketch : MonoBehaviour {
 
 	void UpdateSystem() {
 		if(!sysDirty) return;
+		GenerateLoops();
 		sys.Clear();
 		foreach(var e in entities) {
 			sys.AddParameters(e.parameters);
@@ -109,23 +110,43 @@ public class Sketch : MonoBehaviour {
 		}
 	}
 
-	void GenerateLoops() {
+	List<List<Entity>> GenerateLoops() {
 		var all = entities.OfType<ISegmentaryEntity>().ToList();
 		var first = all.FirstOrDefault();
 		var current = first;
-		PointEntity prev = null;
+		ISegmentaryEntity prev = null;
 		List<Entity> loop = new List<Entity>();
+		List<List<Entity>> loops = new List<List<Entity>>();
 		while(current != null) {
-			var entity = current as Entity;
-			loop.Add(entity);
-			var connected = current.end.constraints
-				.OfType<PointsCoincident>()
-				.Select(pc => pc.GetOtherPoint(current.end))
-				.Where(p => p != prev);
-			//prev = current;
-			//current = connected.FirstOrDefault();
+			all.Remove(current);
+			loop.Add(current as Entity);
+			var points = new List<PointEntity> { current.begin, current.end };
+			bool found = false;
+			foreach(var point in points) {
+				var connected = point.constraints
+					.OfType<PointsCoincident>()
+					.Select(p => p.GetOtherPoint(point))
+					.Select(p => p.parent)
+					.OfType<ISegmentaryEntity>()
+					.Where(e => e != current && e != prev);
+				if(connected.Any()) {
+					prev = current;
+					current = connected.First() as ISegmentaryEntity;
+					found = true;
+				}
+			}
+			if(!found || current == first) {
+				if(found && current == first) loops.Add(loop);
+				loop = new List<Entity>();
+				first = all.FirstOrDefault();
+				current = first;
+				continue;
+			}
 		}
-
+		foreach(var l in loops) {
+			Debug.Log("loop entities: " + l.Count);
+		}
+		return loops;
 	}
 
 	public string WriteXml() {
