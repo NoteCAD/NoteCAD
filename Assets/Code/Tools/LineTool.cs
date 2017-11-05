@@ -5,6 +5,7 @@ using UnityEngine;
 public class LineTool : Tool {
 
 	LineEntity current;
+	bool canCreate = true;
 
 	bool AutoConstrainCoincident(PointEntity point, Entity with) {
 		if(with is PointEntity) {
@@ -19,11 +20,13 @@ public class LineTool : Tool {
 	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
 
 		if(current != null) {
+			if(!canCreate) return;
 			current.p1.SetPosition(pos);
 			current.p1.isSelectable = true;
 			current.p0.isSelectable = true;
 			current.isSelectable = true;
 			if(AutoConstrainCoincident(current.p1, sko as Entity)) {
+				current = null;
 				StopTool();
 				return;
 			}
@@ -47,16 +50,20 @@ public class LineTool : Tool {
 	protected override void OnMouseMove(Vector3 pos, SketchObject entity) {
 		if(current != null) {
 			current.p1.SetPosition(pos);
+			var itr = new Vector3();
+			canCreate = !current.sketch.IsCrossed(current, ref itr);
+			current.isError = !canCreate;
+		} else {
+			canCreate = true;
 		}
 	}
 
 	protected override void OnDeactivate() {
 		if(current != null) {
-			current.isSelectable = true;
-			current.p0.isSelectable = true;
-			current.p1.isSelectable = true;
+			current.Destroy();
+			current = null;
 		}
-		current = null;
+		canCreate = true;
 	}
 
 }

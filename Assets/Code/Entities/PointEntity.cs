@@ -27,6 +27,15 @@ public class PointEntity : Entity {
 		behaviour.Update();
 	}
 
+	public Vector3 pos {
+		get {
+			return GetPosition();
+		}
+		set {
+			SetPosition(value);
+		}
+	}
+
 	public ExpVector GetPositionExp() {
 		return new ExpVector(x, y, z);
 	}

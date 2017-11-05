@@ -70,6 +70,10 @@ public abstract partial class Entity : SketchObject {
 			}
 		}
 	}
+
+	public virtual bool IsCrossed(Entity e, ref Vector3 itr) {
+		return false;
+	}
 		
 }
 

@@ -46,4 +46,12 @@ public class LineEntity : Entity, ISegmentaryEntity {
 		}
 	}
 
+	public override bool IsCrossed(Entity e, ref Vector3 itr) {
+		if(e is LineEntity) {
+			var l = e as LineEntity;
+			return GeomUtils.isSegmentsCrossed(p0.pos, p1.pos, l.p0.pos, l.p1.pos, ref itr, Mathf.Epsilon) == GeomUtils.Cross.INTERSECTION;
+		}
+		return false;
+	}
+
 }

@@ -5,6 +5,13 @@ public class PointsCoincident : Constraint {
 	public PointEntity p0 { get; private set; }
 	public PointEntity p1 { get; private set; }
 
+	public IEnumerable<PointEntity> points {
+		get {
+			yield return p0;
+			yield return p1;
+		}
+	}
+
 	public PointsCoincident(Sketch sk) : base(sk) { }
 
 	public PointsCoincident(Sketch sk, PointEntity p0, PointEntity p1) : base(sk) {

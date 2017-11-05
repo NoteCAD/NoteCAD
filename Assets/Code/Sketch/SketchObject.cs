@@ -37,6 +37,7 @@ public abstract class SketchObject {
 			var r = gameObject.GetComponent<Renderer>();
 			var t = gameObject.GetComponent<UnityEngine.UI.Text>();
 			hovered = value;
+			if(isError) return;
 			if(!hovered) {
 				if(r != null) {
 					r.material.color = oldColor;
@@ -52,6 +53,39 @@ public abstract class SketchObject {
 				} else if(t != null) {
 					oldColor = t.color;
 					t.color = Color.yellow;
+				}
+			}
+		}
+	}
+
+	bool error;
+	public bool isError {
+		get {
+			return error;
+		}
+		set {
+			if(value == error) return;
+			if(value) {
+				isHovered = false;
+			}
+			var r = gameObject.GetComponent<Renderer>();
+			var t = gameObject.GetComponent<UnityEngine.UI.Text>();
+			error = value;
+			if(!error) {
+				if(r != null) {
+					r.material.color = oldColor;
+					r.material.renderQueue--;
+				} else if(t != null) {
+					t.color = oldColor;
+				}
+			} else {
+				if(r != null) {
+					oldColor = r.material.color;
+					r.material.color = Color.red;
+					r.material.renderQueue++;
+				} else if(t != null) {
+					oldColor = t.color;
+					t.color = Color.red;
 				}
 			}
 		}

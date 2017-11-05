@@ -15,6 +15,7 @@ public class MoveTool : Tool {
 	Param dragYP = new Param("dragY");
 	ValueConstraint valueConstraint;
 	public InputField input;
+	bool canMove = true;
 
 	private void Start() {
 		input.onEndEdit.AddListener(OnEndEdit);
@@ -48,6 +49,7 @@ public class MoveTool : Tool {
 		}
 		dragX = null;
 		dragY = null;
+		canMove = true;
 	}
 
 	protected override void OnDeactivate() {
@@ -56,7 +58,7 @@ public class MoveTool : Tool {
 		input.gameObject.SetActive(false);
 	}
 
-	protected override void OnMouseMove(Vector3 pos, SketchObject entity) {
+	protected override void OnMouseMove(Vector3 pos, SketchObject sko) {
 		if(current == null) return;
 		var delta = pos - click;
 		if(dragX != null) {
@@ -68,7 +70,7 @@ public class MoveTool : Tool {
 		click = pos;
 	}
 
-	protected override void OnMouseUp(Vector3 pos, SketchObject entity) {
+	protected override void OnMouseUp(Vector3 pos, SketchObject sko) {
 		ClearDrag();
 	}
 	

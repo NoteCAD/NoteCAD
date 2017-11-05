@@ -86,13 +86,16 @@
     <Compile Include="Assets\Code\Behaviours\PointBehaviour.cs" />
     <Compile Include="Assets\Code\Constraints\AngleConstraint.cs" />
     <Compile Include="Assets\Code\Constraints\Constraint.cs" />
+    <Compile Include="Assets\Code\Constraints\EqualLineLine.cs" />
     <Compile Include="Assets\Code\Constraints\PointsCoincident.cs" />
     <Compile Include="Assets\Code\Constraints\PointsDistance.cs" />
+    <Compile Include="Assets\Code\DraftStroke\DraftStroke.cs" />
     <Compile Include="Assets\Code\Entities\Entity.cs" />
     <Compile Include="Assets\Code\Entities\LineEntity.cs" />
     <Compile Include="Assets\Code\Entities\PointEntity.cs" />
-    <Compile Include="Assets\Code\Geometry\EntityLoop.cs" />
-    <Compile Include="Assets\Code\Geometry\Polygon.cs" />
+    <Compile Include="Assets\Code\Geometry\GeomUtils.cs" />
+    <Compile Include="Assets\Code\Geometry\STLExport.cs" />
+    <Compile Include="Assets\Code\Geometry\Triangulation.cs" />
     <Compile Include="Assets\Code\Sketch\Sketch.cs" />
     <Compile Include="Assets\Code\Sketch\SketchObject.cs" />
     <Compile Include="Assets\Code\Solver\EquationSystem.cs" />
@@ -101,6 +104,8 @@
     <Compile Include="Assets\Code\Solver\GaussianMethod.cs" />
     <Compile Include="Assets\Code\Tools\AngleTool.cs" />
     <Compile Include="Assets\Code\Tools\DistanceTool.cs" />
+    <Compile Include="Assets\Code\Tools\EqualTool.cs" />
+    <Compile Include="Assets\Code\Tools\ExportSTLTool.cs" />
     <Compile Include="Assets\Code\Tools\LineTool.cs" />
     <Compile Include="Assets\Code\Tools\LoadTool.cs" />
     <Compile Include="Assets\Code\Tools\MoveTool.cs" />
