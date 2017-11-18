@@ -98,7 +98,7 @@ public class ValueConstraint : Constraint {
 	protected Param value = new Param("value");
 	public bool reference;
 	Vector3 position_;
-	public Vector3 position {
+	public Vector3 pos {
 		get {
 			return GetBasis().MultiplyPoint(position_);
 		}
@@ -132,7 +132,7 @@ public class ValueConstraint : Constraint {
 
 	protected override void OnDrag(Vector3 delta) {
 		if(delta == Vector3.zero) return;
-		position += delta;
+		pos += delta;
 	}
 
 	public override bool IsChanged() {
@@ -175,9 +175,9 @@ public class ValueConstraint : Constraint {
 	}
 
 	protected override void OnWrite(XmlTextWriter xml) {
-		xml.WriteAttributeString("x", position.x.ToString());
-		xml.WriteAttributeString("y", position.y.ToString());
-		xml.WriteAttributeString("z", position.z.ToString());
+		xml.WriteAttributeString("x", pos.x.ToString());
+		xml.WriteAttributeString("y", pos.y.ToString());
+		xml.WriteAttributeString("z", pos.z.ToString());
 		xml.WriteAttributeString("value", GetValue().ToString());
 	}
 
@@ -187,7 +187,7 @@ public class ValueConstraint : Constraint {
 		pos.x = float.Parse(xml.Attributes["x"].Value);
 		pos.y = float.Parse(xml.Attributes["y"].Value);
 		pos.z = float.Parse(xml.Attributes["z"].Value);
-		position = pos;
+		this.pos = pos;
 		SetValue(double.Parse(xml.Attributes["value"].Value));
 	}
 }

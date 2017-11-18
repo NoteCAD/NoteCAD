@@ -19,9 +19,6 @@ public class LineEntity : Entity, ISegmentaryEntity {
 
 	protected override GameObject gameObject {
 		get {
-			if(behaviour == null) {
-				bool stop = true;
-			}
 			return behaviour.gameObject;
 		}
 	}

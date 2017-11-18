@@ -12,7 +12,7 @@ public class ConstraintBehaviour : MonoBehaviour {
 	}
 
 	public void Update() {
-		transform.position = constraint.position;
+		transform.position = constraint.pos;
 		text.transform.position = Camera.main.WorldToScreenPoint(transform.position);
 		text.text = constraint.GetValue().ToString("F2");
 	}

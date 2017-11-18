@@ -155,7 +155,23 @@ public static class GeomUtils {
 		
 		return Cross.INTERSECTION;
 	}
+
+	public static bool isLinesCrossed(Vector3 A1, Vector3 B1, Vector3 A2, Vector3 B2, ref Vector3 itr, float USEEPS) {
+		Vector3 L1 = B1 - A1;
+		Vector3 L2 = B2 - A2;
 	
+
+		Vector3 N1 = Vector3.Cross(L1, Vector3.forward).normalized;
+		Plane plane = new Plane(N1, A1);
+		Ray ray = new Ray(A2, L2);
+		float enter = 0.0f;
+		
+		if (plane.Raycast(ray, out enter) == false) return false;
+		
+		itr = ray.GetPoint(enter);
+		
+		return true;
+	}
 	
 }
 

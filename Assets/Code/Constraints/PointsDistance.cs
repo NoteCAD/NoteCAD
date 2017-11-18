@@ -25,7 +25,7 @@ public class PointsDistance : ValueConstraint {
 		Vector3 p1p = p1.GetPosition();
 		Vector3 dir = p1p - p0p;
 		Vector3 perp = Vector3.Cross(dir, Vector3.forward).normalized;
-		float dist = Vector3.Dot(position - p0p, perp);
+		float dist = Vector3.Dot(pos - p0p, perp);
 		
 		Vector3 p2 = p0p + perp * dist;
 		Vector3 p3 = p1p + perp * dist;
@@ -35,7 +35,7 @@ public class PointsDistance : ValueConstraint {
 		canvas.DrawLine(p0p, p2 + m);
 		canvas.DrawLine(p1p, p3 + m);
 
-		float len = Vector3.Dot(position - p0p, dir) / Vector3.Dot(dir, dir);
+		float len = Vector3.Dot(pos - p0p, dir) / Vector3.Dot(dir, dir);
 		Vector3 u = dir.normalized;
 		Vector3 v = perp.normalized;
 

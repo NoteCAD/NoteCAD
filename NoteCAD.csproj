@@ -109,6 +109,7 @@
     <Compile Include="Assets\Code\Tools\LineTool.cs" />
     <Compile Include="Assets\Code\Tools\LoadTool.cs" />
     <Compile Include="Assets\Code\Tools\MoveTool.cs" />
+    <Compile Include="Assets\Code\Tools\NewTool.cs" />
     <Compile Include="Assets\Code\Tools\PointTool.cs" />
     <Compile Include="Assets\Code\Tools\PointsCoincidentTool.cs" />
     <Compile Include="Assets\Code\Tools\RemoveTool.cs" />

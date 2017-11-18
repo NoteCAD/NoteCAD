@@ -40,7 +40,11 @@ public class ToolBar : MonoBehaviour {
 			}
 		}
 
-		if(activeTool != null && Input.GetKeyDown(KeyCode.Mouse0)) {
+		bool mouseDown = Input.GetKeyDown(KeyCode.Mouse0) || Input.GetMouseButtonDown(0);
+#if UNITY_WEBGL
+		mouseDown = mouseDown || Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Began;
+#endif
+		if(activeTool != null && mouseDown) {
 			if(doubleClickTime < 0.3f) {
 				activeTool.MouseDoubleClick(Tool.MousePos, Sketch.instance.hovered);
 			}
@@ -48,7 +52,12 @@ public class ToolBar : MonoBehaviour {
 			doubleClickTime = 0f;
 		}
 
-		if(activeTool != null && Input.GetKeyUp(KeyCode.Mouse0)) {
+		bool mouseUp = Input.GetKeyUp(KeyCode.Mouse0) || Input.GetMouseButtonUp(0);
+#if UNITY_WEBGL
+		mouseUp = mouseUp || Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Ended;
+#endif
+
+		if(activeTool != null && mouseUp) {
 			activeTool.MouseUp(Tool.MousePos, Sketch.instance.hovered);
 		}
 
@@ -88,5 +97,4 @@ public class ToolBar : MonoBehaviour {
 	public void ActivateDefaultTool() {
 		ActiveTool = defaultTool;
 	}
-
 }

@@ -21,7 +21,7 @@ public class DistanceTool : Tool {
 		if(p0 == null && entity is LineEntity) {
 			var line = entity as LineEntity;
 			constraint = new PointsDistance(line.sketch, line.p0, line.p1);
-			constraint.position = pos;
+			constraint.pos = pos;
 			return;
 		}
 
@@ -29,7 +29,7 @@ public class DistanceTool : Tool {
 		var p = entity as PointEntity;
 		if(p0 != null) {
 			constraint = new PointsDistance(entity.sketch, p0, p);
-			constraint.position = pos;
+			constraint.pos = pos;
 			p0 = null;
 		} else {
 			p0 = p;

@@ -22,7 +22,7 @@ public class AngleTool : Tool {
 		var l = entity as LineEntity;
 		if(l0 != null) {
 			constraint = new AngleConstraint(entity.sketch, l0, l);
-			constraint.position = pos;
+			constraint.pos = pos;
 			l0 = null;
 		} else {
 			l0 = l;

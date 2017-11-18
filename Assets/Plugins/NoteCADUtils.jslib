@@ -16,7 +16,6 @@ mergeInto(LibraryManager.library, {
     saveDataFunc(Pointer_stringify(data), Pointer_stringify(fileName));
   },
   LoadDataInternal: function() {
-    console.log("log 1");
     if (!document.getElementById('FileUploadingPluginInput'))
           Init();
     document.getElementById('gameContainer').addEventListener('click', openFileDialog, false);
@@ -30,15 +29,12 @@ mergeInto(LibraryManager.library, {
         //inputFile.setAttribute('accept', 'image/*'); //or accept="audio/mp3"
      
         inputFile.style.visibility = 'hidden';
-     
         inputFile.onclick = function (event) {
-            console.log("log 3");
             this.value=null;
         };
 
         inputFile.onchange = function (evt) {
             //process file
-            console.log("log 4");
             evt.stopPropagation();
             var fileInput = evt.target.files;
             if (!fileInput || !fileInput.length) {
@@ -49,9 +45,6 @@ mergeInto(LibraryManager.library, {
             reader.readAsText(fileInput[0]);
             
             reader.onload = function() {
-              var buffer = _malloc(lengthBytesUTF8(reader.result) + 1);
-              writeStringToMemory(reader.result, buffer);
-              //callbackForBuffer(buffer);
               SendMessage('JSUtils', 'LoadDataCallback', reader.result);
             }
         }
@@ -59,12 +52,25 @@ mergeInto(LibraryManager.library, {
     }
 
     function openFileDialog() {
-            console.log("log 2");
             document.getElementById('gameContainer').removeEventListener('click', openFileDialog);
             document.getElementById('FileUploadingPluginInput').click();
             
     }
-
+  },
+  GetParam: function (param) {
+    var vars = {};
+    window.location.href.replace( location.hash, '' ).replace( 
+        /[?&]+([^=&]+)=?([^&]*)?/gi, // regexp
+        function( m, key, value ) { // callback
+            vars[key] = value !== undefined ? value : '';
+        }
+    );
+    var result = vars[Pointer_stringify(param)];
+    if(result === undefined) result = '';
+    var bufferSize = lengthBytesUTF8(result) + 1;
+    var buffer = _malloc(bufferSize);
+    stringToUTF8(result, buffer, bufferSize);
+    return buffer;
   }
 });
 

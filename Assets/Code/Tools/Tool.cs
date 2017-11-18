@@ -62,8 +62,12 @@ public class Tool : MonoBehaviour {
 
 	public static Vector3 MousePos {
 		get {
+			var mousePos = Input.mousePosition;
+#if UNITY_WEBGL
+			if(Input.touches.Length > 0) mousePos = Input.touches[0].position;
+#endif
 			var plane = new Plane(Camera.main.transform.forward, Vector3.zero);
-			var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			var ray = Camera.main.ScreenPointToRay(mousePos);
 			float cast;
 			plane.Raycast(ray, out cast);
 			return ray.GetPoint(cast);

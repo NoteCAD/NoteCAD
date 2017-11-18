@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using System.Linq;
 using System.IO;
 using System.Xml;
+using System.Collections;
 
 public class Sketch : MonoBehaviour {
 	List<Entity> entities = new List<Entity>();
@@ -36,8 +37,19 @@ public class Sketch : MonoBehaviour {
 		}
 	}
 
+	IEnumerator LoadWWWFile(string url) {
+		WWW www = new WWW(url);
+		yield return www;
+		ReadXml(www.text);
+	}
+
 	private void Start() {
 		instance = this;
+		if(NoteCADJS.GetParam("filename") != "") {
+			var uri = new Uri(Application.absoluteURL);
+			var url = "http://" + uri.Host + ":" + uri.Port + "/Files/" + NoteCADJS.GetParam("filename");
+			StartCoroutine(LoadWWWFile(url));
+		}
 	}
 
 	public void SetDrag(Exp dragX, Exp dragY) {
@@ -308,6 +320,7 @@ public class Sketch : MonoBehaviour {
 	}
 
 	public void ReadXml(string str) {
+		Clear();
 		var xml = new XmlDocument();
 		xml.LoadXml(str);
 
@@ -359,6 +372,12 @@ public class Sketch : MonoBehaviour {
 			} else {
 				Debug.Log("Can't remove this entity!");
 			}
+		}
+	}
+
+	public void Clear() {
+		while(entities.Count > 0) {
+			entities[0].Destroy();
 		}
 	}
 
