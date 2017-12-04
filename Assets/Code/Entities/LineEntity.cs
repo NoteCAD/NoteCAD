@@ -30,7 +30,7 @@ public class LineEntity : Entity, ISegmentaryEntity {
 		}
 	}
 
-	public bool IsChanged() {
+	public override bool IsChanged() {
 		return p0.IsChanged() || p1.IsChanged();
 	}
 
@@ -44,11 +44,8 @@ public class LineEntity : Entity, ISegmentaryEntity {
 	}
 
 	public override bool IsCrossed(Entity e, ref Vector3 itr) {
-		if(e is LineEntity) {
-			var l = e as LineEntity;
-			return GeomUtils.isSegmentsCrossed(p0.pos, p1.pos, l.p0.pos, l.p1.pos, ref itr, Mathf.Epsilon) == GeomUtils.Cross.INTERSECTION;
-		}
-		return false;
+		if(!(e is LineEntity)) return false;
+		return base.IsCrossed(e, ref itr);
 	}
 
 }

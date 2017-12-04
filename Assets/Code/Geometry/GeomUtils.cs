@@ -8,29 +8,13 @@ using System.Collections.Generic;
 //------------------------------------------------------------------------------
 
 public static class GeomUtils {
-	
-	public static float getAngle(Vector3 dir0, Vector3 dir1) {
-		dir0 = dir0.normalized;
-		dir1 = dir1.normalized;
-		float cos_angle = Mathf.Clamp(Vector3.Dot(dir0, dir1), -1.0f, 1.0f);
-		float angle = Mathf.Acos(cos_angle);
-		if (Vector3.Cross(dir0, dir1).y < 0.0f) {
-			angle = - angle;
-		}
-		return angle;
+
+	public static float GetAngle(Vector3 d0, Vector3 d1) {
+		var du = d1.x * d0.x + d1.y * d0.y;
+		var dv = d0.x * d1.y - d0.y * d1.x;
+		return Mathf.Atan2(dv, du);
 	}
-	
-	public static float getAngle(Vector3 p0, Vector3 p1, Vector3 p2) {
-		Vector3 dir0 = (p1 - p0).normalized;
-		Vector3 dir1 = (p2 - p0).normalized;
-		float cos_angle = Mathf.Clamp(Vector3.Dot(dir0, dir1), -1.0f, 1.0f);
-		float angle = Mathf.Acos(cos_angle);
-		if (Vector3.Cross(dir0, dir1).y < 0.0f) {
-			angle = 2 * Mathf.PI - angle;
-		}
-		return angle;
-	}
-	
+		
 	public static Vector3 projectToPlane(Vector3 pos, Vector3 normal, Vector3 point) {
 		Plane p = new Plane(normal, point);
 		return pos - p.GetDistanceToPoint(pos) * normal;

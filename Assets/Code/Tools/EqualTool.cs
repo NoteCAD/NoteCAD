@@ -5,7 +5,6 @@ using UnityEngine;
 public class EqualTool : Tool {
 
 	LineEntity l0;
-	Vector3 click;
 
 	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
 		var entity = sko as Entity;

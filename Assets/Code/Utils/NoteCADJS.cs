@@ -44,7 +44,7 @@ public class NoteCADJS : MonoBehaviour {
 	}
 #endif
 
-#if UNITY_WEBGL
+#if UNITY_WEBGL && !UNITY_EDITOR
 	[DllImport("__Internal")]
 	public static extern string GetParam(string name);
 #else

@@ -72,6 +72,30 @@ public abstract partial class Entity : SketchObject {
 	}
 
 	public virtual bool IsCrossed(Entity e, ref Vector3 itr) {
+		if(this is ISegmentaryEntity && e is ISegmentaryEntity) {
+			var self = this as ISegmentaryEntity;
+			var entity = e as ISegmentaryEntity;
+
+			Vector3 selfPrev = Vector3.zero;
+			bool selfFirst = true;
+			foreach(var sp in self.segmentPoints) {
+				if(!selfFirst) {
+					Vector3 otherPrev = Vector3.zero;
+					bool otherFirst = true;
+					foreach(var ep in entity.segmentPoints) {
+						if(!otherFirst) {
+							if(GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, Mathf.Epsilon) == GeomUtils.Cross.INTERSECTION) {
+								return true;
+							}
+						}
+						otherFirst = false;
+						otherPrev = ep;
+					}
+				}
+				selfFirst = false;
+				selfPrev = sp;
+			}
+		}
 		return false;
 	}
 		

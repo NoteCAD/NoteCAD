@@ -5,9 +5,9 @@ using UnityEngine;
 public class LineBehaviour : EntityBehaviour {
 
 	public void Update() {
-		var line = entity as LineEntity;
-		var p0 = line.p0.GetPosition();
-		var p1 = line.p1.GetPosition();
+		var line = entity as ISegmentaryEntity;
+		var p0 = line.begin.pos;
+		var p1 = line.end.pos;
 		var dir = p1 - p0;
 		if(dir.magnitude > Mathf.Epsilon) {
 			transform.forward = dir.normalized;

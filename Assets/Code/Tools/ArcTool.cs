@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LineTool : Tool {
+public class ArcTool : Tool {
 
-	LineEntity current;
+	ArcEntity current;
 	bool canCreate = true;
 
 	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
 
 		if(current != null) {
 			if(!canCreate) return;
-			current.p1.SetPosition(pos);
+			current.p1.pos = pos;
 			current.p1.isSelectable = true;
 			current.p0.isSelectable = true;
+			current.c.isSelectable = true;
 			current.isSelectable = true;
 			if(AutoConstrainCoincident(current.p1, sko as Entity)) {
 				current = null;
@@ -22,24 +23,27 @@ public class LineTool : Tool {
 			}
 		}
 
-		var newLine = new LineEntity(Sketch.instance);
-		newLine.p0.SetPosition(pos);
-		newLine.p1.SetPosition(pos);
+		var newEntity = new ArcEntity(Sketch.instance);
+		newEntity.p0.pos = pos;
+		newEntity.p1.pos = pos;
+		newEntity.c.pos = pos;
 		if(current == null) {
-			AutoConstrainCoincident(newLine.p0, sko as Entity);
+			AutoConstrainCoincident(newEntity.p0, sko as Entity);
 		} else {
-			new PointsCoincident(current.sketch, current.p1, newLine.p0);
+			new PointsCoincident(current.sketch, current.p1, newEntity.p0);
 		}
 
-		current = newLine;
+		current = newEntity;
 		current.isSelectable = false;
 		current.p0.isSelectable = false;
 		current.p1.isSelectable = false;
+		current.c.isSelectable = false;
 	}
 
 	protected override void OnMouseMove(Vector3 pos, SketchObject entity) {
 		if(current != null) {
-			current.p1.SetPosition(pos);
+			current.p1.pos = pos;
+			current.c.pos = (current.p0.pos + current.p1.pos) * 0.5f;
 			var itr = new Vector3();
 			canCreate = !current.sketch.IsCrossed(current, ref itr);
 			current.isError = !canCreate;

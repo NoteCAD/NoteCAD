@@ -16,8 +16,6 @@ public abstract partial class Entity {
 
 public class Constraint : SketchObject {
 
-	LineCanvas canvas;
-	bool firstDrawn = false;
 	public bool changed;
 	protected override GameObject gameObject { get { return canvas.gameObject; } }
 	List<Entity> entities = new List<Entity>();
@@ -30,8 +28,6 @@ public class Constraint : SketchObject {
 
 	public Constraint(Sketch sk) : base(sk) {
 		sk.AddConstraint(this);
-		var go = new GameObject("constraint");
-		canvas = go.AddComponent<LineCanvas>();
 	}
 
 	public override void Destroy() {
@@ -40,32 +36,12 @@ public class Constraint : SketchObject {
 		foreach(var e in entities) {
 			e.RemoveConstraint(this);
 		}
-		GameObject.Destroy(canvas.gameObject);
 	}
 
 	protected override void OnDestroy() {
 
 	}
-
-	public void Draw() {
-		if(firstDrawn && !IsChanged()) return;
-		firstDrawn = true;
-		canvas.Clear();
-		OnDraw(canvas);
-	}
 	
-	public virtual bool IsChanged() {
-		return OnIsChanged();
-	}
-
-	protected virtual bool OnIsChanged() {
-		return false;
-	}
-
-	protected virtual void OnDraw(LineCanvas canvas) {
-		
-	}
-
 	public override void Write(XmlTextWriter xml) {
 		xml.WriteStartElement("constraint");
 		xml.WriteAttributeString("type", this.GetType().Name);

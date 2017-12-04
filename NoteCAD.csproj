@@ -90,6 +90,7 @@
     <Compile Include="Assets\Code\Constraints\PointsCoincident.cs" />
     <Compile Include="Assets\Code\Constraints\PointsDistance.cs" />
     <Compile Include="Assets\Code\DraftStroke\DraftStroke.cs" />
+    <Compile Include="Assets\Code\Entities\ArcEntity.cs" />
     <Compile Include="Assets\Code\Entities\Entity.cs" />
     <Compile Include="Assets\Code\Entities\LineEntity.cs" />
     <Compile Include="Assets\Code\Entities\PointEntity.cs" />
@@ -103,6 +104,7 @@
     <Compile Include="Assets\Code\Solver\Expression.cs" />
     <Compile Include="Assets\Code\Solver\GaussianMethod.cs" />
     <Compile Include="Assets\Code\Tools\AngleTool.cs" />
+    <Compile Include="Assets\Code\Tools\ArcTool.cs" />
     <Compile Include="Assets\Code\Tools\DistanceTool.cs" />
     <Compile Include="Assets\Code\Tools\EqualTool.cs" />
     <Compile Include="Assets\Code\Tools\ExportSTLTool.cs" />

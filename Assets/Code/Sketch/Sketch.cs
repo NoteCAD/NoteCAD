@@ -107,8 +107,10 @@ public class Sketch : MonoBehaviour {
 		foreach(var c in constraints) {
 			c.Draw();
 		}
-		var polygons = GetPolygons(loops);
-		if(polygons.Any(p => p.Any(pt => pt.IsChanged()))) {
+		foreach(var e in entities) {
+			e.Draw();
+		}
+		if(loops.Any(l => l.Any(e => e.points.Any(p => p.IsChanged())))) {
 			CreateLoops();
 		}
 		MarkUnchanged();
@@ -132,6 +134,7 @@ public class Sketch : MonoBehaviour {
 		var all = entities.OfType<ISegmentaryEntity>().ToList();
 		var first = all.FirstOrDefault();
 		var current = first;
+		PointEntity prevPoint = null;
 		ISegmentaryEntity prev = null;
 		List<Entity> loop = new List<Entity>();
 		List<List<Entity>> loops = new List<List<Entity>>();
@@ -146,13 +149,14 @@ public class Sketch : MonoBehaviour {
 				var connected = point.constraints
 					.OfType<PointsCoincident>()
 					.Select(p => p.GetOtherPoint(point))
+					.Where(p => p != prevPoint)
 					.Select(p => p.parent)
-					.OfType<ISegmentaryEntity>()
-					.Where(e => e != current && e != prev);
+					.OfType<ISegmentaryEntity>();
 				if(connected.Any()) {
 					prev = current;
 					current = connected.First() as ISegmentaryEntity;
 					found = true;
+					prevPoint = point;
 					break;
 				}
 			}
@@ -169,33 +173,42 @@ public class Sketch : MonoBehaviour {
 		return loops;
 	}
 
-	bool IsClockwise(List<PointEntity> points) {
+	bool IsClockwise(List<Vector3> points) {
 		int minIndex = 0;
 		for(int i = 1; i < points.Count; i++) {
-			if(points[minIndex].GetPosition().y < points[i].GetPosition().y) continue;
+			if(points[minIndex].y < points[i].y) continue;
 			minIndex = i;
 		}
-		var a = points[(minIndex - 1 + points.Count) % points.Count].GetPosition();
-		var b = points[minIndex].GetPosition();
-		var c = points[(minIndex + 1) % points.Count].GetPosition();
+		var a = points[(minIndex - 1 + points.Count) % points.Count];
+		var b = points[minIndex];
+		var c = points[(minIndex + 1) % points.Count];
 		return Triangulation.IsConvex(a, b, c);
 	}
 
-	List<List<PointEntity>> GetPolygons(List<List<Entity>> loops) {
-		var result = new List<List<PointEntity>>();
+	List<List<Vector3>> GetPolygons(List<List<Entity>> loops) {
+		var result = new List<List<Vector3>>();
 		if(loops == null) return result;
 		foreach(var loop in loops) {
-			var polygon = new List<PointEntity>();
-			if(loop.Count < 3) continue;
+			var polygon = new List<Vector3>();
 			for(int i = 0; i < loop.Count; i++) {
 				var cur = loop[i] as ISegmentaryEntity;
 				var next = loop[(i + 1) % loop.Count] as ISegmentaryEntity;
 				if(!next.begin.IsCoincidentWith(cur.begin) && !next.end.IsCoincidentWith(cur.begin)) {
-					polygon.Add(cur.begin);
+					polygon.AddRange(cur.segmentPoints);
+				} else 
+				if(!next.begin.IsCoincidentWith(cur.end) && !next.end.IsCoincidentWith(cur.end)) {
+					polygon.AddRange(cur.segmentPoints.Reverse());
+				} else if(next.begin.IsCoincidentWith(cur.end)) {
+					polygon.AddRange(cur.segmentPoints);
+				} else
+				if(i % 2 == 0) {
+					polygon.AddRange(cur.segmentPoints);
 				} else {
-					polygon.Add(cur.end);
+					polygon.AddRange(cur.segmentPoints.Reverse());
 				}
+				polygon.RemoveAt(polygon.Count - 1);
 			}
+			if(polygon.Count < 3) continue;
 			if(!IsClockwise(polygon)) {
 				polygon.Reverse();
 			}
@@ -204,11 +217,11 @@ public class Sketch : MonoBehaviour {
 		return result;
 	}
 
-	Mesh CreateMesh(List<List<PointEntity>> polygons, float extrude) {
+	Mesh CreateMesh(List<List<Vector3>> polygons, float extrude) {
 		var vertices = new List<Vector3>();
 		var indices = new List<int>();
 		foreach(var p in polygons) {
-			var pv = p.Select(pt => pt.GetPosition()).ToList();
+			var pv = new List<Vector3>(p);
 			var triangles = Triangulation.Triangulate(pv);
 			var start = vertices.Count;
 			vertices.AddRange(triangles);
@@ -224,7 +237,7 @@ public class Sketch : MonoBehaviour {
 				indices.Add(start + i * 3 + 0);
 				indices.Add(start + i * 3 + 2);
 			}
-			pv = p.Select(pt => pt.GetPosition()).ToList();
+			pv = new List<Vector3>(p);
 			var spv = pv.Select(pt => pt + extrudeVector).ToList();
 			start = vertices.Count();
 

@@ -13,6 +13,8 @@ public abstract class SketchObject {
 	public SketchObject(Sketch sketch) {
 		sk = sketch;
 		guid = Guid.NewGuid();
+		var go = new GameObject("constraint");
+		canvas = go.AddComponent<LineCanvas>();
 	}
 	protected abstract GameObject gameObject { get; }
 
@@ -110,6 +112,7 @@ public abstract class SketchObject {
 		isDestroyed = true;
 		sketch.Remove(this);
 		OnDestroy();
+		GameObject.Destroy(canvas.gameObject);
 	}
 
 	protected virtual void OnDestroy() {
@@ -133,5 +136,27 @@ public abstract class SketchObject {
 	protected virtual void OnRead(XmlNode xml)  {
 	
 	}
+
+	protected LineCanvas canvas;
+	bool firstDrawn = false;
+	public void Draw() {
+		if(firstDrawn && !IsChanged()) return;
+		firstDrawn = true;
+		canvas.Clear();
+		OnDraw(canvas);
+	}
+
+	public virtual bool IsChanged() {
+		return OnIsChanged();
+	}
+
+	protected virtual bool OnIsChanged() {
+		return false;
+	}
+
+	protected virtual void OnDraw(LineCanvas canvas) {
+		
+	}
+
 
 }

@@ -78,4 +78,14 @@ public class Tool : MonoBehaviour {
 		shouldStop = true;
 	}
 
+	protected bool AutoConstrainCoincident(PointEntity point, Entity with) {
+		if(with is PointEntity) {
+			var p1 = with as PointEntity;
+			new PointsCoincident(point.sketch, point, p1);
+			point.SetPosition(p1.GetPosition());
+			return true;
+		}
+		return false;
+	}
+
 }
