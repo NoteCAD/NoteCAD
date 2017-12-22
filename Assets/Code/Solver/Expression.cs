@@ -242,6 +242,17 @@ public class Exp {
 		return "";
 	}
 
+	public bool IsDependOn(Param p) {
+		if(op == Op.Param) return param == p;
+		if(a != null) {
+			if(b != null) {
+				return a.IsDependOn(p) || b.IsDependOn(p);
+			}
+			return a.IsDependOn(p);
+		}
+		return false;
+	}
+
 	public Exp Deriv(Param p) {
 		return d(p);
 	}
@@ -268,4 +279,55 @@ public class Exp {
 		}
 		return zero;
 	}
+
+	public bool IsSubstitionForm() {
+		return op == Op.Sub && a.op == Op.Param && b.op == Op.Param;
+	}
+
+	public Param GetSubstitutionParamA() {
+		if(!IsSubstitionForm()) return null;
+		return a.param;
+	}
+
+	public Param GetSubstitutionParamB() {
+		if(!IsSubstitionForm()) return null;
+		return b.param;
+	}
+
+	public void Substitute(Param pa, Param pb) {
+		if(a != null) {
+			a.Substitute(pa, pb);
+			if(b != null) {
+				b.Substitute(pa, pb);
+			}
+		} else
+		if(op == Op.Param && param == pa) {
+			param = pb;
+		}
+	}
+
+	public void Walk(Action<Exp> action) {
+		action(this);
+		if(a != null) {
+			action(a);
+			if(b != null) {
+				action(b);
+			}
+		}
+	}
+
+	public Exp DeepClone() {
+		Exp result = new Exp();
+		result.op = op;
+		result.param = param;
+		result.value = value;
+		if(a != null) {
+			result.a = a.DeepClone();
+			if(b != null) {
+				result.b = b.DeepClone();
+			}
+		}
+		return result;
+	}
+
 }

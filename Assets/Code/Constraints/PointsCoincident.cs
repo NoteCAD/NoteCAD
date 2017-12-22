@@ -2,8 +2,8 @@
 
 public class PointsCoincident : Constraint {
 
-	public PointEntity p0 { get; private set; }
-	public PointEntity p1 { get; private set; }
+	public PointEntity p0 { get { return GetEntity(0) as PointEntity; } set { SetEntity(0, value); } }
+	public PointEntity p1 { get { return GetEntity(1) as PointEntity; } set { SetEntity(1, value); } }
 
 	public IEnumerable<PointEntity> points {
 		get {
@@ -15,8 +15,8 @@ public class PointsCoincident : Constraint {
 	public PointsCoincident(Sketch sk) : base(sk) { }
 
 	public PointsCoincident(Sketch sk, PointEntity p0, PointEntity p1) : base(sk) {
-		this.p0 = AddEntity(p0);
-		this.p1 = AddEntity(p1);
+		AddEntity(p0);
+		AddEntity(p1);
 	}
 
 	public override IEnumerable<Exp> equations {
@@ -30,10 +30,5 @@ public class PointsCoincident : Constraint {
 	public PointEntity GetOtherPoint(PointEntity p) {
 		if(p0 == p) return p1;
 		return p0;
-	}
-
-	protected override void OnRead(System.Xml.XmlNode xml) {
-		p0 = GetEntity(0) as PointEntity;
-		p1 = GetEntity(1) as PointEntity;
 	}
 }

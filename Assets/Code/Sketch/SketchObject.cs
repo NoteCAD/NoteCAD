@@ -13,10 +13,10 @@ public abstract class SketchObject {
 	public SketchObject(Sketch sketch) {
 		sk = sketch;
 		guid = Guid.NewGuid();
-		var go = new GameObject("constraint");
+		var go = new GameObject("sko");
 		canvas = go.AddComponent<LineCanvas>();
 	}
-	protected abstract GameObject gameObject { get; }
+	protected virtual GameObject gameObject { get { return canvas.gameObject; } }
 
 	public virtual IEnumerable<Param> parameters { get { yield break; } }
 	public virtual IEnumerable<Exp> equations { get { yield break; } }

@@ -99,7 +99,8 @@ public class Sketch : MonoBehaviour {
 
 	private void Update() {
 		UpdateSystem();
-		var result = sys.Solve();
+		string result = sys.Solve().ToString();
+		result += "\n" + sys.stats;
 		resultText.text = result.ToString();
 	}
 
@@ -110,7 +111,7 @@ public class Sketch : MonoBehaviour {
 		foreach(var e in entities) {
 			e.Draw();
 		}
-		if(loops.Any(l => l.Any(e => e.points.Any(p => p.IsChanged())))) {
+		if(loops.Any(l => l.Any(e => e.IsChanged()))) {
 			CreateLoops();
 		}
 		MarkUnchanged();
@@ -150,6 +151,7 @@ public class Sketch : MonoBehaviour {
 					.OfType<PointsCoincident>()
 					.Select(p => p.GetOtherPoint(point))
 					.Where(p => p != prevPoint)
+					.Where(p => p.parent.IsEnding(p))
 					.Select(p => p.parent)
 					.OfType<ISegmentaryEntity>();
 				if(connected.Any()) {
@@ -170,6 +172,7 @@ public class Sketch : MonoBehaviour {
 				continue;
 			}
 		}
+		loops.AddRange(entities.OfType<ILoopEntity>().Select(e => Enumerable.Repeat(e as Entity, 1).ToList()));
 		return loops;
 	}
 
@@ -191,20 +194,28 @@ public class Sketch : MonoBehaviour {
 		foreach(var loop in loops) {
 			var polygon = new List<Vector3>();
 			for(int i = 0; i < loop.Count; i++) {
-				var cur = loop[i] as ISegmentaryEntity;
-				var next = loop[(i + 1) % loop.Count] as ISegmentaryEntity;
-				if(!next.begin.IsCoincidentWith(cur.begin) && !next.end.IsCoincidentWith(cur.begin)) {
-					polygon.AddRange(cur.segmentPoints);
-				} else 
-				if(!next.begin.IsCoincidentWith(cur.end) && !next.end.IsCoincidentWith(cur.end)) {
-					polygon.AddRange(cur.segmentPoints.Reverse());
-				} else if(next.begin.IsCoincidentWith(cur.end)) {
-					polygon.AddRange(cur.segmentPoints);
+				if(loop[i] is ISegmentaryEntity) {
+					var cur = loop[i] as ISegmentaryEntity;
+					var next = loop[(i + 1) % loop.Count] as ISegmentaryEntity;
+					if(!next.begin.IsCoincidentWith(cur.begin) && !next.end.IsCoincidentWith(cur.begin)) {
+						polygon.AddRange(cur.segmentPoints);
+					} else 
+					if(!next.begin.IsCoincidentWith(cur.end) && !next.end.IsCoincidentWith(cur.end)) {
+						polygon.AddRange(cur.segmentPoints.Reverse());
+					} else if(next.begin.IsCoincidentWith(cur.end)) {
+						polygon.AddRange(cur.segmentPoints);
+					} else
+					if(i % 2 == 0) {
+						polygon.AddRange(cur.segmentPoints);
+					} else {
+						polygon.AddRange(cur.segmentPoints.Reverse());
+					}
 				} else
-				if(i % 2 == 0) {
-					polygon.AddRange(cur.segmentPoints);
+				if(loop[i] is ILoopEntity) {
+					var cur = loop[i] as ILoopEntity;
+					polygon.AddRange(cur.loopPoints);
 				} else {
-					polygon.AddRange(cur.segmentPoints.Reverse());
+					continue;
 				}
 				polygon.RemoveAt(polygon.Count - 1);
 			}
@@ -218,8 +229,9 @@ public class Sketch : MonoBehaviour {
 	}
 
 	Mesh CreateMesh(List<List<Vector3>> polygons, float extrude) {
-		var vertices = new List<Vector3>();
-		var indices = new List<int>();
+		var capacity = polygons.Sum(p => (p.Count - 2) * 3 + p.Count) * 2;
+		var vertices = new List<Vector3>(capacity);
+		var indices = new List<int>(capacity);
 		foreach(var p in polygons) {
 			var pv = new List<Vector3>(p);
 			var triangles = Triangulation.Triangulate(pv);
@@ -237,32 +249,31 @@ public class Sketch : MonoBehaviour {
 				indices.Add(start + i * 3 + 0);
 				indices.Add(start + i * 3 + 2);
 			}
-			pv = new List<Vector3>(p);
-			var spv = pv.Select(pt => pt + extrudeVector).ToList();
+
 			start = vertices.Count();
 
 			if(extrude < 0f) {
-				for(int i = 0; i < pv.Count; i++) {
-					vertices.Add(pv[i]);
-					vertices.Add(pv[(i + 1) % pv.Count]);
-					vertices.Add(spv[i]);
+				for(int i = 0; i < p.Count; i++) {
+					vertices.Add(p[i]);
+					vertices.Add(p[(i + 1) % p.Count]);
+					vertices.Add(p[i] + extrudeVector);
 
-					vertices.Add(pv[(i + 1) % pv.Count]);
-					vertices.Add(spv[(i + 1) % pv.Count]);
-					vertices.Add(spv[i]);
+					vertices.Add(p[(i + 1) % p.Count]);
+					vertices.Add(p[(i + 1) % p.Count] + extrudeVector);
+					vertices.Add(p[i] + extrudeVector);
 				}
 			} else {
-				for(int i = 0; i < pv.Count; i++) {
-					vertices.Add(pv[i]);
-					vertices.Add(spv[i]);
-					vertices.Add(pv[(i + 1) % pv.Count]);
+				for(int i = 0; i < p.Count; i++) {
+					vertices.Add(p[i]);
+					vertices.Add(p[i] + extrudeVector);
+					vertices.Add(p[(i + 1) % p.Count]);
 
-					vertices.Add(pv[(i + 1) % pv.Count]);
-					vertices.Add(spv[i]);
-					vertices.Add(spv[(i + 1) % pv.Count]);
+					vertices.Add(p[(i + 1) % p.Count]);
+					vertices.Add(p[i] + extrudeVector);
+					vertices.Add(p[(i + 1) % p.Count] + extrudeVector);
 				}
 			}
-			for(int i = 0; i < pv.Count * 6; i++) {
+			for(int i = 0; i < p.Count * 6; i++) {
 				indices.Add(start + i);
 			}
 		}
@@ -285,9 +296,14 @@ public class Sketch : MonoBehaviour {
 		loopsObjects.Clear();
 		var itr = new Vector3();
 		foreach(var loop in loops) {
-			foreach(var e in loop) {
-				var cross = IsCrossed(e, ref itr);
-				e.isError = cross;
+			loop.ForEach(e => e.isError = false);
+			foreach(var e0 in loop) {
+				foreach(var e1 in loop) {
+					if(e0 == e1) continue;
+					var cross = e0.IsCrossed(e1, ref itr);
+					e0.isError = e0.isError || cross;
+					e1.isError = e1.isError || cross;
+				}
 			}
 		}
 		var polygons = GetPolygons(loops.Where(l => l.All(e => !e.isError)).ToList());
@@ -392,6 +408,7 @@ public class Sketch : MonoBehaviour {
 		while(entities.Count > 0) {
 			entities[0].Destroy();
 		}
+		sysDirty = true;
 	}
 
 	public bool IsCrossed(Entity entity, ref Vector3 intersection) {
@@ -402,5 +419,13 @@ public class Sketch : MonoBehaviour {
 			}
 		}
 		return false;
+	}
+
+	public void ReplaceEntityInConstraints(Entity before, Entity after) {
+		foreach(var c in constraints) {
+			if(c.ReplaceEntity(before, after)) {
+				sysDirty = true;
+			}
+		}
 	}
 }

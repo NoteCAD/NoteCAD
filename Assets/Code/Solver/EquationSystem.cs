@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class EquationSystem  {
 
@@ -22,21 +23,26 @@ public class EquationSystem  {
 	double[] Z;
 	double[] oldParamValues;
 
-	List<Exp> equations = new List<Exp>();
+	List<Exp> sourceEquations = new List<Exp>();
 	List<Param> parameters = new List<Param>();
 
+	List<Exp> equations;
+	List<Param> currentParams;
+
+	Dictionary<Param, Param> subs;
+
 	public void AddEquation(Exp eq) {
-		equations.Add(eq);
+		sourceEquations.Add(eq);
 		isDirty = true;
 	}
 
 	public void AddEquations(IEnumerable<Exp> eq) {
-		equations.AddRange(eq);
+		sourceEquations.AddRange(eq);
 		isDirty = true;
 	}
 
 	public void RemoveEquation(Exp eq) {
-		equations.Remove(eq);
+		sourceEquations.Remove(eq);
 		isDirty = true;
 	}
 
@@ -50,8 +56,8 @@ public class EquationSystem  {
 		isDirty = true;
 	}
 
-	public void RemoveParameter(Exp eq) {
-		equations.Remove(eq);
+	public void RemoveParameter(Param p) {
+		parameters.Remove(p);
 		isDirty = true;
 	}
 
@@ -153,23 +159,65 @@ public class EquationSystem  {
 
 	public void Clear() {
 		parameters.Clear();
+		currentParams.Clear();
 		equations.Clear();
+		sourceEquations.Clear();
 		isDirty = true;
 		UpdateDirty();
 	}
 
 	void UpdateDirty() {
 		if(isDirty) {
-			J = WriteJacobian(equations, parameters);
+			equations = sourceEquations.Select(e => e.DeepClone()).ToList();
+			subs = SolveBySubstitution();
+			currentParams = parameters.Where(p => equations.Any(e => e.IsDependOn(p))).ToList();
+
+			J = WriteJacobian(equations, currentParams);
 			A = new double[J.GetLength(0), J.GetLength(1)];
 			B = new double[equations.Count];
-			X = new double[parameters.Count];
+			X = new double[currentParams.Count];
 			Z = new double[A.GetLength(0)];
 			AAT = new double[A.GetLength(0), A.GetLength(0)];
 			oldParamValues = new double[parameters.Count];
 			isDirty = false;
 		}
 	}
+
+	void BackSubstitution(Dictionary<Param, Param> subs) {
+		if(subs == null) return;
+		for(int i = 0; i < parameters.Count; i++) {
+			var p = parameters[i];
+			if(!subs.ContainsKey(p)) continue;
+			p.value = subs[p].value;
+		}
+	}
+
+	Dictionary<Param, Param> SolveBySubstitution() {
+		var subs = new Dictionary<Param, Param>();
+
+		for(int i = 0; i < equations.Count; i++) {
+			var eq = equations[i];
+			if(!eq.IsSubstitionForm()) continue;
+			var a = eq.GetSubstitutionParamA();
+			var b = eq.GetSubstitutionParamB();
+			if(Math.Abs(a.value - b.value) > GaussianMethod.epsilon) continue;
+
+			foreach(var k in subs.Keys.ToList()) {
+				if(subs[k] == b) {
+					subs[k] = a;
+				}
+			}
+			subs[b] = a;
+			equations.RemoveAt(i--);
+
+			for(int j = 0; j < equations.Count; j++) {
+				equations[j].Substitute(b, a);
+			}
+		}
+		return subs;
+	}
+
+	public string stats { get; private set; }
 
 	public SolveResult Solve() {
 		UpdateDirty();
@@ -180,14 +228,16 @@ public class EquationSystem  {
 			Eval(ref B, clearDrag: !isDragStep);
 			if(IsConverged(checkDrag: isDragStep)) {
 				if(steps > 0) {
-					Debug.Log("solved in " + steps + " steps");
+					Debug.Log(String.Format("solved {0} equations with {1} unknowns in {2} steps", equations.Count, currentParams.Count, steps));
 				}
+				stats = String.Format("eqs:{0}\nunkn: {1}", equations.Count, currentParams.Count);
+				BackSubstitution(subs);
 				return SolveResult.OKAY;
 			}
 			EvalJacobian(J, ref A, clearDrag: !isDragStep);
 			SolveLeastSquares(A, B, ref X);
-			for(int i = 0; i < parameters.Count; i++) {
-				parameters[i].value -= X[i];
+			for(int i = 0; i < currentParams.Count; i++) {
+				currentParams[i].value -= X[i];
 			}
 		} while(steps++ <= maxSteps);
 		RevertParams();

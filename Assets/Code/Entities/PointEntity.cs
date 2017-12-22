@@ -23,7 +23,7 @@ public class PointEntity : Entity {
 	public void SetPosition(Vector3 pos) {
 		x.value = pos.x;
 		y.value = pos.y;
-		z.value = pos.z;
+		z.value = 0;//pos.z;
 		behaviour.Update();
 	}
 
@@ -62,7 +62,7 @@ public class PointEntity : Entity {
 		}
 	}
 
-	public bool IsChanged() {
+	public override bool IsChanged() {
 		return x.changed || y.changed || z.changed;
 	}
 

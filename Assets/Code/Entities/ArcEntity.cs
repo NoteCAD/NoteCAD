@@ -60,9 +60,10 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 			var rv = p0.pos - cp;
 			int subdiv = 32;
 			var vz = Vector3.forward;
+			var rot = Quaternion.AngleAxis(angle / (subdiv - 1), vz);
 			for(int i = 0; i < subdiv; i++) {
-				var nrv = Quaternion.AngleAxis(angle / (subdiv - 1) * i, vz) * rv;
-				yield return nrv + cp;
+				yield return rv + cp;
+				rv = rot * rv;
 			}
 		}
 	}
@@ -79,8 +80,21 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		}
 	}
 
-	public override bool IsCrossed(Entity e, ref Vector3 itr) {
-		return false;
+	public double radius {
+		get {
+			return (p1.pos - c.pos).magnitude;
+		}
+	}
+
+	public override BBox bbox { get { return new BBox(center.pos, (float)radius); } }
+
+	protected override Entity OnSplit(Vector3 position) {
+		var part = new ArcEntity(sketch);
+		part.center.pos = center.pos;
+		part.p1.pos = p1.pos;
+		p1.pos = position;
+		part.p0.pos = p1.pos;
+		return part;
 	}
 
 }

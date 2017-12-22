@@ -5,14 +5,14 @@ using System.Linq;
 
 public class AngleConstraint : ValueConstraint {
 
-	public LineEntity l0 { get; private set; }
-	public LineEntity l1 { get; private set; }
+	public LineEntity l0 { get { return GetEntity(0) as LineEntity; } set { SetEntity(0, value); } }
+	public LineEntity l1 { get { return GetEntity(1) as LineEntity; } set { SetEntity(1, value); } }
 
 	public AngleConstraint(Sketch sk) : base(sk) { }
 
 	public AngleConstraint(Sketch sk, LineEntity l0, LineEntity l1) : base(sk) {
-		this.l0 = AddEntity(l0);
-		this.l1 = AddEntity(l1);
+		AddEntity(l0);
+		AddEntity(l1);
 		Satisfy();
 	}
 
@@ -171,10 +171,4 @@ public class AngleConstraint : ValueConstraint {
 	public override double ValueToLabel(double value) {
 		return value / Math.PI * 180.0;
 	}
-
-	protected override void OnRead(System.Xml.XmlNode xml) {
-		l0 = GetEntity(0) as LineEntity;
-		l1 = GetEntity(1) as LineEntity;
-	}
-
 }

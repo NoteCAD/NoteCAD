@@ -43,9 +43,14 @@ public class LineEntity : Entity, ISegmentaryEntity {
 		}
 	}
 
-	public override bool IsCrossed(Entity e, ref Vector3 itr) {
-		if(!(e is LineEntity)) return false;
-		return base.IsCrossed(e, ref itr);
+	public override BBox bbox { get { return new BBox(p0.pos, p1.pos); } }
+
+	protected override Entity OnSplit(Vector3 position) {
+		var part = new LineEntity(sketch);
+		part.p1.pos = p1.pos;
+		p1.pos = position;
+		part.p0.pos = p1.pos;
+		return part;
 	}
 
 }

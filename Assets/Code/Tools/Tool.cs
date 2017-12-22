@@ -74,6 +74,16 @@ public class Tool : MonoBehaviour {
 		}
 	}
 
+	public static Vector3 CenterPos {
+		get {
+			var plane = new Plane(Camera.main.transform.forward, Vector3.zero);
+			var ray = Camera.main.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0.0f));
+			float cast;
+			plane.Raycast(ray, out cast);
+			return ray.GetPoint(cast);
+		}
+	}
+
 	public void StopTool() {
 		shouldStop = true;
 	}

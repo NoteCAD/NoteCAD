@@ -110,6 +110,7 @@ public static class GeomUtils {
 	}
 	
 	public static Cross isSegmentsCrossed(Vector3 A1, Vector3 B1, Vector3 A2, Vector3 B2, ref Vector3 itr, float USEEPS) {
+		if(!BBox.Overlaps2d(A1, B1, A2, B2, USEEPS)) return Cross.NONE;
 		Vector3 L1 = B1 - A1;
 		Vector3 L2 = B2 - A2;
 	

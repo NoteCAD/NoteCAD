@@ -40,22 +40,33 @@ public static class Triangulation {
 		return result;
 	}
 
+	static readonly Vector3 rayDir = Vector3.forward;
+
 	static bool TriangleContains2d(Vector3 a, Vector3 b, Vector3 c, Vector3 p) {
-		var n = new Vector3(0f, 0f, 1f);
-		var ab = Vector3.Cross(b - a, n);
-		var bc = Vector3.Cross(c - b, n);
-		var ca = Vector3.Cross(a - c, n);
+		// Find vectors for two edges sharing vert0
+		var edge1 = b - a;
+		var edge2 = c - a;
 
-		if(Vector3.Cross(ab, bc).z < 0) {
-			ab = -ab;
-			bc = -bc;
-			ca = -ca;
-		}
+		// Begin calculating determinant - also used to calculate U parameter
+		var pvec = Vector3.Cross(rayDir, edge2);
 
-		if(Vector3.Dot(ab, p) - Vector3.Dot(ab, a) > 0f) return false;
-		if(Vector3.Dot(bc, p) - Vector3.Dot(bc, b) > 0f) return false;
-		if(Vector3.Dot(ca, p) - Vector3.Dot(ca, c) > 0f) return false;
+		// If determinant is near zero, ray lies in plane of triangle
+		float det = Vector3.Dot(edge1, pvec);
+		float inv_det = 1.0f / det;
 
+		// Calculate distance from vert0 to ray origin
+		var tvec = p - a;
+
+		// Calculate U parameter and test bounds
+		float u = Vector3.Dot(tvec, pvec) * inv_det;
+		if (u < 0.0f || u > 1.0f) return false;
+
+		// Prepare to test V parameter
+		var qvec = Vector3.Cross(tvec, edge1);
+
+		// Calculate V parameter and test bounds
+		float v = Vector3.Dot(rayDir, qvec) * inv_det;
+		if (v < 0.0f || u + v > 1.0f) return false;
 		return true;
 	}
 }

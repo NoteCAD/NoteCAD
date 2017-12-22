@@ -3,14 +3,14 @@ using UnityEngine;
 
 public class PointsDistance : ValueConstraint {
 
-	public PointEntity p0 { get; private set; }
-	public PointEntity p1 { get; private set; }
+	public PointEntity p0 { get { return GetEntity(0) as PointEntity; } set { SetEntity(0, value); } }
+	public PointEntity p1 { get { return GetEntity(1) as PointEntity; } set { SetEntity(1, value); } }
 
 	public PointsDistance(Sketch sk) : base(sk) { }
 
 	public PointsDistance(Sketch sk, PointEntity p0, PointEntity p1) : base(sk) {
-		this.p0 = AddEntity(p0);
-		this.p1 = AddEntity(p1);
+		AddEntity(p0);
+		AddEntity(p1);
 		Satisfy();
 	}
 
@@ -67,11 +67,6 @@ public class PointsDistance : ValueConstraint {
 		var ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 		var rot = Quaternion.AngleAxis(ang, Vector3.forward);
 		return Matrix4x4.TRS(pos, rot, Vector3.one); 
-	}
-		
-	protected override void OnRead(System.Xml.XmlNode xml) {
-		p0 = GetEntity(0) as PointEntity;
-		p1 = GetEntity(1) as PointEntity;
 	}
 
 }

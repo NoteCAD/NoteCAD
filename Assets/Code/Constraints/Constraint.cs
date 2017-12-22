@@ -67,6 +67,27 @@ public class Constraint : SketchObject {
 	public Entity GetEntity(int i) {
 		return entities[i];
 	}
+
+	protected void SetEntity(int i, Entity e) {
+		entities[i].RemoveConstraint(this);
+		entities[i] = e;
+		entities[i].AddConstraint(this);
+		changed = true;
+	}
+
+	public override bool IsChanged() {
+		return base.IsChanged() || changed;
+	}
+
+	public bool ReplaceEntity(Entity before, Entity after) {
+		bool result = false;
+		for(int i = 0; i < entities.Count; i++) {
+			if(entities[i] != before) continue;
+			SetEntity(i, after);
+			result = true;
+		}
+		return result;
+	}
 }
 
 public class ValueConstraint : Constraint {
@@ -109,10 +130,6 @@ public class ValueConstraint : Constraint {
 	protected override void OnDrag(Vector3 delta) {
 		if(delta == Vector3.zero) return;
 		pos += delta;
-	}
-
-	public override bool IsChanged() {
-		return base.IsChanged() || changed;
 	}
 
 	public Matrix4x4 GetBasis() {

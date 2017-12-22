@@ -91,9 +91,11 @@
     <Compile Include="Assets\Code\Constraints\PointsDistance.cs" />
     <Compile Include="Assets\Code\DraftStroke\DraftStroke.cs" />
     <Compile Include="Assets\Code\Entities\ArcEntity.cs" />
+    <Compile Include="Assets\Code\Entities\CircleEntity.cs" />
     <Compile Include="Assets\Code\Entities\Entity.cs" />
     <Compile Include="Assets\Code\Entities\LineEntity.cs" />
     <Compile Include="Assets\Code\Entities\PointEntity.cs" />
+    <Compile Include="Assets\Code\Geometry\BBox.cs" />
     <Compile Include="Assets\Code\Geometry\GeomUtils.cs" />
     <Compile Include="Assets\Code\Geometry\STLExport.cs" />
     <Compile Include="Assets\Code\Geometry\Triangulation.cs" />
@@ -105,6 +107,7 @@
     <Compile Include="Assets\Code\Solver\GaussianMethod.cs" />
     <Compile Include="Assets\Code\Tools\AngleTool.cs" />
     <Compile Include="Assets\Code\Tools\ArcTool.cs" />
+    <Compile Include="Assets\Code\Tools\CircleTool.cs" />
     <Compile Include="Assets\Code\Tools\DistanceTool.cs" />
     <Compile Include="Assets\Code\Tools\EqualTool.cs" />
     <Compile Include="Assets\Code\Tools\ExportSTLTool.cs" />
@@ -116,6 +119,7 @@
     <Compile Include="Assets\Code\Tools\PointsCoincidentTool.cs" />
     <Compile Include="Assets\Code\Tools\RemoveTool.cs" />
     <Compile Include="Assets\Code\Tools\SaveTool.cs" />
+    <Compile Include="Assets\Code\Tools\SplitTool.cs" />
     <Compile Include="Assets\Code\Tools\Tool.cs" />
     <Compile Include="Assets\Code\Tools\ToolBar.cs" />
     <Compile Include="Assets\Code\Utils\CameraController.cs" />

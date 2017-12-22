@@ -45,7 +45,7 @@ public class ArcTool : Tool {
 			current.p1.pos = pos;
 			current.c.pos = (current.p0.pos + current.p1.pos) * 0.5f;
 			var itr = new Vector3();
-			canCreate = !current.sketch.IsCrossed(current, ref itr);
+			canCreate = true;//!current.sketch.IsCrossed(current, ref itr);
 			current.isError = !canCreate;
 		} else {
 			canCreate = true;

@@ -4,14 +4,15 @@ using UnityEngine;
 
 public class EqualLineLine : Constraint {
 
-	public LineEntity l0 { get; private set; }
-	public LineEntity l1 { get; private set; }
+	public LineEntity l0 { get { return GetEntity(0) as LineEntity; } set { SetEntity(0, value); } }
+	public LineEntity l1 { get { return GetEntity(1) as LineEntity; } set { SetEntity(1, value); } }
+
 
 	public EqualLineLine(Sketch sk) : base(sk) { }
 
 	public EqualLineLine(Sketch sk, LineEntity l0, LineEntity l1) : base(sk) {
-		this.l0 = AddEntity(l0);
-		this.l1 = AddEntity(l1);
+		AddEntity(l0);
+		AddEntity(l1);
 	}
 
 	public override IEnumerable<Exp> equations {
@@ -36,11 +37,6 @@ public class EqualLineLine : Constraint {
 
 	protected override bool OnIsChanged() {
 		return l0.IsChanged() || l1.IsChanged();
-	}
-	
-	protected override void OnRead(System.Xml.XmlNode xml) {
-		l0 = GetEntity(0) as LineEntity;
-		l1 = GetEntity(1) as LineEntity;
 	}
 
 }

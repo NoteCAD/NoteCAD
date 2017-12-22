@@ -23,6 +23,8 @@ public abstract partial class Entity : SketchObject {
 
 	public virtual IEnumerable<PointEntity> points { get { yield break; } }
 
+	public virtual BBox bbox { get { return new BBox(Vector3.zero, Vector3.zero); } }
+
 	protected override void OnDrag(Vector3 delta) {
 		foreach(var p in points) {
 			p.Drag(delta);
@@ -72,6 +74,7 @@ public abstract partial class Entity : SketchObject {
 	}
 
 	public virtual bool IsCrossed(Entity e, ref Vector3 itr) {
+		if(!e.bbox.Overlaps(bbox)) return false;
 		if(this is ISegmentaryEntity && e is ISegmentaryEntity) {
 			var self = this as ISegmentaryEntity;
 			var entity = e as ISegmentaryEntity;
@@ -84,7 +87,7 @@ public abstract partial class Entity : SketchObject {
 					bool otherFirst = true;
 					foreach(var ep in entity.segmentPoints) {
 						if(!otherFirst) {
-							if(GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, Mathf.Epsilon) == GeomUtils.Cross.INTERSECTION) {
+							if(GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f) == GeomUtils.Cross.INTERSECTION) {
 								return true;
 							}
 						}
@@ -98,6 +101,20 @@ public abstract partial class Entity : SketchObject {
 		}
 		return false;
 	}
+
+	public bool IsEnding(PointEntity p) {
+		if(!(this is ISegmentaryEntity)) return false;
+		var se = this as ISegmentaryEntity;
+		return se.begin == p || se.end == p;
+	}
+
+	protected virtual Entity OnSplit(Vector3 position) {
+		return null;
+	}
+
+	public Entity Split(Vector3 position) {
+		return OnSplit(position);
+	}
 		
 }
 
@@ -107,5 +124,6 @@ public interface ISegmentaryEntity {
 	IEnumerable<Vector3> segmentPoints { get; }
 }
 
-public interface ILoopEnitity {
+public interface ILoopEntity {
+	IEnumerable<Vector3> loopPoints { get; }
 }
