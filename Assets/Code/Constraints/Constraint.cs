@@ -17,7 +17,7 @@ public abstract partial class Entity {
 public class Constraint : SketchObject {
 
 	public bool changed;
-	protected override GameObject gameObject { get { return canvas.gameObject; } }
+	protected override GameObject gameObject { get { return null; } }
 	List<Entity> entities = new List<Entity>();
 
 	protected T AddEntity<T>(T e) where T : Entity {

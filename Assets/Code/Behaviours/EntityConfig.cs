@@ -12,6 +12,7 @@ public class EntityConfig : MonoBehaviour {
 	public ConstraintBehaviour constraint;
 	public Text labelPrefab;
 	public Material meshMaterial;
+	public Material lineMaterial;
 
 	void Start () {
 		instance = this;

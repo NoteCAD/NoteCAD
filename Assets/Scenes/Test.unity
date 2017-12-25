@@ -429,6 +429,7 @@ MonoBehaviour:
   labelPrefab: {fileID: 114292428029599408, guid: 54b8416142c3e664eae9620fd0a390ea,
     type: 2}
   meshMaterial: {fileID: 2100000, guid: 82c18a980b0e93b48a2c4b3dcfe8fdcb, type: 2}
+  lineMaterial: {fileID: 2100000, guid: 84f7ad61b7a35ac4aa59baea143f2938, type: 2}
 --- !u!4 &242438336
 Transform:
   m_ObjectHideFlags: 0
@@ -452,6 +453,7 @@ GameObject:
   m_Component:
   - component: {fileID: 245289231}
   - component: {fileID: 245289232}
+  - component: {fileID: 245289233}
   m_Layer: 0
   m_Name: Sketch
   m_TagString: Untagged
@@ -484,8 +486,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   resultText: {fileID: 312927957}
-  canvas: {fileID: 1583535564}
   labelParent: {fileID: 1073029342}
+--- !u!114 &245289233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 245289230}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c85efd053dcdcb747a8013fbeca1fc6b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  styles:
+  - name: constraints
+    color: {r: 0, g: 0.83823526, b: 0.31795132, a: 1}
+    width: 1
+  - name: entities
+    color: {r: 0.7352941, g: 0.7352941, b: 0.7352941, a: 1}
+    width: 2
+  material: {fileID: 2100000, guid: da145fe11ec87bc43978f5f5da2ec79d, type: 2}
 --- !u!1 &292305611
 GameObject:
   m_ObjectHideFlags: 0

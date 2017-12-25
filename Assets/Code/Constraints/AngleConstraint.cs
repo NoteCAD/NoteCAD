@@ -71,7 +71,7 @@ public class AngleConstraint : ValueConstraint {
 			
 			var refer = pos;
 			var offset = GetBasis().inverse.MultiplyPoint(pos);
-			Debug.Log(offset.ToString());
+
 			float size = ((p - refer).magnitude - 15.0f * pix);
 			size = Math.Max(15.0f * pix, size);
 			float y_sgn = (offset.y < 0.0f) ? -1.0f : 1.0f;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class LineBehaviour : EntityBehaviour {
 
-	public void Update() {
+	public void LateUpdate() {
 		var line = entity as ISegmentaryEntity;
 		var p0 = line.begin.pos;
 		var p1 = line.end.pos;

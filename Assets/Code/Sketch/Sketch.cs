@@ -12,7 +12,6 @@ public class Sketch : MonoBehaviour {
 	List<Constraint> constraints = new List<Constraint>();
 	public static Sketch instance;
 	public Text resultText;
-	public Canvas canvas;
 	public GameObject labelParent;
 	bool sysDirty;
 	EquationSystem sys = new EquationSystem();
@@ -45,6 +44,9 @@ public class Sketch : MonoBehaviour {
 
 	private void Start() {
 		instance = this;
+
+		canvas = GetComponent<LineCanvas>();
+
 		if(NoteCADJS.GetParam("filename") != "") {
 			var uri = new Uri(Application.absoluteURL);
 			var url = "http://" + uri.Host + ":" + uri.Port + "/Files/" + NoteCADJS.GetParam("filename");
@@ -102,19 +104,27 @@ public class Sketch : MonoBehaviour {
 		string result = sys.Solve().ToString();
 		result += "\n" + sys.stats;
 		resultText.text = result.ToString();
-	}
-
-	private void LateUpdate() {
-		foreach(var c in constraints) {
-			c.Draw();
-		}
-		foreach(var e in entities) {
-			e.Draw();
+		if(constraints.Any(c => c.IsChanged()) || entities.Any(e => e.IsChanged())) {
+			canvas.Clear();
+			canvas.SetStyle("constraints");
+			foreach(var c in constraints) {
+				c.Draw(canvas);
+			}
+			canvas.SetStyle("entities");
+			foreach(var e in entities) {
+				e.Draw(canvas);
+			}
 		}
 		if(loops.Any(l => l.Any(e => e.IsChanged()))) {
 			CreateLoops();
 		}
 		MarkUnchanged();
+	}
+
+	protected LineCanvas canvas;
+	private void LateUpdate() {
+
+		GC.Collect();
 	}
 
 	public void MarkUnchanged() {
@@ -278,6 +288,7 @@ public class Sketch : MonoBehaviour {
 			}
 		}
 		var result = new Mesh();
+		result.name = "polygons";
 		result.SetVertices(vertices);
 		result.SetIndices(indices.ToArray(), MeshTopology.Triangles, 0);
 		result.RecalculateBounds();
@@ -291,6 +302,7 @@ public class Sketch : MonoBehaviour {
 
 	void CreateLoops() {
 		foreach(var obj in loopsObjects) {
+			Destroy(obj.GetComponent<MeshFilter>().mesh);
 			Destroy(obj);
 		}
 		loopsObjects.Clear();
@@ -307,6 +319,7 @@ public class Sketch : MonoBehaviour {
 			}
 		}
 		var polygons = GetPolygons(loops.Where(l => l.All(e => !e.isError)).ToList());
+		Destroy(mainMesh);
 		mainMesh = CreateMesh(polygons, 5f);
 		var go = new GameObject();
 		var mf = go.AddComponent<MeshFilter>();

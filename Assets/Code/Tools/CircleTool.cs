@@ -29,7 +29,7 @@ public class CircleTool : Tool {
 		if(current != null) {
 			current.radius.value = (current.center.pos - pos).magnitude;
 			var itr = new Vector3();
-			canCreate = !current.sketch.IsCrossed(current, ref itr);
+			canCreate = true;//!current.sketch.IsCrossed(current, ref itr);
 			current.isError = !canCreate;
 		} else {
 			canCreate = true;

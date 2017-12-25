@@ -9,11 +9,14 @@ public class PointEntity : Entity {
 	public Param y = new Param("y");
 	public Param z = new Param("z");
 
+	bool is3d;
+
 	PointBehaviour behaviour;
 
 	public PointEntity(Sketch sk) : base(sk) {
 		behaviour = GameObject.Instantiate(EntityConfig.instance.pointPrefab);
 		behaviour.entity = this;
+		is3d = false;
 	}
 
 	public Vector3 GetPosition() {
@@ -23,8 +26,8 @@ public class PointEntity : Entity {
 	public void SetPosition(Vector3 pos) {
 		x.value = pos.x;
 		y.value = pos.y;
-		z.value = 0;//pos.z;
-		behaviour.Update();
+		if(is3d) z.value = pos.z;
+		behaviour.LateUpdate();
 	}
 
 	public Vector3 pos {
@@ -52,7 +55,7 @@ public class PointEntity : Entity {
 		get {
 			yield return x;
 			yield return y;
-			yield return z;
+			if(is3d) yield return z;
 		}
 	}
 
@@ -69,11 +72,19 @@ public class PointEntity : Entity {
 	protected override void OnDrag(Vector3 delta) {
 		x.value += delta.x;
 		y.value += delta.y;
-		z.value += delta.z;
+		if(is3d) z.value += delta.z;
 	}
 
 	
 	private bool IsCoincidentWith(PointEntity point, PointEntity exclude) {
+		for(int i = 0; i < usedInConstraints.Count; i++) {
+			var c = usedInConstraints[i] as PointsCoincident;
+			if(c == null) continue;
+			var p = c.GetOtherPoint(this);
+			if(p == point || p != exclude && p.IsCoincidentWith(point, this)) {
+				return true;
+			}
+		}
 		return constraints.
 			OfType<PointsCoincident>().
 			Select(c => c.GetOtherPoint(this)).
@@ -87,12 +98,12 @@ public class PointEntity : Entity {
 	protected override void OnWrite(XmlTextWriter xml) {
 		xml.WriteAttributeString("x", x.value.ToString());
 		xml.WriteAttributeString("y", y.value.ToString());
-		xml.WriteAttributeString("z", z.value.ToString());
+		if(is3d) xml.WriteAttributeString("z", z.value.ToString());
 	}
 
 	protected override void OnRead(XmlNode xml) {
 		x.value = double.Parse(xml.Attributes["x"].Value);
 		y.value = double.Parse(xml.Attributes["y"].Value);
-		z.value = double.Parse(xml.Attributes["z"].Value);
+		if(is3d) z.value = double.Parse(xml.Attributes["z"].Value);
 	}
 }

@@ -13,10 +13,8 @@ public abstract class SketchObject {
 	public SketchObject(Sketch sketch) {
 		sk = sketch;
 		guid = Guid.NewGuid();
-		var go = new GameObject("sko");
-		canvas = go.AddComponent<LineCanvas>();
 	}
-	protected virtual GameObject gameObject { get { return canvas.gameObject; } }
+	protected virtual GameObject gameObject { get { return null; } }
 
 	public virtual IEnumerable<Param> parameters { get { yield break; } }
 	public virtual IEnumerable<Exp> equations { get { yield break; } }
@@ -101,6 +99,7 @@ public abstract class SketchObject {
 		set {
 			if(value == selectable) return;
 			selectable = value;
+			if(gameObject == null) return;
 			var c = gameObject.GetComponent<Collider>();
 			if(c == null) return;
 			c.enabled = selectable;
@@ -112,7 +111,6 @@ public abstract class SketchObject {
 		isDestroyed = true;
 		sketch.Remove(this);
 		OnDestroy();
-		GameObject.Destroy(canvas.gameObject);
 	}
 
 	protected virtual void OnDestroy() {
@@ -137,12 +135,7 @@ public abstract class SketchObject {
 	
 	}
 
-	protected LineCanvas canvas;
-	bool firstDrawn = false;
-	public void Draw() {
-		if(firstDrawn && !IsChanged()) return;
-		firstDrawn = true;
-		canvas.Clear();
+	public void Draw(LineCanvas canvas) {
 		OnDraw(canvas);
 	}
 

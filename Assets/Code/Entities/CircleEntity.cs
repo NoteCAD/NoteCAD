@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 
 public class CircleEntity : Entity, ILoopEntity {
@@ -52,4 +53,11 @@ public class CircleEntity : Entity, ILoopEntity {
 		return false;
 	}
 
+	protected override void OnWrite(XmlTextWriter xml) {
+		xml.WriteAttributeString("r", radius.value.ToString());
+	}
+
+	protected override void OnRead(XmlNode xml) {
+		radius.value = double.Parse(xml.Attributes["r"].Value);
+	}
 }

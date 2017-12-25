@@ -5,7 +5,7 @@ using System.Xml;
 
 public abstract partial class Entity : SketchObject {
 
-	List<Constraint> usedInConstraints = new List<Constraint>();
+	protected List<Constraint> usedInConstraints = new List<Constraint>();
 	List<Entity> children = new List<Entity>();
 	public Entity parent { get; private set; }
 

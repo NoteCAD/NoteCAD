@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PointBehaviour : EntityBehaviour {
 
-	public void Update() {
+	public void LateUpdate() {
 		var point = entity as PointEntity;
 		transform.position = point.GetPosition();
 	}

@@ -14,7 +14,7 @@ public class LineEntity : Entity, ISegmentaryEntity {
 		p1 = AddChild(new PointEntity(sk));
 		behaviour = GameObject.Instantiate(EntityConfig.instance.linePrefab);
 		behaviour.entity = this;
-		behaviour.Update();
+		behaviour.LateUpdate();
 	}
 
 	protected override GameObject gameObject {
