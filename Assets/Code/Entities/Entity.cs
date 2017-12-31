@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Linq;
 using System.Xml;
+using System;
 
 public abstract partial class Entity : SketchObject {
 
@@ -52,24 +53,19 @@ public abstract partial class Entity : SketchObject {
 		xml.WriteAttributeString("type", this.GetType().Name);
 		base.Write(xml);
 		if(children.Count > 0) {
-			xml.WriteStartElement("children");
 			foreach(var c in children) {
 				c.Write(xml);
 			}
-			xml.WriteEndElement();
 		}
 		xml.WriteEndElement();
 	}
 
 	public override void Read(XmlNode xml) {
 		base.Read(xml);
-		foreach(XmlNode xmlChildren in xml.ChildNodes) {
-			if(xmlChildren.Name != "children") continue;
-			int i = 0;
-			foreach(XmlNode xmlChild in xmlChildren.ChildNodes) {
-				children[i].Read(xmlChild);
-				i++;
-			}
+		int i = 0;
+		foreach(XmlNode xmlChild in xml.ChildNodes) {
+			children[i].Read(xmlChild);
+			i++;
 		}
 	}
 
@@ -102,6 +98,22 @@ public abstract partial class Entity : SketchObject {
 		return false;
 	}
 
+	public void ForEachSegment(Action<Vector3, Vector3> action) {
+		IEnumerable<Vector3> points = null;
+		if(this is ISegmentaryEntity) points = (this as ISegmentaryEntity).segmentPoints;
+		if(this is ILoopEntity) points = (this as ILoopEntity).loopPoints;
+		if(points == null) return;
+		Vector3 prev = Vector3.zero;
+		bool first = true;
+		foreach(var ep in points) {
+			if(!first) {
+				action(prev, ep);
+			}
+			first = false;
+			prev = ep;
+		}
+	}
+
 	public bool IsEnding(PointEntity p) {
 		if(!(this is ISegmentaryEntity)) return false;
 		var se = this as ISegmentaryEntity;
@@ -115,7 +127,26 @@ public abstract partial class Entity : SketchObject {
 	public Entity Split(Vector3 position) {
 		return OnSplit(position);
 	}
-		
+
+	protected override double OnSelect(Vector3 mouse, Camera camera) {
+		double minDist = -1.0;
+		ForEachSegment((a, b) => {
+			var ap = camera.WorldToScreenPoint(a);
+			var bp = camera.WorldToScreenPoint(b);
+			var dist = Mathf.Abs(GeomUtils.DistancePointSegment2D(mouse, ap, bp));
+			if(minDist < 0.0 || dist < minDist) {
+				minDist = dist;
+			}
+		});
+		return minDist;
+	}
+
+	protected override void OnDraw(LineCanvas canvas) {
+		ForEachSegment((a, b) => {
+			canvas.DrawLine(a, b);
+		});
+	}
+
 }
 
 public interface ISegmentaryEntity {

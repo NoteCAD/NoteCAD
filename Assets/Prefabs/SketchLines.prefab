@@ -9,54 +9,63 @@ Prefab:
     m_Modifications: []
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
-  m_RootGameObject: {fileID: 1917879540875082}
+  m_RootGameObject: {fileID: 1502729109446778}
   m_IsPrefabParent: 1
---- !u!1 &1917879540875082
+--- !u!1 &1502729109446778
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 5
   m_Component:
-  - component: {fileID: 4822444505420226}
-  - component: {fileID: 33175197941728530}
-  - component: {fileID: 114535091400964726}
+  - component: {fileID: 4180025177878668}
+  - component: {fileID: 114912699884685590}
   m_Layer: 0
-  m_Name: Constraint
+  m_Name: SketchLines
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4822444505420226
+--- !u!4 &4180025177878668
 Transform:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1917879540875082}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_GameObject: {fileID: 1502729109446778}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 5, y: 5, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &33175197941728530
-MeshFilter:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1917879540875082}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &114535091400964726
+--- !u!114 &114912699884685590
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1917879540875082}
+  m_GameObject: {fileID: 1502729109446778}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b860dfe76871e8a4686b3c66d7a5711c, type: 3}
+  m_Script: {fileID: 11500000, guid: c85efd053dcdcb747a8013fbeca1fc6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  text: {fileID: 0}
+  styles:
+  - name: constraints
+    color: {r: 0, g: 0.83823526, b: 0.31795132, a: 1}
+    width: 1
+    queue: 2003
+  - name: entities
+    color: {r: 0.7352941, g: 0.7352941, b: 0.7352941, a: 1}
+    width: 2
+    queue: 2002
+  - name: hovered
+    color: {r: 0.83823526, g: 0.8151115, b: 0, a: 1}
+    width: 2
+    queue: 2004
+  - name: error
+    color: {r: 0.7647059, g: 0, b: 0, a: 1}
+    width: 2
+    queue: 2005
+  material: {fileID: 2100000, guid: da145fe11ec87bc43978f5f5da2ec79d, type: 2}

@@ -15,6 +15,7 @@ public class DraftStroke : MonoBehaviour {
 		public string name;
 		public Color color = Color.white;
 		public float width = 1f;
+		public int queue = -1;
 		//float stippleWidth;
 		//bool pixel;
 	}
@@ -28,19 +29,36 @@ public class DraftStroke : MonoBehaviour {
 
 	class Lines {
 		public List<Line> lines = new List<Line>();
-		public Mesh mesh;
-		public MeshRenderer renderer;
+		public List<GameObject> objects = new List<GameObject>();
+		public List<Mesh> meshes = new List<Mesh>();
 		public bool dirty;
 
 		public void AddLine(Vector3 a, Vector3 b) {
 			lines.Add(new Line { a = a, b = b } );
 			dirty = true;
 		}
+		
+		public void ClearMeshes() {
+			foreach(var m in meshes) {
+				Destroy(m);
+			}
+			foreach(var m in objects) {
+				DestroyImmediate(m.GetComponent<MeshRenderer>().material);
+				Destroy(m);
+			}
+			objects.Clear();
+			dirty = true;
+		}
+
+		public void Clear() {
+			lines.Clear();
+			ClearMeshes();
+		}
 	}
 	
 	public Material material;
 
-	void CreateMesh(Lines lines) {
+	Mesh CreateMesh(Lines lines) {
 		var go = new GameObject();
 		go.transform.parent = gameObject.transform;
 		var mr = go.AddComponent<MeshRenderer>();
@@ -49,49 +67,70 @@ public class DraftStroke : MonoBehaviour {
 		var mesh = new Mesh();
 		mesh.name = "lines";
 		mf.mesh = mesh;
-		lines.mesh = mesh;
-		lines.renderer = mr;
+		lines.objects.Add(go);
+		lines.meshes.Add(mesh);
+		return mesh;
 	}
 
-	void FillMesh(Mesh mesh, List<Line> lines) {
-		mesh.Clear();
+	void FillMesh(Lines li) {
+		li.ClearMeshes();
+		var lines = li.lines;
 		if(lines.Count == 0) return;
-		var vertices = new List<Vector3>(lines.Count * 4);
-		var tangents = new List<Vector4>(lines.Count * 4);
-		var normals = new List<Vector3>(lines.Count * 4);
-		var indices = new int[lines.Count * 6];
-		for(int i = 0; i < lines.Count; i++) {
-			var l = lines[i];
-			var t = (l.b - l.a).normalized;
-			vertices.Add(l.a);
-			tangents.Add(new Vector4(-1.0f, -1.0f));
-			normals.Add(t);
+		int maxLines = 64000 / 4;
+		int meshesCount = lines.Count / maxLines + 1;
+		int lineStartIndex = 0;
+		for(int mi = 0; mi < meshesCount; mi++) {
+			var curLinesCount = (mi == meshesCount - 1) ? lines.Count % maxLines : maxLines; 
+			var vertices = new Vector3[curLinesCount * 4];
+			var tangents = new Vector4[curLinesCount * 4];
+			var normals = new Vector3[curLinesCount * 4];
+			var indices = new int[curLinesCount * 6];
+			int curV = 0;
 
-			vertices.Add(l.a);
-			tangents.Add(new Vector4(-1.0f, +1.0f));
-			normals.Add(t);
+			var t0 = new Vector4(-1.0f, -1.0f);
+			var t1 = new Vector4(-1.0f, +1.0f);
+			var t2 = new Vector4(+1.0f, -1.0f);
+			var t3 = new Vector4(+1.0f, +1.0f);
 
-			vertices.Add(l.b);
-			tangents.Add(new Vector4(+1.0f, -1.0f));
-			normals.Add(t);
+			for(int i = 0; i < curLinesCount; i++) {
+				var l = lines[i + lineStartIndex];
+				var t = l.b - l.a;
+				vertices[curV] = l.a;
+				tangents[curV] = t0;
+				normals[curV] = t;
+				curV++;
 
-			vertices.Add(l.b);
-			tangents.Add(new Vector4(+1.0f, +1.0f));
-			normals.Add(t);
+				vertices[curV] = l.a;
+				tangents[curV] = t1;
+				normals[curV] = t;
+				curV++;
 
-			indices[i * 6 + 0] = i * 4 + 0;
-			indices[i * 6 + 1] = i * 4 + 1;
-			indices[i * 6 + 2] = i * 4 + 2;
+				vertices[curV] = l.b;
+				tangents[curV] = t2;
+				normals[curV] = t;
+				curV++;
 
-			indices[i * 6 + 3] = i * 4 + 3;
-			indices[i * 6 + 4] = i * 4 + 2;
-			indices[i * 6 + 5] = i * 4 + 1;
+				vertices[curV] = l.b;
+				tangents[curV] = t3;
+				normals[curV] = t;
+				curV++;
+
+				indices[i * 6 + 0] = i * 4 + 0;
+				indices[i * 6 + 1] = i * 4 + 1;
+				indices[i * 6 + 2] = i * 4 + 2;
+
+				indices[i * 6 + 3] = i * 4 + 3;
+				indices[i * 6 + 4] = i * 4 + 2;
+				indices[i * 6 + 5] = i * 4 + 1;
+			}
+			var mesh = CreateMesh(li);
+			mesh.vertices = vertices;
+			mesh.tangents = tangents;
+			mesh.normals = normals;
+			mesh.SetIndices(indices, MeshTopology.Triangles, 0, true);
+			mesh.RecalculateBounds();
+			lineStartIndex += curLinesCount;
 		}
-		mesh.SetVertices(vertices);
-		mesh.SetTangents(tangents);
-		mesh.SetNormals(normals);
-		mesh.SetIndices(indices, MeshTopology.Triangles, 0, true);
-		mesh.RecalculateBounds();
 	}
 
 	Dictionary<StrokeStyle, Lines> lines = new Dictionary<StrokeStyle, Lines>();
@@ -100,33 +139,35 @@ public class DraftStroke : MonoBehaviour {
 		var pixel = (Camera.main.ScreenToWorldPoint(new Vector3(1f, 0f, 0f)) - Camera.main.ScreenToWorldPoint(Vector3.zero)).magnitude;
 		Vector4 dir = Camera.main.transform.forward;
 		foreach(var l in lines) {
-			if(l.Value.mesh == null) {
-				CreateMesh(l.Value);
-			}
-			var material = l.Value.renderer.material;
 			var style = l.Key;
-			material.SetFloat("_Pixel", pixel);
-			material.SetVector("_CamDir", dir);
-			material.SetFloat("_Width", style.width);
-			material.SetColor("_Color", style.color);
 			if(l.Value.dirty) {
-				FillMesh(l.Value.mesh, l.Value.lines);
+				FillMesh(l.Value);
 				l.Value.dirty = false;
+			}
+			foreach(var m in l.Value.objects) {
+				var material = m.GetComponent<MeshRenderer>().material;
+				material.SetFloat("_Pixel", pixel);
+				material.SetVector("_CamDir", dir);
+				material.SetFloat("_Width", style.width);
+				material.SetColor("_Color", style.color);
+				material.renderQueue = style.queue;
 			}
 		}
 	}
 
 	StrokeStyle currentStyle = new StrokeStyle();
+	Lines currentLines = null;
 
 	public void SetStyle(string name) {
 		currentStyle = styles.First(s => s.name == name);
 		if(!lines.ContainsKey(currentStyle)) {
 			lines[currentStyle] = new Lines();
 		}
+		currentLines = lines[currentStyle];
 	}
 
 	public void DrawLine(Vector3 a, Vector3 b) {
-		lines[currentStyle].AddLine(a, b);
+		currentLines.AddLine(a, b);
 	}
 
 	private void LateUpdate() {
@@ -135,8 +176,14 @@ public class DraftStroke : MonoBehaviour {
 
 	public void Clear() {
 		foreach(var l in lines) {
-			l.Value.lines.Clear();
-			l.Value.dirty = true;
+			l.Value.Clear();
+		}
+	}
+
+	public void ClearStyle(string name) {
+		foreach(var l in lines) {
+			if(l.Key.name != name) continue;
+			l.Value.Clear();
 		}
 	}
 }

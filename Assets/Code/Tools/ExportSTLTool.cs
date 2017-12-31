@@ -7,7 +7,7 @@ public class ExportSTLTool : Tool {
 
 	protected override void OnActivate() {
 		StopTool();
-		var data = Sketch.instance.ExportSTL(); 
+		var data = DetailEditor.instance.currentSketch.ExportSTL(); 
 		NoteCADJS.SaveData(data, "NoteCADExport.stl");
 	}
 }

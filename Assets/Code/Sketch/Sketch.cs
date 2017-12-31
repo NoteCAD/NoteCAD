@@ -7,12 +7,9 @@ using System.IO;
 using System.Xml;
 using System.Collections;
 
-public class Sketch : MonoBehaviour {
+public class Sketch : Feature {
 	List<Entity> entities = new List<Entity>();
 	List<Constraint> constraints = new List<Constraint>();
-	public static Sketch instance;
-	public Text resultText;
-	public GameObject labelParent;
 	bool sysDirty;
 	EquationSystem sys = new EquationSystem();
 	Exp dragX;
@@ -36,22 +33,8 @@ public class Sketch : MonoBehaviour {
 		}
 	}
 
-	IEnumerator LoadWWWFile(string url) {
-		WWW www = new WWW(url);
-		yield return www;
-		ReadXml(www.text);
-	}
-
-	private void Start() {
-		instance = this;
-
-		canvas = GetComponent<LineCanvas>();
-
-		if(NoteCADJS.GetParam("filename") != "") {
-			var uri = new Uri(Application.absoluteURL);
-			var url = "http://" + uri.Host + ":" + uri.Port + "/Files/" + NoteCADJS.GetParam("filename");
-			StartCoroutine(LoadWWWFile(url));
-		}
+	public Sketch() {
+		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
 	}
 
 	public void SetDrag(Exp dragX, Exp dragY) {
@@ -99,12 +82,36 @@ public class Sketch : MonoBehaviour {
 		sysDirty = false;
 	}
 
-	private void Update() {
+	protected override void OnUpdate() {
+		var camera = Camera.main;
+		double min = -1.0;
+		SketchObject hoveredObject = null;
+		foreach(var e in entities) {
+			if(!e.isSelectable) continue;
+			var dist = e.Select(Input.mousePosition, camera);
+			if(dist < 0.0) continue;
+			if(dist > 5.0) continue;
+			if(min >= 0.0 && dist > min) continue;
+			min = dist;
+			hoveredObject = e;
+		}
+		foreach(var c in constraints) {
+			if(!c.isSelectable) continue;
+			var dist = c.Select(Input.mousePosition, camera);
+			if(dist < 0.0) continue;
+			if(dist > 5.0) continue;
+			if(min >= 0.0 && dist > min) continue;
+			min = dist;
+			hoveredObject = c;
+		}
+		hovered = hoveredObject;
+
+		var dirty = sysDirty;
 		UpdateSystem();
 		string result = sys.Solve().ToString();
 		result += "\n" + sys.stats;
-		resultText.text = result.ToString();
-		if(constraints.Any(c => c.IsChanged()) || entities.Any(e => e.IsChanged())) {
+		DetailEditor.instance.resultText.text = result.ToString();
+		if(dirty || constraints.Any(c => c.IsChanged()) || entities.Any(e => e.IsChanged())) {
 			canvas.Clear();
 			canvas.SetStyle("constraints");
 			foreach(var c in constraints) {
@@ -115,17 +122,25 @@ public class Sketch : MonoBehaviour {
 				e.Draw(canvas);
 			}
 		}
-		if(loops.Any(l => l.Any(e => e.IsChanged()))) {
+		canvas.ClearStyle("hovered");
+		if(hovered != null) {
+			canvas.SetStyle("hovered");
+			hovered.Draw(canvas);
+		}
+
+		if(dirty || loops.Any(l => l.Any(e => e.IsChanged()))) {
 			CreateLoops();
+		}
+		canvas.ClearStyle("error");
+		canvas.SetStyle("error");
+		foreach(var e in entities) {
+			if(!e.isError) continue;
+			e.Draw(canvas);
 		}
 		MarkUnchanged();
 	}
 
 	protected LineCanvas canvas;
-	private void LateUpdate() {
-
-		GC.Collect();
-	}
 
 	public void MarkUnchanged() {
 		foreach(var e in entities) {
@@ -302,8 +317,8 @@ public class Sketch : MonoBehaviour {
 
 	void CreateLoops() {
 		foreach(var obj in loopsObjects) {
-			Destroy(obj.GetComponent<MeshFilter>().mesh);
-			Destroy(obj);
+			GameObject.Destroy(obj.GetComponent<MeshFilter>().mesh);
+			GameObject.Destroy(obj);
 		}
 		loopsObjects.Clear();
 		var itr = new Vector3();
@@ -319,7 +334,7 @@ public class Sketch : MonoBehaviour {
 			}
 		}
 		var polygons = GetPolygons(loops.Where(l => l.All(e => !e.isError)).ToList());
-		Destroy(mainMesh);
+		GameObject.Destroy(mainMesh);
 		mainMesh = CreateMesh(polygons, 5f);
 		var go = new GameObject();
 		var mf = go.AddComponent<MeshFilter>();
@@ -336,14 +351,7 @@ public class Sketch : MonoBehaviour {
 		return mainMesh.ExportSTL();
 	}
 
-	public string WriteXml() {
-		var text = new StringWriter();
-		var xml = new XmlTextWriter(text);
-		xml.Formatting = Formatting.Indented;
-		xml.IndentChar = '\t';
-		xml.Indentation = 1;
-		xml.WriteStartDocument();
-		xml.WriteStartElement("sketch");
+	protected override void OnWrite(XmlTextWriter xml) {
 		xml.WriteStartElement("entities");
 		foreach(var e in entities) {
 			if(e.parent != null) continue;
@@ -356,19 +364,12 @@ public class Sketch : MonoBehaviour {
 			c.Write(xml);
 		}
 		xml.WriteEndElement();
-
-		xml.WriteEndElement();
-		return text.ToString();
 	}
 
-	public void ReadXml(string str) {
-		Clear();
-		var xml = new XmlDocument();
-		xml.LoadXml(str);
-
+	protected override void OnRead(XmlNode xml) {
 		Type[] types = { typeof(Sketch) };
 		object[] param = { this };
-		foreach(XmlNode nodeKind in xml.DocumentElement.ChildNodes) {
+		foreach(XmlNode nodeKind in xml.ChildNodes) {
 			if(nodeKind.Name == "entities") {
 				foreach(XmlNode node in nodeKind.ChildNodes) {
 					if(node.Name != "entity") continue;
@@ -417,11 +418,12 @@ public class Sketch : MonoBehaviour {
 		}
 	}
 
-	public void Clear() {
+	protected override void OnClear() {
 		while(entities.Count > 0) {
 			entities[0].Destroy();
 		}
 		sysDirty = true;
+		Update();
 	}
 
 	public bool IsCrossed(Entity entity, ref Vector3 intersection) {

@@ -8,21 +8,10 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 	public PointEntity p1;
 	public PointEntity c;
 
-	LineBehaviour behaviour;
-
 	public ArcEntity(Sketch sk) : base(sk) {
 		p0 = AddChild(new PointEntity(sk));
 		p1 = AddChild(new PointEntity(sk));
 		c = AddChild(new PointEntity(sk));
-		behaviour = GameObject.Instantiate(EntityConfig.instance.linePrefab);
-		behaviour.entity = this;
-		behaviour.LateUpdate();
-	}
-
-	protected override GameObject gameObject {
-		get {
-			return behaviour.gameObject;
-		}
 	}
 
 	public override IEnumerable<Exp> equations {
@@ -66,19 +55,7 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 				rv = rot * rv;
 			}
 		}
-	}
-
-	protected override void OnDraw(LineCanvas canvas) {
-		Vector3 prev = Vector3.zero;
-		bool hasPrev = false;
-		foreach(var p in segmentPoints) {
-			if(hasPrev) {
-				canvas.DrawLine(prev, p);
-			}
-			prev = p;
-			hasPrev = true;
-		}
-	}
+	}	
 
 	public double radius {
 		get {
@@ -95,6 +72,28 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		p1.pos = position;
 		part.p0.pos = p1.pos;
 		return part;
+	}
+
+	protected override double OnSelect(Vector3 mouse, Camera camera) {
+		float angle = GetAngle() * Mathf.Rad2Deg;
+		var cp = c.pos;
+		var rv = p0.pos - cp;
+		int subdiv = 8;
+		var vz = Vector3.forward;
+		var rot = Quaternion.AngleAxis(angle / (subdiv - 1), vz);
+		var prev = Vector3.zero;
+		double min = -1;
+		for(int i = 0; i < subdiv; i++) {
+			var pos =  camera.WorldToScreenPoint(rv + cp);
+			if(i > 0) {
+				var dist = Mathf.Abs(GeomUtils.DistancePointSegment2D(mouse, prev, pos));
+				if(min > 0 && dist > min) continue;
+				min = dist;
+			}
+			prev = pos;
+			rv = rot * rv;
+		}
+		return min;
 	}
 
 }

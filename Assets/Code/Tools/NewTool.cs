@@ -7,6 +7,6 @@ public class NewTool : Tool {
 
 	protected override void OnActivate() {
 		StopTool();
-		Sketch.instance.Clear();
+		DetailEditor.instance.New();
 	}
 }

@@ -15,6 +15,20 @@ public static class GeomUtils {
 		return Mathf.Atan2(dv, du);
 	}
 		
+	public static float DistancePointLine2D(Vector3 p, Vector3 p0, Vector3 p1) {
+		return ((p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y + p0.x * p1.y - p1.x * p0.y) / Mathf.Sqrt((p1.x - p0.x) * (p1.x - p0.x) + (p1.y - p0.y) * (p1.y - p0.y));
+	}
+
+	public static float DistancePointSegment2D(Vector3 p, Vector3 p0, Vector3 p1) {
+		p0.z = 0;
+		p1.z = 0;
+		p.z = 0;
+		var dir = p1 - p0;
+		var t = Mathf.Clamp01(Vector3.Dot(dir, p - p0) / Vector3.Dot(dir, dir));
+		var pp = p0 + dir * t;
+		return (pp - p).magnitude;
+	}
+
 	public static Vector3 projectToPlane(Vector3 pos, Vector3 normal, Vector3 point) {
 		Plane p = new Plane(normal, point);
 		return pos - p.GetDistanceToPoint(pos) * normal;

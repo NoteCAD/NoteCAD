@@ -44,7 +44,7 @@
 			v2f vert (appdata v) {
 				v2f o;
 				float pix = _Pixel / 2.0;
-				float3 x = v.tangent * _Width * pix;
+				float3 x = normalize(v.tangent) * _Width * pix;
 				float3 y = normalize(cross(_CamDir.xyz, x)) * _Width * pix;
 
 				float3 pos = v.vertex + v.params.x * x + v.params.y * y;

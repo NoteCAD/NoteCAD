@@ -7,20 +7,9 @@ public class LineEntity : Entity, ISegmentaryEntity {
 	public PointEntity p0;
 	public PointEntity p1;
 
-	LineBehaviour behaviour;
-
 	public LineEntity(Sketch sk) : base(sk) {
 		p0 = AddChild(new PointEntity(sk));
 		p1 = AddChild(new PointEntity(sk));
-		behaviour = GameObject.Instantiate(EntityConfig.instance.linePrefab);
-		behaviour.entity = this;
-		behaviour.LateUpdate();
-	}
-
-	protected override GameObject gameObject {
-		get {
-			return behaviour.gameObject;
-		}
 	}
 
 	public override IEnumerable<PointEntity> points {

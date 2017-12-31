@@ -11,7 +11,7 @@ public class PointsCoincidentTool : Tool {
 		if(!(entity is PointEntity)) return;
 		var p = entity as PointEntity;
 		if(p0 != null) {
-			var c = new PointsCoincident(Sketch.instance, p0, p);
+			var c = new PointsCoincident(DetailEditor.instance.currentSketch, p0, p);
 			p0 = null;
 		} else {
 			p0 = p;

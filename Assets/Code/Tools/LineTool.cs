@@ -22,7 +22,7 @@ public class LineTool : Tool {
 			}
 		}
 
-		var newLine = new LineEntity(Sketch.instance);
+		var newLine = new LineEntity(DetailEditor.instance.currentSketch);
 		newLine.p0.SetPosition(pos);
 		newLine.p1.SetPosition(pos);
 		if(current == null) {

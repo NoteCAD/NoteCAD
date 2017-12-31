@@ -7,7 +7,7 @@ public class SaveTool : Tool {
 
 	protected override void OnActivate() {
 		StopTool();
-		var data = Sketch.instance.WriteXml(); 
+		var data = DetailEditor.instance.WriteXml(); 
 		NoteCADJS.SaveData(data, "NoteCADFile.xml");
 	}
 }

@@ -46,9 +46,9 @@ public class ToolBar : MonoBehaviour {
 #endif
 		if(activeTool != null && mouseDown) {
 			if(doubleClickTime < 0.3f) {
-				activeTool.MouseDoubleClick(Tool.MousePos, Sketch.instance.hovered);
+				activeTool.MouseDoubleClick(Tool.MousePos, DetailEditor.instance.currentSketch.hovered);
 			}
-			activeTool.MouseDown(Tool.MousePos, Sketch.instance.hovered);
+			activeTool.MouseDown(Tool.MousePos, DetailEditor.instance.currentSketch.hovered);
 			doubleClickTime = 0f;
 		}
 
@@ -58,11 +58,11 @@ public class ToolBar : MonoBehaviour {
 #endif
 
 		if(activeTool != null && mouseUp) {
-			activeTool.MouseUp(Tool.MousePos, Sketch.instance.hovered);
+			activeTool.MouseUp(Tool.MousePos, DetailEditor.instance.currentSketch.hovered);
 		}
 
 		if(activeTool != null) {
-			activeTool.MouseMove(Tool.MousePos, Sketch.instance.hovered);
+			activeTool.MouseMove(Tool.MousePos, DetailEditor.instance.currentSketch.hovered);
 		}
 
 		if(activeTool != null) {

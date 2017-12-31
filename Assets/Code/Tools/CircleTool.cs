@@ -17,7 +17,7 @@ public class CircleTool : Tool {
 			return;
 		}
 
-		current = new CircleEntity(Sketch.instance);
+		current = new CircleEntity(DetailEditor.instance.currentSketch);
 		current.center.pos = pos;
 		AutoConstrainCoincident(current.center, sko as Entity);
 

@@ -11,11 +11,7 @@ public class PointEntity : Entity {
 
 	bool is3d;
 
-	PointBehaviour behaviour;
-
 	public PointEntity(Sketch sk) : base(sk) {
-		behaviour = GameObject.Instantiate(EntityConfig.instance.pointPrefab);
-		behaviour.entity = this;
 		is3d = false;
 	}
 
@@ -27,7 +23,6 @@ public class PointEntity : Entity {
 		x.value = pos.x;
 		y.value = pos.y;
 		if(is3d) z.value = pos.z;
-		behaviour.LateUpdate();
 	}
 
 	public Vector3 pos {
@@ -49,7 +44,7 @@ public class PointEntity : Entity {
 		}
 	}
 
-	protected override GameObject gameObject { get { return behaviour.gameObject; } }
+	protected override GameObject gameObject { get { return null; } }
 
 	public override IEnumerable<Param> parameters {
 		get {
@@ -85,10 +80,13 @@ public class PointEntity : Entity {
 				return true;
 			}
 		}
+		return false;
+		/*
 		return constraints.
 			OfType<PointsCoincident>().
 			Select(c => c.GetOtherPoint(this)).
 			Any(p => p == point || p != exclude && p.IsCoincidentWith(point, this));
+		*/
 	}
 
 	public bool IsCoincidentWith(PointEntity point) {
@@ -106,4 +104,19 @@ public class PointEntity : Entity {
 		y.value = double.Parse(xml.Attributes["y"].Value);
 		if(is3d) z.value = double.Parse(xml.Attributes["z"].Value);
 	}
+
+	protected override double OnSelect(Vector3 mouse, Camera camera) {
+		var pp = camera.WorldToScreenPoint(pos);
+		pp.z = 0f;
+		mouse.z = 0f;
+		var dist = (pp - mouse).magnitude - 5;
+		if(dist < 0.0) return 0.0;
+		return dist;
+	}
+
+	protected override void OnDraw(LineCanvas canvas) {
+		canvas.DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, Vector3.forward);
+		canvas.DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, -Vector3.forward);
+	}
+
 }

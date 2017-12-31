@@ -37,18 +37,6 @@ public class CircleEntity : Entity, ILoopEntity {
 		}
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
-		Vector3 prev = Vector3.zero;
-		bool hasPrev = false;
-		foreach(var p in loopPoints) {
-			if(hasPrev) {
-				canvas.DrawLine(prev, p);
-			}
-			prev = p;
-			hasPrev = true;
-		}
-	}
-
 	public override bool IsCrossed(Entity e, ref Vector3 itr) {
 		return false;
 	}

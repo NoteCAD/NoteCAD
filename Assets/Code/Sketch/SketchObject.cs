@@ -34,9 +34,10 @@ public abstract class SketchObject {
 		}
 		set {
 			if(value == hovered) return;
+			hovered = value;
+			if(gameObject == null) return;
 			var r = gameObject.GetComponent<Renderer>();
 			var t = gameObject.GetComponent<UnityEngine.UI.Text>();
-			hovered = value;
 			if(isError) return;
 			if(!hovered) {
 				if(r != null) {
@@ -68,9 +69,10 @@ public abstract class SketchObject {
 			if(value) {
 				isHovered = false;
 			}
+			error = value;
+			if(gameObject == null) return;
 			var r = gameObject.GetComponent<Renderer>();
 			var t = gameObject.GetComponent<UnityEngine.UI.Text>();
-			error = value;
 			if(!error) {
 				if(r != null) {
 					r.material.color = oldColor;
@@ -151,5 +153,12 @@ public abstract class SketchObject {
 		
 	}
 
+	public double Select(Vector3 mouse, Camera camera) {
+		return OnSelect(mouse, camera);
+	}
+
+	protected virtual double OnSelect(Vector3 mouse, Camera camera) {
+			return -1.0;
+	}
 
 }

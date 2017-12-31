@@ -26,8 +26,8 @@ public class EquationSystem  {
 	List<Exp> sourceEquations = new List<Exp>();
 	List<Param> parameters = new List<Param>();
 
-	List<Exp> equations;
-	List<Param> currentParams;
+	List<Exp> equations = new List<Exp>();
+	List<Param> currentParams = new List<Param>();
 
 	Dictionary<Param, Param> subs;
 
@@ -134,15 +134,18 @@ public class EquationSystem  {
 		var cols = A.GetLength(1);
 
 		UnityEngine.Profiling.Profiler.BeginSample("SolveLeastSquares: A^T * A");
+		var time = Time.realtimeSinceStartup;
 		for(int r = 0; r < rows; r++) {
 			for(int c = 0; c < rows; c++) {
 				double sum = 0.0;
 				for(int i = 0; i < cols; i++) {
+					if(A[c, i] == 0 || A[r, i] == 0) continue;
 					sum += A[r, i] * A[c, i];
 				}
 				AAT[r, c] = sum;
 			}
 		}
+		Debug.Log("AAT time " + (Time.realtimeSinceStartup - time) * 1000);
 		UnityEngine.Profiling.Profiler.EndSample();
 
 		GaussianMethod.Solve(AAT, B, ref Z);

@@ -38,14 +38,14 @@ public class MoveTool : Tool {
 			dragYP.value = pt.y.value;
 			dragX = new Exp(pt.x).Drag(dragXP);
 			dragY = new Exp(pt.y).Drag(dragYP);
-			Sketch.instance.SetDrag(dragX, dragY);
+			DetailEditor.instance.currentSketch.SetDrag(dragX, dragY);
 		}
 	}
 
 	void ClearDrag() {
 		current = null;
 		if(dragX != null) {
-			Sketch.instance.SetDrag(null, null);
+			DetailEditor.instance.currentSketch.SetDrag(null, null);
 		}
 		dragX = null;
 		dragY = null;
