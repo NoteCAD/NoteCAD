@@ -145,7 +145,7 @@ public class EquationSystem  {
 				AAT[r, c] = sum;
 			}
 		}
-		Debug.Log("AAT time " + (Time.realtimeSinceStartup - time) * 1000);
+		//Debug.Log("AAT time " + (Time.realtimeSinceStartup - time) * 1000);
 		UnityEngine.Profiling.Profiler.EndSample();
 
 		GaussianMethod.Solve(AAT, B, ref Z);

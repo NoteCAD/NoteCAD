@@ -8,6 +8,7 @@ public class ToolBar : MonoBehaviour {
 	Tool[] tools;
 	Tool activeTool;
 	public Tool defaultTool;
+	public Color pressedColor;
 
 	public Tool ActiveTool {
 		get {
@@ -46,9 +47,9 @@ public class ToolBar : MonoBehaviour {
 #endif
 		if(activeTool != null && mouseDown) {
 			if(doubleClickTime < 0.3f) {
-				activeTool.MouseDoubleClick(Tool.MousePos, DetailEditor.instance.currentSketch.hovered);
+				activeTool.MouseDoubleClick(Tool.MousePos, DetailEditor.instance.hovered);
 			}
-			activeTool.MouseDown(Tool.MousePos, DetailEditor.instance.currentSketch.hovered);
+			activeTool.MouseDown(Tool.MousePos, DetailEditor.instance.hovered);
 			doubleClickTime = 0f;
 		}
 
@@ -58,11 +59,11 @@ public class ToolBar : MonoBehaviour {
 #endif
 
 		if(activeTool != null && mouseUp) {
-			activeTool.MouseUp(Tool.MousePos, DetailEditor.instance.currentSketch.hovered);
+			activeTool.MouseUp(Tool.MousePos, DetailEditor.instance.hovered);
 		}
 
 		if(activeTool != null) {
-			activeTool.MouseMove(Tool.MousePos, DetailEditor.instance.currentSketch.hovered);
+			activeTool.MouseMove(Tool.MousePos, DetailEditor.instance.hovered);
 		}
 
 		if(activeTool != null) {
@@ -88,7 +89,7 @@ public class ToolBar : MonoBehaviour {
 		if(activeTool != null) {
 			var btn = activeTool.GetComponent<Button>();
 			var cb = btn.colors;
-			cb.normalColor = Color.blue;
+			cb.normalColor = pressedColor;
 			btn.colors = cb;
 			activeTool.Activate();
 		}

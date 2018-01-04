@@ -8,9 +8,7 @@ public class MoveTool : Tool {
 
 	SketchObject current;
 	Vector3 click;
-
-	Exp dragX;
-	Exp dragY;
+	List<Exp> drag = new List<Exp>();
 	Param dragXP = new Param("dragX");
 	Param dragYP = new Param("dragY");
 	ValueConstraint valueConstraint;
@@ -23,6 +21,7 @@ public class MoveTool : Tool {
 
 	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
 		ClearDrag();
+		if(DetailEditor.instance.currentSketch == null) return;
 		if(valueConstraint != null) return;
 		if(sko == null) return;
 		var entity = sko as Entity;
@@ -31,24 +30,24 @@ public class MoveTool : Tool {
 		int count = 0;
 		if(entity != null) count = entity.points.Count();
 		if(count == 0) return;
-
-		if(count == 1) {
-			var pt = entity.points.First();
-			dragXP.value = pt.x.value;
-			dragYP.value = pt.y.value;
-			dragX = new Exp(pt.x).Drag(dragXP);
-			dragY = new Exp(pt.y).Drag(dragYP);
-			DetailEditor.instance.currentSketch.SetDrag(dragX, dragY);
+		dragXP.value = 0;
+		dragYP.value = 0;
+		foreach(var pt in entity.points) {
+			var dragX = new Exp(pt.x).Drag(dragXP.exp + pt.x.value);
+			var dragY = new Exp(pt.y).Drag(dragYP.exp + pt.y.value);
+			drag.Add(dragX);
+			drag.Add(dragY);
+			DetailEditor.instance.currentSketch.AddDrag(dragX);
+			DetailEditor.instance.currentSketch.AddDrag(dragY);
 		}
 	}
 
 	void ClearDrag() {
 		current = null;
-		if(dragX != null) {
-			DetailEditor.instance.currentSketch.SetDrag(null, null);
+		foreach(var d in drag) {
+			DetailEditor.instance.currentSketch.RemoveDrag(d);
 		}
-		dragX = null;
-		dragY = null;
+		drag.Clear();
 		canMove = true;
 	}
 
@@ -61,7 +60,7 @@ public class MoveTool : Tool {
 	protected override void OnMouseMove(Vector3 pos, SketchObject sko) {
 		if(current == null) return;
 		var delta = pos - click;
-		if(dragX != null) {
+		if(drag.Count > 0) {
 			dragXP.value += delta.x;
 			dragYP.value += delta.y;
 		} else {

@@ -1,4 +1,6 @@
 ﻿
+using UnityEngine;
+
 public class ExpVector {
 	public Exp x;
 	public Exp y;
@@ -36,6 +38,10 @@ public class ExpVector {
 
 	public Exp Magnitude() {
 		return Exp.Sqrt(Exp.Sqr(x) + Exp.Sqr(y) + Exp.Sqr(z));
+	}
+
+	public Vector3 Eval() {
+		return new Vector3((float)x.Eval(), (float)y.Eval(), (float)z.Eval());
 	}
 
 }

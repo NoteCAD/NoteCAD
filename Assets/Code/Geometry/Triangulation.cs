@@ -4,6 +4,18 @@ using UnityEngine;
 
 public static class Triangulation {
 
+	public static bool IsClockwise(List<Vector3> points) {
+		int minIndex = 0;
+		for(int i = 1; i < points.Count; i++) {
+			if(points[minIndex].y < points[i].y) continue;
+			minIndex = i;
+		}
+		var a = points[(minIndex - 1 + points.Count) % points.Count];
+		var b = points[minIndex];
+		var c = points[(minIndex + 1) % points.Count];
+		return IsConvex(a, b, c);
+	}
+
 	public static bool IsConvex(Vector3 a, Vector3 b, Vector3 c) {
 		return Vector3.Cross(a - b, c - b).z > 0f;
 	}

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml;
+using System.Linq;
 using UnityEngine;
 
 public class Detail : Feature {
@@ -12,17 +13,26 @@ public class Detail : Feature {
 		foreach(var f in features) {
 			f.Update();
 		}
+		if(features.Any(f => f.dirty)) {
+			MarkDirty();
+		}
 	}
 
 	public void AddFeature(Feature feature) {
 		features.Add(feature);
 	}
 
-	void Clear() {
+	protected override void OnClear() {
 		foreach(var f in features) {
 			f.Clear();
 		}
 		features.Clear();
+	}
+
+	protected override void OnUpdateDirty() {
+		foreach(var f in features) {
+			f.UpdateDirty();
+		}
 	}
 
 	public void ReadXml(string str) {
@@ -54,6 +64,20 @@ public class Detail : Feature {
 		return text.ToString();
 	}
 
-
+	protected override SketchObject OnHover(Vector3 mouse, Camera camera, ref double objDist) {
+		double min = -1.0;
+		SketchObject result = null;
+		foreach(var f in features) {
+			double dist = -1.0;
+			var hovered = f.Hover(mouse, camera, ref dist);
+			if(dist < 0.0) continue;
+			if(dist > 5.0) continue;
+			if(min >= 0.0 && dist > min) continue;
+			result = hovered;
+			min = dist;
+		}
+		objDist = min;
+		return result;
+	}
 
 }

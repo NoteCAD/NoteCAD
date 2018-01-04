@@ -10,6 +10,8 @@ public abstract partial class Entity : SketchObject {
 	List<Entity> children = new List<Entity>();
 	public Entity parent { get; private set; }
 
+	public Func<ExpVector, ExpVector> transform = null;
+
 	public IEnumerable<Constraint> constraints { get { return usedInConstraints.AsEnumerable(); } }
 
 	protected T AddChild<T>(T e) where T : Entity {

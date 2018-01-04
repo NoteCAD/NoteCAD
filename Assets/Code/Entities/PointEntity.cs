@@ -3,23 +3,31 @@ using UnityEngine;
 using System.Linq;
 using System.Xml;
 
+public interface IPoint {
+	ExpVector exp { get; }
+}
+
 public class PointEntity : Entity {
 
 	public Param x = new Param("x");
 	public Param y = new Param("y");
 	public Param z = new Param("z");
 
-	bool is3d;
+	public bool is3d;
 
 	public PointEntity(Sketch sk) : base(sk) {
 		is3d = false;
 	}
 
 	public Vector3 GetPosition() {
+		if(transform != null) {
+			return exp.Eval();
+		}
 		return new Vector3((float)x.value, (float)y.value, (float)z.value);
 	}
 
 	public void SetPosition(Vector3 pos) {
+		if(transform != null) return;
 		x.value = pos.x;
 		y.value = pos.y;
 		if(is3d) z.value = pos.z;
@@ -34,12 +42,11 @@ public class PointEntity : Entity {
 		}
 	}
 
-	public ExpVector GetPositionExp() {
-		return new ExpVector(x, y, z);
-	}
-
 	public ExpVector exp {
 		get {
+			if(transform != null) {
+				return transform(new ExpVector(x, y, z));
+			}
 			return new ExpVector(x, y, z);
 		}
 	}
@@ -69,7 +76,6 @@ public class PointEntity : Entity {
 		y.value += delta.y;
 		if(is3d) z.value += delta.z;
 	}
-
 	
 	private bool IsCoincidentWith(PointEntity point, PointEntity exclude) {
 		for(int i = 0; i < usedInConstraints.Count; i++) {

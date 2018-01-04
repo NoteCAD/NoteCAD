@@ -7,53 +7,26 @@ using System.IO;
 using System.Xml;
 using System.Collections;
 
-public class Sketch : Feature {
+public class Sketch  {
 	List<Entity> entities = new List<Entity>();
 	List<Constraint> constraints = new List<Constraint>();
-	bool sysDirty;
-	EquationSystem sys = new EquationSystem();
-	Exp dragX;
-	Exp dragY;
-	List<List<Entity>> loops = new List<List<Entity>>();
 
-	SketchObject hovered_;
-	public SketchObject hovered {
+	public IEnumerable<Entity> entityList {
 		get {
-			return hovered_;
-		}
-		set {
-			if(hovered_ == value) return;
-			if(hovered_ != null) {
-				hovered_.isHovered = false;
-			}
-			hovered_ = value;
-			if(hovered_ != null) {
-				hovered_.isHovered = true;
-			}
+			return entities.AsEnumerable();
 		}
 	}
 
-	public Sketch() {
-		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
+	public IEnumerable<Constraint> constraintList {
+		get {
+			return constraints.AsEnumerable();
+		}
 	}
-
-	public void SetDrag(Exp dragX, Exp dragY) {
-		if(this.dragX != dragX) {
-			if(this.dragX != null) sys.RemoveEquation(this.dragX);
-			this.dragX = dragX;
-			if(dragX != null) sys.AddEquation(dragX);
-		}
-		if(this.dragY != dragY) {
-			if(this.dragY != null) sys.RemoveEquation(this.dragY);
-			this.dragY = dragY;
-			if(dragY != null) sys.AddEquation(dragY);
-		}
-	} 
 
 	public void AddEntity(Entity e) {
 		if(entities.Contains(e)) return;
 		entities.Add(e);
-		sysDirty = true;
+		MarkDirtySketch(topo:true, entities:true);
 	}
 
 	public Entity GetEntity(Guid guid) {
@@ -62,28 +35,29 @@ public class Sketch : Feature {
 
 	public void AddConstraint(Constraint c) {
 		if(constraints.Contains(c)) return;
-			constraints.Add(c);
-		sysDirty = true;
+		constraints.Add(c);
+		MarkDirtySketch(topo:c is PointsCoincident, constraints:true);
+		constraintsTopologyChanged = true;
 	}
 
-	void UpdateSystem() {
-		if(!sysDirty) return;
-		loops = GenerateLoops();
-		CreateLoops();
-		sys.Clear();
-		foreach(var e in entities) {
-			sys.AddParameters(e.parameters);
-			sys.AddEquations(e.equations);
-		}
-		foreach(var c in constraints) {
-			sys.AddParameters(c.parameters);
-			sys.AddEquations(c.equations);
-		}
-		sysDirty = false;
+	public bool constraintsTopologyChanged = true;
+	public bool constraintsChanged = true;
+	public bool entitiesChanged = true;
+	public bool loopsChanged = true;
+	public bool topologyChanged = true;
+
+	public bool IsDirty() {
+		return constraintsTopologyChanged || constraintsChanged || entitiesChanged || loopsChanged || topologyChanged;
 	}
 
-	protected override void OnUpdate() {
-		var camera = Camera.main;
+	public void MarkDirtySketch(bool topo = false, bool constraints = false, bool entities = false, bool loops = false) {
+		topologyChanged = topologyChanged || topo;
+		constraintsChanged = constraintsChanged || constraints;
+		entitiesChanged = entitiesChanged || entities;
+		loopsChanged = loopsChanged || loops;
+	}
+
+	public SketchObject Hover(Vector3 mouse, Camera camera, ref double objDist) {
 		double min = -1.0;
 		SketchObject hoveredObject = null;
 		foreach(var e in entities) {
@@ -104,43 +78,17 @@ public class Sketch : Feature {
 			min = dist;
 			hoveredObject = c;
 		}
-		hovered = hoveredObject;
-
-		var dirty = sysDirty;
-		UpdateSystem();
-		string result = sys.Solve().ToString();
-		result += "\n" + sys.stats;
-		DetailEditor.instance.resultText.text = result.ToString();
-		if(dirty || constraints.Any(c => c.IsChanged()) || entities.Any(e => e.IsChanged())) {
-			canvas.Clear();
-			canvas.SetStyle("constraints");
-			foreach(var c in constraints) {
-				c.Draw(canvas);
-			}
-			canvas.SetStyle("entities");
-			foreach(var e in entities) {
-				e.Draw(canvas);
-			}
-		}
-		canvas.ClearStyle("hovered");
-		if(hovered != null) {
-			canvas.SetStyle("hovered");
-			hovered.Draw(canvas);
-		}
-
-		if(dirty || loops.Any(l => l.Any(e => e.IsChanged()))) {
-			CreateLoops();
-		}
-		canvas.ClearStyle("error");
-		canvas.SetStyle("error");
-		foreach(var e in entities) {
-			if(!e.isError) continue;
-			e.Draw(canvas);
-		}
-		MarkUnchanged();
+		objDist = min;
+		return hoveredObject;
 	}
 
-	protected LineCanvas canvas;
+	public bool IsConstraintsChanged() {
+		return constraintsChanged || constraints.Any(c => c.IsChanged());
+	}
+
+	public bool IsEntitiesChanged() {
+		return entitiesChanged || entities.Any(e => e.IsChanged());
+	}
 
 	public void MarkUnchanged() {
 		foreach(var e in entities) {
@@ -154,9 +102,14 @@ public class Sketch : Feature {
 			}
 			c.changed = false;
 		}
+		constraintsTopologyChanged = false;
+		constraintsChanged = false;
+		entitiesChanged = false;
+		loopsChanged = false;
+		topologyChanged = false;
 	}
 
-	List<List<Entity>> GenerateLoops() {
+	public List<List<Entity>> GenerateLoops() {
 		var all = entities.OfType<ISegmentaryEntity>().ToList();
 		var first = all.FirstOrDefault();
 		var current = first;
@@ -201,19 +154,7 @@ public class Sketch : Feature {
 		return loops;
 	}
 
-	bool IsClockwise(List<Vector3> points) {
-		int minIndex = 0;
-		for(int i = 1; i < points.Count; i++) {
-			if(points[minIndex].y < points[i].y) continue;
-			minIndex = i;
-		}
-		var a = points[(minIndex - 1 + points.Count) % points.Count];
-		var b = points[minIndex];
-		var c = points[(minIndex + 1) % points.Count];
-		return Triangulation.IsConvex(a, b, c);
-	}
-
-	List<List<Vector3>> GetPolygons(List<List<Entity>> loops) {
+	public static List<List<Vector3>> GetPolygons(List<List<Entity>> loops) {
 		var result = new List<List<Vector3>>();
 		if(loops == null) return result;
 		foreach(var loop in loops) {
@@ -245,7 +186,7 @@ public class Sketch : Feature {
 				polygon.RemoveAt(polygon.Count - 1);
 			}
 			if(polygon.Count < 3) continue;
-			if(!IsClockwise(polygon)) {
+			if(!Triangulation.IsClockwise(polygon)) {
 				polygon.Reverse();
 			}
 			result.Add(polygon);
@@ -253,105 +194,7 @@ public class Sketch : Feature {
 		return result;
 	}
 
-	Mesh CreateMesh(List<List<Vector3>> polygons, float extrude) {
-		var capacity = polygons.Sum(p => (p.Count - 2) * 3 + p.Count) * 2;
-		var vertices = new List<Vector3>(capacity);
-		var indices = new List<int>(capacity);
-		foreach(var p in polygons) {
-			var pv = new List<Vector3>(p);
-			var triangles = Triangulation.Triangulate(pv);
-			var start = vertices.Count;
-			vertices.AddRange(triangles);
-			for(int i = 0; i < triangles.Count; i++) {
-				indices.Add(i + start);
-			}
-			var extrudeVector = Vector3.forward * extrude;
-			var striangles = triangles.Select(pt => pt + extrudeVector).ToList();
-			start = vertices.Count;
-			vertices.AddRange(striangles);
-			for(int i = 0; i < striangles.Count / 3; i++) {
-				indices.Add(start + i * 3 + 1);
-				indices.Add(start + i * 3 + 0);
-				indices.Add(start + i * 3 + 2);
-			}
-
-			start = vertices.Count();
-
-			if(extrude < 0f) {
-				for(int i = 0; i < p.Count; i++) {
-					vertices.Add(p[i]);
-					vertices.Add(p[(i + 1) % p.Count]);
-					vertices.Add(p[i] + extrudeVector);
-
-					vertices.Add(p[(i + 1) % p.Count]);
-					vertices.Add(p[(i + 1) % p.Count] + extrudeVector);
-					vertices.Add(p[i] + extrudeVector);
-				}
-			} else {
-				for(int i = 0; i < p.Count; i++) {
-					vertices.Add(p[i]);
-					vertices.Add(p[i] + extrudeVector);
-					vertices.Add(p[(i + 1) % p.Count]);
-
-					vertices.Add(p[(i + 1) % p.Count]);
-					vertices.Add(p[i] + extrudeVector);
-					vertices.Add(p[(i + 1) % p.Count] + extrudeVector);
-				}
-			}
-			for(int i = 0; i < p.Count * 6; i++) {
-				indices.Add(start + i);
-			}
-		}
-		var result = new Mesh();
-		result.name = "polygons";
-		result.SetVertices(vertices);
-		result.SetIndices(indices.ToArray(), MeshTopology.Triangles, 0);
-		result.RecalculateBounds();
-		result.RecalculateNormals();
-		result.RecalculateTangents();
-		return result;
-	}
-
-	List<GameObject> loopsObjects = new List<GameObject>();
-	Mesh mainMesh;
-
-	void CreateLoops() {
-		foreach(var obj in loopsObjects) {
-			GameObject.Destroy(obj.GetComponent<MeshFilter>().mesh);
-			GameObject.Destroy(obj);
-		}
-		loopsObjects.Clear();
-		var itr = new Vector3();
-		foreach(var loop in loops) {
-			loop.ForEach(e => e.isError = false);
-			foreach(var e0 in loop) {
-				foreach(var e1 in loop) {
-					if(e0 == e1) continue;
-					var cross = e0.IsCrossed(e1, ref itr);
-					e0.isError = e0.isError || cross;
-					e1.isError = e1.isError || cross;
-				}
-			}
-		}
-		var polygons = GetPolygons(loops.Where(l => l.All(e => !e.isError)).ToList());
-		GameObject.Destroy(mainMesh);
-		mainMesh = CreateMesh(polygons, 5f);
-		var go = new GameObject();
-		var mf = go.AddComponent<MeshFilter>();
-		var mr = go.AddComponent<MeshRenderer>();
-		mf.mesh = mainMesh;
-		mr.material = EntityConfig.instance.meshMaterial;
-		loopsObjects.Add(go);
-	}
-
-	public string ExportSTL() {
-		if(mainMesh == null) {
-			mainMesh = new Mesh();
-		}
-		return mainMesh.ExportSTL();
-	}
-
-	protected override void OnWrite(XmlTextWriter xml) {
+	public void Write(XmlTextWriter xml) {
 		xml.WriteStartElement("entities");
 		foreach(var e in entities) {
 			if(e.parent != null) continue;
@@ -366,7 +209,7 @@ public class Sketch : Feature {
 		xml.WriteEndElement();
 	}
 
-	protected override void OnRead(XmlNode xml) {
+	public void Read(XmlNode xml) {
 		Type[] types = { typeof(Sketch) };
 		object[] param = { this };
 		foreach(XmlNode nodeKind in xml.ChildNodes) {
@@ -395,14 +238,14 @@ public class Sketch : Feature {
 			Debug.Log("Can't remove this constraint!");
 			return;
 		}
-		if(hovered == sko) {
-			hovered = null;
+		if(DetailEditor.instance.hovered == sko) {
+			DetailEditor.instance.hovered = null;
 		}
 		if(sko is Constraint) {
 			var c = sko as Constraint;
 			if(constraints.Remove(c)) {
 				c.Destroy();
-				sysDirty = true;
+				MarkDirtySketch(topo:c is PointsCoincident, constraints:true);
 			} else {
 				Debug.Log("Can't remove this constraint!");
 			}
@@ -411,19 +254,18 @@ public class Sketch : Feature {
 			var e = sko as Entity;
 			if(entities.Remove(e)) {
 				e.Destroy();
-				sysDirty = true;
+				MarkDirtySketch(topo:true, entities:true);
 			} else {
 				Debug.Log("Can't remove this entity!");
 			}
 		}
 	}
 
-	protected override void OnClear() {
+	public void Clear() {
 		while(entities.Count > 0) {
 			entities[0].Destroy();
 		}
-		sysDirty = true;
-		Update();
+		MarkDirtySketch(topo:true, entities:true, constraints:true, loops:true);
 	}
 
 	public bool IsCrossed(Entity entity, ref Vector3 intersection) {
@@ -439,8 +281,19 @@ public class Sketch : Feature {
 	public void ReplaceEntityInConstraints(Entity before, Entity after) {
 		foreach(var c in constraints) {
 			if(c.ReplaceEntity(before, after)) {
-				sysDirty = true;
+				MarkDirtySketch(constraints:true, topo:c is PointsCoincident);
 			}
+		}
+	}
+
+	public void GenerateEquations(EquationSystem system) {
+		foreach(var e in entities) {
+			system.AddParameters(e.parameters);
+			system.AddEquations(e.equations);
+		}
+		foreach(var c in constraints) {
+			system.AddParameters(c.parameters);
+			system.AddEquations(c.equations);
 		}
 	}
 }

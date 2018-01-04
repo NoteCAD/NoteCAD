@@ -21,6 +21,13 @@ public class Param {
 		this.name = name;
 		exp = new Exp(this);
 	}
+
+	public Param(string name, double value) {
+		this.name = name;
+		this.value = value;
+		exp = new Exp(this);
+	}
+
 }
 
 public class Exp {
