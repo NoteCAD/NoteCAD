@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
@@ -6,6 +7,8 @@ using UnityEngine;
 public abstract class Feature {
 	IEnumerator<Entity> entities { get { yield break; } }
 	Feature source_;
+	public Detail detail;
+	public Guid guid { get; private set; }
 	public Feature source {
 		get {
 			return source_;
@@ -22,7 +25,9 @@ public abstract class Feature {
 	}
 	List<Feature> children = new List<Feature>();
 
-	bool dirty_;
+	public abstract GameObject gameObject { get; }
+
+	bool dirty_ = true;
 	public bool dirty {
 		get {
 			return dirty_;
@@ -34,6 +39,10 @@ public abstract class Feature {
 		foreach(var c in children) {
 			c.MarkDirty();
 		}
+	}
+
+	public Feature() {
+		guid = Guid.NewGuid();
 	}
 
 	protected virtual void OnUpdate() { }
@@ -51,9 +60,12 @@ public abstract class Feature {
 	}
 
 	public virtual void Write(XmlTextWriter xml) {
-		//xml.WriteAttributeString("guid", guid.ToString());
 		xml.WriteStartElement("feature");
 		xml.WriteAttributeString("type", this.GetType().Name);
+		xml.WriteAttributeString("guid", guid.ToString());
+		if(source != null) {
+			xml.WriteAttributeString("source", source.guid.ToString());
+		}
 		OnWrite(xml);
 		xml.WriteEndElement();
 	}
@@ -63,7 +75,12 @@ public abstract class Feature {
 	}
 
 	public virtual void Read(XmlNode xml) {
-		//guid = new Guid(xml.Attributes["guid"].Value);
+		guid = new Guid(xml.Attributes["guid"].Value);
+		if(xml.Attributes.GetNamedItem("source") != null) {
+			var srcGuid = new Guid(xml.Attributes["source"].Value);
+			source = detail.GetFeature(srcGuid);
+		}
+
 		OnRead(xml);
 	}
 
@@ -86,6 +103,46 @@ public abstract class Feature {
 	protected virtual SketchObject OnHover(Vector3 mouse, Camera camera, ref double dist) {
 		return null;
 	}
+
+
+	protected virtual void OnShow(bool state) {
+
+	}
+
+	bool visible_ = true;
+	public bool visible {
+		set {
+			if(visible_ == value) return;
+			visible_ = value;
+			OnShow(visible_);
+		}
+
+		get {
+			return visible_;
+		}
+	}
+
+	protected virtual void OnActivate(bool state) {
+
+	}
+
+	bool active_ = true;
+	public bool active {
+		set {
+			if(active_ == value) return;
+			active_ = value;
+			OnActivate(active_);
+		}
+
+		get {
+			return active_;
+		}
+	}
+
+	public virtual bool ShouldHoverWhenInactive() {
+		return true;
+	}
+
 }
 
 public abstract class MeshFeature : Feature {

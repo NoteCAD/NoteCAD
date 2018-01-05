@@ -89,6 +89,7 @@ public class DetailEditor : MonoBehaviour {
 
 	private void Update() {
 		detail.Update();
+		detail.MarkDirty();
 		detail.UpdateDirty();
 		if(meshDirty) {
 			meshDirty = false;
@@ -132,9 +133,10 @@ public class DetailEditor : MonoBehaviour {
 	}
 
 	public void ReadXml(string xml) {
+		activeFeature = null;
 		detail.ReadXml(xml);
-		currentSketch = detail.features.LastOrDefault(f => f is SketchFeature) as SketchFeature;
 		UpdateFeatures();
+		ActivateFeature(detail.features.Last());
 	}
 
 	public string WriteXml() {
@@ -154,7 +156,7 @@ public class DetailEditor : MonoBehaviour {
 			var cb = btn.colors;
 			cb.normalColor = Color.white;
 			btn.colors = cb;
-			//activeFeature.Deactivate();
+			activeFeature.active = false;
 		}
 		activeFeature = feature;
 		if(activeFeature != null) {
@@ -163,9 +165,17 @@ public class DetailEditor : MonoBehaviour {
 			var cb = btn.colors;
 			cb.normalColor = pressedColor;
 			btn.colors = cb;
-			//activeTool.Activate();
+			activeFeature.active = true;
 		}
 		meshDirty = true;
+		var visible = true;
+		foreach(var f in detail.features) {
+			f.visible = visible;
+			if(f == activeFeature) {
+				visible = false;
+			}
+		}
+
 	}
 
 

@@ -7,9 +7,20 @@ using System.IO;
 using System.Xml;
 using System.Collections;
 
-public class Sketch  {
+interface ISketch {
+	IEnumerable<IEntity> entities { get; }
+	IEntity Hover(Vector3 mouse, Camera camera, Matrix4x4 transform, ref double dist);
+}
+
+public class Sketch : ISketch  {
 	List<Entity> entities = new List<Entity>();
 	List<Constraint> constraints = new List<Constraint>();
+
+	IEnumerable<IEntity> ISketch.entities {
+		get {
+			foreach(var e in entities) yield return e;
+		}
+	}
 
 	public IEnumerable<Entity> entityList {
 		get {
@@ -55,6 +66,10 @@ public class Sketch  {
 		constraintsChanged = constraintsChanged || constraints;
 		entitiesChanged = entitiesChanged || entities;
 		loopsChanged = loopsChanged || loops;
+	}
+
+	IEntity ISketch.Hover(Vector3 mouse, Camera camera, Matrix4x4 transform, ref double objDist) {
+		return Hover(mouse, camera, ref objDist) as IEntity;
 	}
 
 	public SketchObject Hover(Vector3 mouse, Camera camera, ref double objDist) {

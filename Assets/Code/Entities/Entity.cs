@@ -4,15 +4,40 @@ using System.Linq;
 using System.Xml;
 using System;
 
-public abstract partial class Entity : SketchObject {
+interface IEntity {
+	IEnumerable<IPoint> points { get; }				// enough for dragging
+	IEnumerable<Vector3> segments { get; }			// enough for drawing
+	ExpVector PointOn(Exp t);						// enough for constraining
+}
+
+public abstract partial class Entity : SketchObject, IEntity {
 
 	protected List<Constraint> usedInConstraints = new List<Constraint>();
 	List<Entity> children = new List<Entity>();
 	public Entity parent { get; private set; }
-
 	public Func<ExpVector, ExpVector> transform = null;
-
 	public IEnumerable<Constraint> constraints { get { return usedInConstraints.AsEnumerable(); } }
+	public virtual IEnumerable<PointEntity> points { get { yield break; } }
+	public virtual BBox bbox { get { return new BBox(Vector3.zero, Vector3.zero); } }
+
+
+	IEnumerable<IPoint> IEntity.points {
+		get {
+			return points.Cast<IPoint>();
+		}
+	}
+
+	IEnumerable<Vector3> IEntity.segments {
+		get {
+			if(this is ISegmentaryEntity) return (this as ISegmentaryEntity).segmentPoints;
+			if(this is ILoopEntity) return (this as ILoopEntity).loopPoints;
+			return Enumerable.Empty<Vector3>();
+		}
+	}
+
+	public virtual /*abstract*/ ExpVector PointOn(Exp t) {
+		return new ExpVector(0, 0, 0);
+	}
 
 	protected T AddChild<T>(T e) where T : Entity {
 		children.Add(e);
@@ -23,10 +48,6 @@ public abstract partial class Entity : SketchObject {
 	public Entity(Sketch sketch) : base(sketch) {
 		sketch.AddEntity(this);
 	}
-
-	public virtual IEnumerable<PointEntity> points { get { yield break; } }
-
-	public virtual BBox bbox { get { return new BBox(Vector3.zero, Vector3.zero); } }
 
 	protected override void OnDrag(Vector3 delta) {
 		foreach(var p in points) {

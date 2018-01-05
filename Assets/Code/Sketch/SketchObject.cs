@@ -3,6 +3,14 @@ using System.Xml;
 using System;
 using UnityEngine;
 
+public abstract class CADObject {
+	
+	public Guid guid { get; private set; }
+
+	CADObject parent;
+
+}
+
 public abstract class SketchObject {
 
 	Sketch sk;

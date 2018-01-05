@@ -7,7 +7,14 @@ using System.Linq;
 using UnityEngine;
 
 public class Detail : Feature {
+
 	public List<Feature> features = new List<Feature>();
+
+	public override GameObject gameObject {
+		get {
+			return null;
+		}
+	}
 
 	protected override void OnUpdate() {
 		foreach(var f in features) {
@@ -19,6 +26,7 @@ public class Detail : Feature {
 	}
 
 	public void AddFeature(Feature feature) {
+		feature.detail = this;
 		features.Add(feature);
 	}
 
@@ -44,8 +52,8 @@ public class Detail : Feature {
 			if(node.Name != "feature") continue;
 			var type = node.Attributes["type"].Value;
 			var item = Type.GetType(type).GetConstructor(new Type[0]).Invoke(new object[0]) as Feature;
+			AddFeature(item);
 			item.Read(node);
-			features.Add(item);
 		}
 	}
 
@@ -68,6 +76,9 @@ public class Detail : Feature {
 		double min = -1.0;
 		SketchObject result = null;
 		foreach(var f in features) {
+			if(!f.ShouldHoverWhenInactive() && !f.active) {
+				continue;
+			}
 			double dist = -1.0;
 			var hovered = f.Hover(mouse, camera, ref dist);
 			if(dist < 0.0) continue;
@@ -78,6 +89,10 @@ public class Detail : Feature {
 		}
 		objDist = min;
 		return result;
+	}
+
+	public Feature GetFeature(Guid guid) {
+		return features.Find(f => f.guid == guid);
 	}
 
 }

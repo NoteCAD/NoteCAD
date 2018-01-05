@@ -21,6 +21,7 @@ public class DraftStroke : MonoBehaviour {
 	}
 
 	public StrokeStyle[] styles = new StrokeStyle[0]; 
+	public GameObject parent;
 
 	struct Line {
 		public Vector3 a;
@@ -32,7 +33,11 @@ public class DraftStroke : MonoBehaviour {
 		public List<GameObject> objects = new List<GameObject>();
 		public List<Mesh> meshes = new List<Mesh>();
 		public bool dirty;
+		public StrokeStyle style;
 
+		public Lines(StrokeStyle s) {
+			style = s;
+		}
 		public void AddLine(Vector3 a, Vector3 b) {
 			lines.Add(new Line { a = a, b = b } );
 			dirty = true;
@@ -59,8 +64,8 @@ public class DraftStroke : MonoBehaviour {
 	public Material material;
 
 	Mesh CreateMesh(Lines lines) {
-		var go = new GameObject();
-		go.transform.parent = gameObject.transform;
+		var go = new GameObject(lines.style.name);
+		go.transform.parent = parent != null ? parent.transform : gameObject.transform;
 		var mr = go.AddComponent<MeshRenderer>();
 		mr.material = material;
 		var mf = go.AddComponent<MeshFilter>();
@@ -135,7 +140,7 @@ public class DraftStroke : MonoBehaviour {
 
 	Dictionary<StrokeStyle, Lines> lines = new Dictionary<StrokeStyle, Lines>();
 
-	void UpdateDirty() {
+	public void UpdateDirty() {
 		var pixel = (Camera.main.ScreenToWorldPoint(new Vector3(1f, 0f, 0f)) - Camera.main.ScreenToWorldPoint(Vector3.zero)).magnitude;
 		Vector4 dir = Camera.main.transform.forward;
 		foreach(var l in lines) {
@@ -161,7 +166,7 @@ public class DraftStroke : MonoBehaviour {
 	public void SetStyle(string name) {
 		currentStyle = styles.First(s => s.name == name);
 		if(!lines.ContainsKey(currentStyle)) {
-			lines[currentStyle] = new Lines();
+			lines[currentStyle] = new Lines(currentStyle);
 		}
 		currentLines = lines[currentStyle];
 	}

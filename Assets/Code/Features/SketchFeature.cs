@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
@@ -9,7 +10,9 @@ public class SketchFeature : Feature {
 	List<List<Entity>> loops = new List<List<Entity>>();
 	protected LineCanvas canvas;
 	Sketch sketch;
-
+	Mesh mainMesh;
+	GameObject go;
+	
 	public Sketch GetSketch() {
 		return sketch;
 	}
@@ -17,6 +20,13 @@ public class SketchFeature : Feature {
 	public SketchFeature() {
 		sketch = new Sketch();
 		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
+		mainMesh = new Mesh();
+		go = new GameObject("SketchFeature");
+		var mf = go.AddComponent<MeshFilter>();
+		var mr = go.AddComponent<MeshRenderer>();
+		mf.mesh = mainMesh;
+		mr.material = EntityConfig.instance.meshMaterial;
+		canvas.parent = go;
 	}
 
 	public void AddDrag(Exp drag) {
@@ -69,6 +79,7 @@ public class SketchFeature : Feature {
 			CreateLoops();
 		}
 		sketch.MarkUnchanged();
+		canvas.UpdateDirty();
 	}
 
 	protected override SketchObject OnHover(Vector3 mouse, Camera camera, ref double objDist) {
@@ -85,15 +96,13 @@ public class SketchFeature : Feature {
 		}
 	}
 
-	List<GameObject> loopsObjects = new List<GameObject>();
-	Mesh mainMesh;
+	public override GameObject gameObject {
+		get {
+			return go;
+		}
+	}
 
 	void CreateLoops() {
-		foreach(var obj in loopsObjects) {
-			GameObject.Destroy(obj.GetComponent<MeshFilter>().mesh);
-			GameObject.Destroy(obj);
-		}
-		loopsObjects.Clear();
 		var itr = new Vector3();
 		foreach(var loop in loops) {
 			loop.ForEach(e => e.isError = false);
@@ -107,14 +116,12 @@ public class SketchFeature : Feature {
 			}
 		}
 		var polygons = Sketch.GetPolygons(loops.Where(l => l.All(e => !e.isError)).ToList());
-		GameObject.Destroy(mainMesh);
-		mainMesh = MeshUtils.CreateMeshRegion(polygons);
-		var go = new GameObject();
-		var mf = go.AddComponent<MeshFilter>();
-		var mr = go.AddComponent<MeshRenderer>();
-		mf.mesh = mainMesh;
-		mr.material = EntityConfig.instance.meshMaterial;
-		loopsObjects.Add(go);
+		if(mainMesh == null) {
+		}
+		mainMesh.Clear();
+		MeshUtils.CreateMeshRegion(polygons, ref mainMesh);
+		if(go == null) {
+		}
 	}
 
 	protected override void OnWrite(XmlTextWriter xml) {
@@ -133,5 +140,13 @@ public class SketchFeature : Feature {
 
 	public List<List<Entity>> GetLoops() {
 		return loops;
+	}
+
+	public override bool ShouldHoverWhenInactive() {
+		return false;
+	}
+
+	protected override void OnActivate(bool state) {
+		go.SetActive(state);
 	}
 }

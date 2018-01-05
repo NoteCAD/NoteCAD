@@ -7,7 +7,15 @@ public interface IPoint {
 	ExpVector exp { get; }
 }
 
-public class PointEntity : Entity {
+public static class IPointClass {
+	public static void Draw(this IPoint point, LineCanvas canvas) {
+		var pos = point.exp.Eval();
+		canvas.DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, Vector3.forward);
+		canvas.DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, -Vector3.forward);
+	}	
+}
+
+public class PointEntity : Entity, IPoint {
 
 	public Param x = new Param("x");
 	public Param y = new Param("y");
@@ -121,8 +129,7 @@ public class PointEntity : Entity {
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
-		canvas.DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, Vector3.forward);
-		canvas.DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, -Vector3.forward);
+		(this as IPoint).Draw(canvas);
 	}
 
 }

@@ -5,7 +5,7 @@ using System.Linq;
 
 public static class MeshUtils {
 
-	public static Mesh CreateMeshRegion(List<List<Vector3>> polygons) {
+	public static void CreateMeshRegion(List<List<Vector3>> polygons, ref Mesh mesh) {
 		var capacity = polygons.Sum(p => p.Count - 2) * 3;
 		var vertices = new List<Vector3>(capacity);
 		var indices = new List<int>(capacity);
@@ -18,14 +18,13 @@ public static class MeshUtils {
 				indices.Add(i + start);
 			}
 		}
-		var result = new Mesh();
-		result.name = "polygons";
-		result.SetVertices(vertices);
-		result.SetIndices(indices.ToArray(), MeshTopology.Triangles, 0);
-		result.RecalculateBounds();
-		result.RecalculateNormals();
-		result.RecalculateTangents();
-		return result;
+		mesh.name = "polygons";
+		mesh.SetVertices(vertices);
+		mesh.SetIndices(indices.ToArray(), MeshTopology.Triangles, 0);
+		mesh.RecalculateBounds();
+		mesh.RecalculateNormals();
+		mesh.RecalculateTangents();
+
 	}
 
 	public static void CreateMeshExtrusion(List<List<Vector3>> polygons, float extrude, ref Mesh mesh) {
