@@ -6,11 +6,12 @@ using UnityEngine.UI;
 
 public class MoveTool : Tool {
 
-	SketchObject current;
+	ISketchObject current;
 	Vector3 click;
 	List<Exp> drag = new List<Exp>();
 	Param dragXP = new Param("dragX");
 	Param dragYP = new Param("dragY");
+	Param dragZP = new Param("dragZ");
 	ValueConstraint valueConstraint;
 	public InputField input;
 	bool canMove = true;
@@ -19,12 +20,11 @@ public class MoveTool : Tool {
 		input.onEndEdit.AddListener(OnEndEdit);
 	}
 
-	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
+	protected override void OnMouseDown(Vector3 pos, ISketchObject sko) {
 		ClearDrag();
-		if(DetailEditor.instance.currentSketch == null) return;
 		if(valueConstraint != null) return;
 		if(sko == null) return;
-		var entity = sko as Entity;
+		var entity = sko as IEntity;
 		current = sko;
 		click = pos;
 		int count = 0;
@@ -32,20 +32,24 @@ public class MoveTool : Tool {
 		if(count == 0) return;
 		dragXP.value = 0;
 		dragYP.value = 0;
+		dragZP.value = 0;
 		foreach(var pt in entity.points) {
-			var dragX = new Exp(pt.x).Drag(dragXP.exp + pt.x.value);
-			var dragY = new Exp(pt.y).Drag(dragYP.exp + pt.y.value);
+			var dragX = pt.exp.x.Drag(dragXP.exp + pt.exp.x.Eval());
+			var dragY = pt.exp.y.Drag(dragYP.exp + pt.exp.y.Eval());
+			var dragZ = pt.exp.z.Drag(dragZP.exp + pt.exp.z.Eval());
 			drag.Add(dragX);
 			drag.Add(dragY);
-			DetailEditor.instance.currentSketch.AddDrag(dragX);
-			DetailEditor.instance.currentSketch.AddDrag(dragY);
+			drag.Add(dragZ);
+			DetailEditor.instance.AddDrag(dragX);
+			DetailEditor.instance.AddDrag(dragY);
+			DetailEditor.instance.AddDrag(dragZ);
 		}
 	}
 
 	void ClearDrag() {
 		current = null;
 		foreach(var d in drag) {
-			DetailEditor.instance.currentSketch.RemoveDrag(d);
+			DetailEditor.instance.RemoveDrag(d);
 		}
 		drag.Clear();
 		canMove = true;
@@ -57,23 +61,24 @@ public class MoveTool : Tool {
 		input.gameObject.SetActive(false);
 	}
 
-	protected override void OnMouseMove(Vector3 pos, SketchObject sko) {
+	protected override void OnMouseMove(Vector3 pos, ISketchObject sko) {
 		if(current == null) return;
 		var delta = pos - click;
 		if(drag.Count > 0) {
 			dragXP.value += delta.x;
 			dragYP.value += delta.y;
-		} else {
-			current.Drag(delta);
+			dragZP.value += delta.z;
+		} else if(current is Constraint) {
+			(current as Constraint).Drag(delta);
 		}
 		click = pos;
 	}
 
-	protected override void OnMouseUp(Vector3 pos, SketchObject sko) {
+	protected override void OnMouseUp(Vector3 pos, ISketchObject sko) {
 		ClearDrag();
 	}
 	
-	protected override void OnMouseDoubleClick(Vector3 pos, SketchObject sko) {
+	protected override void OnMouseDoubleClick(Vector3 pos, ISketchObject sko) {
 		if(sko is ValueConstraint) {
 			valueConstraint = sko as ValueConstraint;
 			input.gameObject.SetActive(true);

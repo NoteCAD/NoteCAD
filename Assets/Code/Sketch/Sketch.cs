@@ -12,9 +12,10 @@ interface ISketch {
 	IEntity Hover(Vector3 mouse, Camera camera, Matrix4x4 transform, ref double dist);
 }
 
-public class Sketch : ISketch  {
+public class Sketch : CADObject, ISketch  {
 	List<Entity> entities = new List<Entity>();
 	List<Constraint> constraints = new List<Constraint>();
+	public Feature feature;
 
 	IEnumerable<IEntity> ISketch.entities {
 		get {
@@ -31,6 +32,23 @@ public class Sketch : ISketch  {
 	public IEnumerable<Constraint> constraintList {
 		get {
 			return constraints.AsEnumerable();
+		}
+	}
+
+	Guid guid_ = Guid.NewGuid();
+	public override Guid guid {
+		get {
+			return guid_;
+		}
+
+		protected set {
+			guid_ = value;
+		}
+	}
+
+	public override CADObject parentObject {
+		get {
+			return feature;
 		}
 	}
 
@@ -68,16 +86,16 @@ public class Sketch : ISketch  {
 		loopsChanged = loopsChanged || loops;
 	}
 
-	IEntity ISketch.Hover(Vector3 mouse, Camera camera, Matrix4x4 transform, ref double objDist) {
-		return Hover(mouse, camera, ref objDist) as IEntity;
+	IEntity ISketch.Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
+		return Hover(mouse, camera, tf, ref objDist) as IEntity;
 	}
 
-	public SketchObject Hover(Vector3 mouse, Camera camera, ref double objDist) {
+	public SketchObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
 		double min = -1.0;
 		SketchObject hoveredObject = null;
 		foreach(var e in entities) {
 			if(!e.isSelectable) continue;
-			var dist = e.Select(Input.mousePosition, camera);
+			var dist = e.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
 			if(dist > 5.0) continue;
 			if(min >= 0.0 && dist > min) continue;
@@ -86,7 +104,7 @@ public class Sketch : ISketch  {
 		}
 		foreach(var c in constraints) {
 			if(!c.isSelectable) continue;
-			var dist = c.Select(Input.mousePosition, camera);
+			var dist = c.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
 			if(dist > 5.0) continue;
 			if(min >= 0.0 && dist > min) continue;
@@ -310,5 +328,11 @@ public class Sketch : ISketch  {
 			system.AddParameters(c.parameters);
 			system.AddEquations(c.equations);
 		}
+	}
+
+	public override CADObject GetChild(Guid guid) {
+		var e = GetEntity(guid);
+		if(e != null) return e;
+		return constraints.Find(c => c.guid == guid);
 	}
 }

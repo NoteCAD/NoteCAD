@@ -6,7 +6,7 @@ public class PointsCoincidentTool : Tool {
 
 	PointEntity p0;
 
-	protected override void OnMouseDown(Vector3 pos, SketchObject entity) {
+	protected override void OnMouseDown(Vector3 pos, ISketchObject entity) {
 		if(entity == null) return;
 		if(!(entity is PointEntity)) return;
 		var p = entity as PointEntity;

@@ -4,11 +4,27 @@ using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
 
-public abstract class Feature {
+public abstract class Feature : CADObject {
 	IEnumerator<Entity> entities { get { yield break; } }
 	Feature source_;
 	public Detail detail;
-	public Guid guid { get; private set; }
+
+	Guid guid_;
+	public override Guid guid {
+		get {
+			return guid_;
+		}
+		protected set {
+			guid_ = value;
+		}
+	}
+
+	public override CADObject parentObject {
+		get {
+			return detail;
+		}
+	}
+
 	public Feature source {
 		get {
 			return source_;
@@ -96,11 +112,11 @@ public abstract class Feature {
 		OnClear();
 	}
 
-	public SketchObject Hover(Vector3 mouse, Camera camera, ref double dist) {
-		return OnHover(mouse, camera, ref dist);
+	public ISketchObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
+		return OnHover(mouse, camera, tf, ref dist);
 	}
 
-	protected virtual SketchObject OnHover(Vector3 mouse, Camera camera, ref double dist) {
+	protected virtual ISketchObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
 		return null;
 	}
 
@@ -141,6 +157,13 @@ public abstract class Feature {
 
 	public virtual bool ShouldHoverWhenInactive() {
 		return true;
+	}
+
+	public void GenerateEquations(EquationSystem sys) {
+		OnGenerateEquations(sys);
+	}
+
+	protected virtual void OnGenerateEquations(EquationSystem sys) {
 	}
 
 }

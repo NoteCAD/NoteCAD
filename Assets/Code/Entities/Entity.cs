@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml;
 using System;
 
-interface IEntity {
+public interface IEntity : ISketchObject {
 	IEnumerable<IPoint> points { get; }				// enough for dragging
 	IEnumerable<Vector3> segments { get; }			// enough for drawing
 	ExpVector PointOn(Exp t);						// enough for constraining
@@ -20,14 +20,13 @@ public abstract partial class Entity : SketchObject, IEntity {
 	public virtual IEnumerable<PointEntity> points { get { yield break; } }
 	public virtual BBox bbox { get { return new BBox(Vector3.zero, Vector3.zero); } }
 
-
 	IEnumerable<IPoint> IEntity.points {
 		get {
 			return points.Cast<IPoint>();
 		}
 	}
 
-	IEnumerable<Vector3> IEntity.segments {
+	public virtual IEnumerable<Vector3> segments {
 		get {
 			if(this is ISegmentaryEntity) return (this as ISegmentaryEntity).segmentPoints;
 			if(this is ILoopEntity) return (this as ILoopEntity).loopPoints;
@@ -151,11 +150,11 @@ public abstract partial class Entity : SketchObject, IEntity {
 		return OnSplit(position);
 	}
 
-	protected override double OnSelect(Vector3 mouse, Camera camera) {
+	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
 		double minDist = -1.0;
 		ForEachSegment((a, b) => {
-			var ap = camera.WorldToScreenPoint(a);
-			var bp = camera.WorldToScreenPoint(b);
+			var ap = camera.WorldToScreenPoint(tf.MultiplyPoint(a));
+			var bp = camera.WorldToScreenPoint(tf.MultiplyPoint(b));
 			var dist = Mathf.Abs(GeomUtils.DistancePointSegment2D(mouse, ap, bp));
 			if(minDist < 0.0 || dist < minDist) {
 				minDist = dist;

@@ -74,7 +74,7 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		return part;
 	}
 
-	protected override double OnSelect(Vector3 mouse, Camera camera) {
+	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
 		float angle = GetAngle() * Mathf.Rad2Deg;
 		var cp = c.pos;
 		var rv = p0.pos - cp;
@@ -84,7 +84,7 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		var prev = Vector3.zero;
 		double min = -1;
 		for(int i = 0; i < subdiv; i++) {
-			var pos =  camera.WorldToScreenPoint(rv + cp);
+			var pos =  camera.WorldToScreenPoint(tf.MultiplyPoint(rv + cp));
 			if(i > 0) {
 				var dist = Mathf.Abs(GeomUtils.DistancePointSegment2D(mouse, prev, pos));
 				if(min > 0 && dist > min) continue;

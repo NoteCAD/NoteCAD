@@ -6,7 +6,6 @@ using System.Xml;
 using UnityEngine;
 
 public class SketchFeature : Feature {
-	EquationSystem sys = new EquationSystem();
 	List<List<Entity>> loops = new List<List<Entity>>();
 	protected LineCanvas canvas;
 	Sketch sketch;
@@ -17,8 +16,14 @@ public class SketchFeature : Feature {
 		return sketch;
 	}
 
+	public override CADObject GetChild(Guid guid) {
+		if(sketch.guid == guid) return sketch;
+		return null;
+	}
+
 	public SketchFeature() {
 		sketch = new Sketch();
+		sketch.feature = this;
 		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
 		mainMesh = new Mesh();
 		go = new GameObject("SketchFeature");
@@ -29,24 +34,15 @@ public class SketchFeature : Feature {
 		canvas.parent = go;
 	}
 
-	public void AddDrag(Exp drag) {
-		sys.AddEquation(drag);
-	}
-
-	public void RemoveDrag(Exp drag) {
-		sys.RemoveEquation(drag);
-	}
-
-	void UpdateSystem() {
-		sys.Clear();
+	protected override void OnGenerateEquations(EquationSystem sys) {
 		sketch.GenerateEquations(sys);
 	}
 
-	protected override void OnUpdateDirty() {
-		if(sketch.topologyChanged || sketch.constraintsTopologyChanged) {
-			UpdateSystem();
-		}
+	public bool IsTopologyChanged() {
+		return sketch.topologyChanged || sketch.constraintsTopologyChanged;
+	}
 
+	protected override void OnUpdateDirty() {
 		if(sketch.topologyChanged) {
 			loops = sketch.GenerateLoops();
 		}
@@ -82,14 +78,11 @@ public class SketchFeature : Feature {
 		canvas.UpdateDirty();
 	}
 
-	protected override SketchObject OnHover(Vector3 mouse, Camera camera, ref double objDist) {
-		return sketch.Hover(mouse, camera, ref objDist);
+	protected override ISketchObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
+		return sketch.Hover(mouse, camera, tf, ref objDist);
 	}
 
 	protected override void OnUpdate() {
-		string result = sys.Solve().ToString();
-		result += "\n" + sys.stats;
-		DetailEditor.instance.resultText.text = result.ToString();
 
 		if(sketch.IsConstraintsChanged() || sketch.IsEntitiesChanged() || sketch.IsDirty()) {
 			MarkDirty();

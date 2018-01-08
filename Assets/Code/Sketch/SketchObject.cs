@@ -3,20 +3,78 @@ using System.Xml;
 using System;
 using UnityEngine;
 
-public abstract class CADObject {
-	
-	public Guid guid { get; private set; }
-
-	CADObject parent;
-
+public class Id {
+	public List<Guid> path = new List<Guid>();
 }
 
-public abstract class SketchObject {
+public abstract class CADObject {
+	public abstract Guid guid { get; protected set; }
+	public abstract CADObject GetChild(Guid guid);
+	public abstract CADObject parentObject { get; }
+
+	public Id id {
+		get {
+			var result = new Id();
+			var p = this;
+			while(p != null) {
+				//Debug.Log("object: " + p.GetType().Name + " guid : " + p.guid);
+				result.path.Add(p.guid);
+				p = p.parentObject;
+			}
+			return result;
+		}
+	}
+
+	public string GetIdPath() {
+		var result = "";
+		var p = this;
+		while(p != null) {
+			result = p.GetType() + ((result == "") ? "" : "->") + result;
+			p = p.parentObject;
+		}
+		return result;
+	}
+
+	public CADObject GetObjectById(Id id) {
+		var i = -1;
+		var p = this;
+		while(true) {
+			i = id.path.FindIndex(g => g == p.guid);
+			if(i != -1) break;
+			p = p.parentObject;
+			if(p == null) return null; 
+		}
+		while(i > 0) {
+			i--;
+			p = p.GetChild(id.path[i]);
+			if(p == null) return null;
+		}
+		return p;
+	}
+}
+
+public interface ISketchObject {
+	Id id { get; }
+}
+
+public abstract class SketchObject : CADObject, ISketchObject {
 
 	Sketch sk;
 	public Sketch sketch { get { return sk; } }
 	public bool isDestroyed { get; private set; }
-	public Guid guid { get; private set; }
+
+	Guid guid_;
+	public override Guid guid { get { return guid_; } protected set { guid_ = value; } }
+
+	public override CADObject parentObject {
+		get {
+			return sketch;
+		}
+	}
+
+	public override CADObject GetChild(Guid guid) {
+		return null;
+	}
 
 	public SketchObject(Sketch sketch) {
 		sk = sketch;
@@ -161,12 +219,12 @@ public abstract class SketchObject {
 		
 	}
 
-	public double Select(Vector3 mouse, Camera camera) {
-		return OnSelect(mouse, camera);
+	public double Select(Vector3 mouse, Camera camera, Matrix4x4 tf) {
+		return OnSelect(mouse, camera, tf);
 	}
 
-	protected virtual double OnSelect(Vector3 mouse, Camera camera) {
-			return -1.0;
+	protected virtual double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
+		return -1.0;
 	}
 
 }

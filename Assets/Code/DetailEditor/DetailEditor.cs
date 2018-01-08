@@ -21,21 +21,25 @@ public class DetailEditor : MonoBehaviour {
 	bool meshDirty = true;
 
 	LineCanvas canvas;
+	EquationSystem sys = new EquationSystem();
 
-
-	SketchObject hovered_;
-	public SketchObject hovered {
+	ISketchObject hovered_;
+	public ISketchObject hovered {
 		get {
 			return hovered_;
 		}
 		set {
 			if(hovered_ == value) return;
 			if(hovered_ != null) {
-				hovered_.isHovered = false;
+				if(hovered_ is SketchObject) {
+					(hovered_ as SketchObject).isHovered = false;
+				}
 			}
 			hovered_ = value;
 			if(hovered_ != null) {
-				hovered_.isHovered = true;
+				if(hovered_ is SketchObject) {
+					(hovered_ as SketchObject).isHovered = true;
+				}
 			}
 		}
 	}
@@ -87,9 +91,32 @@ public class DetailEditor : MonoBehaviour {
 		ActivateFeature(activeFeature);
 	}
 
+	public void AddDrag(Exp drag) {
+		sys.AddEquation(drag);
+	}
+
+	public void RemoveDrag(Exp drag) {
+		sys.RemoveEquation(drag);
+	}
+
+	void UpdateSystem() {
+		sys.Clear();
+		activeFeature.GenerateEquations(sys);
+	}
+
 	private void Update() {
+		if(activeFeature != null) {
+			if(currentSketch != null && currentSketch.IsTopologyChanged()) {
+				UpdateSystem();
+			}
+			string result = sys.Solve().ToString();
+			result += "\n" + sys.stats;
+			resultText.text = result.ToString();
+		}
+
 		detail.Update();
 		detail.MarkDirty();
+		meshDirty = meshDirty | detail.features.OfType<MeshFeature>().Any(f => f.dirty);
 		detail.UpdateDirty();
 		if(meshDirty) {
 			meshDirty = false;
@@ -106,14 +133,17 @@ public class DetailEditor : MonoBehaviour {
 			mesh.CombineMeshes(instances.ToArray(), mergeSubMeshes:true, useMatrices:false);
 		}
 		double dist = -1.0;
-		hovered = detail.Hover(Input.mousePosition, Camera.main, ref dist);
+		hovered = detail.HoverUntil(Input.mousePosition, Camera.main, Matrix4x4.identity, ref dist, activeFeature);
 
 		canvas.ClearStyle("hovered");
 		if(hovered != null) {
 			canvas.SetStyle("hovered");
-			hovered.Draw(canvas);
+			if(hovered is SketchObject) {
+				(hovered as SketchObject).Draw(canvas);
+			} else if(hovered is IEntity) {
+				canvas.DrawSegments((hovered as IEntity).segments);
+			}
 		}
-
 	}
 
 	private void LateUpdate() {
@@ -166,6 +196,7 @@ public class DetailEditor : MonoBehaviour {
 			cb.normalColor = pressedColor;
 			btn.colors = cb;
 			activeFeature.active = true;
+			UpdateSystem();
 		}
 		meshDirty = true;
 		var visible = true;

@@ -22,10 +22,10 @@ public class Tool : MonoBehaviour {
 	protected virtual void OnActivate() { }
 	protected virtual void OnDeactivate() { }
 	protected virtual void OnUpdate() { }
-	protected virtual void OnMouseDown(Vector3 pos, SketchObject sko) { }
-	protected virtual void OnMouseUp(Vector3 pos, SketchObject sko) { }
-	protected virtual void OnMouseMove(Vector3 pos, SketchObject sko) { }
-	protected virtual void OnMouseDoubleClick(Vector3 pos, SketchObject sko) { }
+	protected virtual void OnMouseDown(Vector3 pos, ISketchObject sko) { }
+	protected virtual void OnMouseUp(Vector3 pos, ISketchObject sko) { }
+	protected virtual void OnMouseMove(Vector3 pos, ISketchObject sko) { }
+	protected virtual void OnMouseDoubleClick(Vector3 pos, ISketchObject sko) { }
 
 	public void Activate() {
 		shouldStop = false;
@@ -40,20 +40,20 @@ public class Tool : MonoBehaviour {
 		OnUpdate();
 	}
 
-	public void MouseDown(Vector3 pos, SketchObject entity) {
-		OnMouseDown(pos, entity);
+	public void MouseDown(Vector3 pos, ISketchObject sko) {
+		OnMouseDown(pos, sko);
 	}
 
-	public void MouseUp(Vector3 pos, SketchObject entity) {
-		OnMouseUp(pos, entity);
+	public void MouseUp(Vector3 pos, ISketchObject sko) {
+		OnMouseUp(pos, sko);
 	}
 
-	public void MouseMove(Vector3 pos, SketchObject entity) {
-		OnMouseMove(pos, entity);
+	public void MouseMove(Vector3 pos, ISketchObject sko) {
+		OnMouseMove(pos, sko);
 	}
 
-	public void MouseDoubleClick(Vector3 pos, SketchObject entity) {
-		OnMouseDoubleClick(pos, entity);
+	public void MouseDoubleClick(Vector3 pos, ISketchObject sko) {
+		OnMouseDoubleClick(pos, sko);
 	}
 
 	public bool IsActive() {

@@ -184,8 +184,8 @@ public class ValueConstraint : Constraint {
 		SetValue(double.Parse(xml.Attributes["value"].Value));
 	}
 
-	protected override double OnSelect(Vector3 mouse, Camera camera) {
-		var pp = camera.WorldToScreenPoint(behaviour.gameObject.transform.position);
+	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
+		var pp = camera.WorldToScreenPoint(tf.MultiplyPoint(behaviour.gameObject.transform.position));
 		pp.z = 0f;
 		mouse.z = 0f;
 		var dist = (pp - mouse).magnitude - 5;

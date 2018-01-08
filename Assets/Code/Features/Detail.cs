@@ -16,6 +16,10 @@ public class Detail : Feature {
 		}
 	}
 
+	public override CADObject GetChild(Guid guid) {
+		return features.Find(f => f.guid == guid);
+	}
+
 	protected override void OnUpdate() {
 		foreach(var f in features) {
 			f.Update();
@@ -72,23 +76,28 @@ public class Detail : Feature {
 		return text.ToString();
 	}
 
-	protected override SketchObject OnHover(Vector3 mouse, Camera camera, ref double objDist) {
+	public ISketchObject HoverUntil(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist, Feature feature) {
 		double min = -1.0;
-		SketchObject result = null;
+		ISketchObject result = null;
 		foreach(var f in features) {
 			if(!f.ShouldHoverWhenInactive() && !f.active) {
 				continue;
 			}
 			double dist = -1.0;
-			var hovered = f.Hover(mouse, camera, ref dist);
-			if(dist < 0.0) continue;
-			if(dist > 5.0) continue;
-			if(min >= 0.0 && dist > min) continue;
-			result = hovered;
-			min = dist;
+			var hovered = f.Hover(mouse, camera, tf, ref dist);
+
+			if(dist >= 0.0 && dist < 5.0 && (min < 0.0 || dist < min)) {
+				result = hovered;
+				min = dist;
+			}
+			if(f == feature) break;
 		}
 		objDist = min;
 		return result;
+	}
+
+	protected override ISketchObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
+		return HoverUntil(mouse, camera, tf, ref objDist, features.Last());
 	}
 
 	public Feature GetFeature(Guid guid) {

@@ -4,6 +4,24 @@ using UnityEngine;
 
 public class LineCanvas : DraftStroke {
 
+	public void DrawSegments(IEnumerable<Vector3> points) {
+		if(points == null) return;
+		Vector3 prev = Vector3.zero;
+		bool first = true;
+		int count = 0;
+		foreach(var ep in points) {
+			if(!first) {
+				DrawLine(prev, ep);
+			}
+			first = false;
+			prev = ep;
+			count++;
+		}
+		if(count == 1) {
+			DrawPoint(prev);
+		}
+	}
+
 	public void DrawArc(Vector3 p0, Vector3 p1, Vector3 c, Vector3 vz) {
 		int subdiv = 32;
 
@@ -21,5 +39,11 @@ public class LineCanvas : DraftStroke {
 			prev = nrv;
 		}
 	}
+
+	public void DrawPoint(Vector3 pos) {
+		DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, Vector3.forward);
+		DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, -Vector3.forward);
+	}	
+
 
 }

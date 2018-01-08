@@ -6,7 +6,7 @@ public class EqualTool : Tool {
 
 	LineEntity l0;
 
-	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
+	protected override void OnMouseDown(Vector3 pos, ISketchObject sko) {
 		var entity = sko as Entity;
 		if(entity == null) return;
 

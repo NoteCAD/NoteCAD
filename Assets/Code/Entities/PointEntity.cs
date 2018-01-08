@@ -7,14 +7,6 @@ public interface IPoint {
 	ExpVector exp { get; }
 }
 
-public static class IPointClass {
-	public static void Draw(this IPoint point, LineCanvas canvas) {
-		var pos = point.exp.Eval();
-		canvas.DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, Vector3.forward);
-		canvas.DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, -Vector3.forward);
-	}	
-}
-
 public class PointEntity : Entity, IPoint {
 
 	public Param x = new Param("x");
@@ -39,6 +31,12 @@ public class PointEntity : Entity, IPoint {
 		x.value = pos.x;
 		y.value = pos.y;
 		if(is3d) z.value = pos.z;
+	}
+
+	public override IEnumerable<Vector3> segments {
+		get {
+			yield return pos;
+		}
 	}
 
 	public Vector3 pos {
@@ -119,8 +117,8 @@ public class PointEntity : Entity, IPoint {
 		if(is3d) z.value = double.Parse(xml.Attributes["z"].Value);
 	}
 
-	protected override double OnSelect(Vector3 mouse, Camera camera) {
-		var pp = camera.WorldToScreenPoint(pos);
+	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
+		var pp = camera.WorldToScreenPoint(tf.MultiplyPoint(pos));
 		pp.z = 0f;
 		mouse.z = 0f;
 		var dist = (pp - mouse).magnitude - 5;
@@ -129,7 +127,7 @@ public class PointEntity : Entity, IPoint {
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
-		(this as IPoint).Draw(canvas);
+		canvas.DrawPoint(pos);
 	}
 
 }

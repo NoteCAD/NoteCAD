@@ -7,7 +7,7 @@ public class ArcTool : Tool {
 	ArcEntity current;
 	bool canCreate = true;
 
-	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
+	protected override void OnMouseDown(Vector3 pos, ISketchObject sko) {
 
 		if(current != null) {
 			if(!canCreate) return;
@@ -40,7 +40,7 @@ public class ArcTool : Tool {
 		current.c.isSelectable = false;
 	}
 
-	protected override void OnMouseMove(Vector3 pos, SketchObject entity) {
+	protected override void OnMouseMove(Vector3 pos, ISketchObject entity) {
 		if(current != null) {
 			current.p1.pos = pos;
 			current.c.pos = (current.p0.pos + current.p1.pos) * 0.5f;

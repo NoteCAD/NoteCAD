@@ -9,7 +9,7 @@ public class DistanceTool : Tool {
 	PointsDistance constraint;
 	Vector3 click;
 
-	protected override void OnMouseDown(Vector3 pos, SketchObject sko) {
+	protected override void OnMouseDown(Vector3 pos, ISketchObject sko) {
 		click = pos;
 		if(constraint != null) {
 			constraint = null;
@@ -41,7 +41,7 @@ public class DistanceTool : Tool {
 		constraint = null;
 	}
 
-	protected override void OnMouseMove(Vector3 pos, SketchObject entity) {
+	protected override void OnMouseMove(Vector3 pos, ISketchObject entity) {
 		if(constraint != null) {
 			constraint.Drag(pos - click);
 		}
