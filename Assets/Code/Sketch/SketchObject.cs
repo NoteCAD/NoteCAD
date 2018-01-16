@@ -5,11 +5,23 @@ using UnityEngine;
 
 public class Id {
 	public List<Guid> path = new List<Guid>();
+
+	public static Guid IndexGuid(int index) {
+		return new Guid(index, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	}
+	public static int GetIndex(Guid guid) {
+		var bytes = guid.ToByteArray();
+		return bytes[0];
+	}
 }
 
-public abstract class CADObject {
-	public abstract Guid guid { get; protected set; }
-	public abstract CADObject GetChild(Guid guid);
+public interface ICADObject {
+	Id id { get; }
+}
+
+public abstract class CADObject : ICADObject {
+	public abstract Guid guid { get; }
+	public abstract ICADObject GetChild(Guid guid);
 	public abstract CADObject parentObject { get; }
 
 	public Id id {
@@ -35,7 +47,7 @@ public abstract class CADObject {
 		return result;
 	}
 
-	public CADObject GetObjectById(Id id) {
+	public ICADObject GetObjectById(Id id) {
 		var i = -1;
 		var p = this;
 		while(true) {
@@ -44,27 +56,26 @@ public abstract class CADObject {
 			p = p.parentObject;
 			if(p == null) return null; 
 		}
+		ICADObject r = p;
 		while(i > 0) {
 			i--;
-			p = p.GetChild(id.path[i]);
+			var co = r as CADObject;
+			if(co == null) return null;
+			r = co.GetChild(id.path[i]);
 			if(p == null) return null;
 		}
-		return p;
+		return r;
 	}
 }
 
-public interface ISketchObject {
-	Id id { get; }
-}
-
-public abstract class SketchObject : CADObject, ISketchObject {
+public abstract class SketchObject : CADObject, ICADObject {
 
 	Sketch sk;
 	public Sketch sketch { get { return sk; } }
 	public bool isDestroyed { get; private set; }
 
 	Guid guid_;
-	public override Guid guid { get { return guid_; } protected set { guid_ = value; } }
+	public override Guid guid { get { return guid_; } }
 
 	public override CADObject parentObject {
 		get {
@@ -72,13 +83,13 @@ public abstract class SketchObject : CADObject, ISketchObject {
 		}
 	}
 
-	public override CADObject GetChild(Guid guid) {
+	public override ICADObject GetChild(Guid guid) {
 		return null;
 	}
 
 	public SketchObject(Sketch sketch) {
 		sk = sketch;
-		guid = Guid.NewGuid();
+		guid_ = Guid.NewGuid();
 	}
 	protected virtual GameObject gameObject { get { return null; } }
 
@@ -195,7 +206,7 @@ public abstract class SketchObject : CADObject, ISketchObject {
 	}
 
 	public virtual void Read(XmlNode xml) {
-		guid = new Guid(xml.Attributes["guid"].Value);
+		guid_ = new Guid(xml.Attributes["guid"].Value);
 		OnRead(xml);
 	}
 

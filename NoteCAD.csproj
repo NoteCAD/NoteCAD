@@ -314,7 +314,6 @@
     <Compile Include="Assets\Code\Features\ExtrusionFeature.cs" />
     <Compile Include="Assets\Code\Features\Feature.cs" />
     <Compile Include="Assets\Code\Features\SketchFeature.cs" />
-    <Compile Include="Assets\Code\Features\Skoid.cs" />
     <Compile Include="Assets\Code\Geometry\BBox.cs" />
     <Compile Include="Assets\Code\Geometry\GeomUtils.cs" />
     <Compile Include="Assets\Code\Geometry\MeshUtils.cs" />

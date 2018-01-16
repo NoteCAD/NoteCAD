@@ -7,7 +7,7 @@ public class LineTool : Tool {
 	LineEntity current;
 	bool canCreate = true;
 
-	protected override void OnMouseDown(Vector3 pos, ISketchObject sko) {
+	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
 		if(current != null) {
 			if(!canCreate) return;
@@ -21,8 +21,8 @@ public class LineTool : Tool {
 				return;
 			}
 		}
-
-		var newLine = new LineEntity(DetailEditor.instance.currentSketch.GetSketch());
+		var sk = DetailEditor.instance.currentSketch;
+		var newLine = new LineEntity(sk.GetSketch());
 		newLine.p0.SetPosition(pos);
 		newLine.p1.SetPosition(pos);
 		if(current == null) {
@@ -37,7 +37,7 @@ public class LineTool : Tool {
 		current.p1.isSelectable = false;
 	}
 
-	protected override void OnMouseMove(Vector3 pos, ISketchObject entity) {
+	protected override void OnMouseMove(Vector3 pos, ICADObject entity) {
 		if(current != null) {
 			current.p1.SetPosition(pos);
 			var itr = new Vector3();

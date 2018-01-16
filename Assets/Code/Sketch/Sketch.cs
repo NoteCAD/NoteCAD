@@ -40,10 +40,6 @@ public class Sketch : CADObject, ISketch  {
 		get {
 			return guid_;
 		}
-
-		protected set {
-			guid_ = value;
-		}
 	}
 
 	public override CADObject parentObject {
@@ -82,6 +78,7 @@ public class Sketch : CADObject, ISketch  {
 	public void MarkDirtySketch(bool topo = false, bool constraints = false, bool entities = false, bool loops = false) {
 		topologyChanged = topologyChanged || topo;
 		constraintsChanged = constraintsChanged || constraints;
+		constraintsTopologyChanged = constraintsTopologyChanged || constraints;
 		entitiesChanged = entitiesChanged || entities;
 		loopsChanged = loopsChanged || loops;
 	}
@@ -279,6 +276,7 @@ public class Sketch : CADObject, ISketch  {
 			if(constraints.Remove(c)) {
 				c.Destroy();
 				MarkDirtySketch(topo:c is PointsCoincident, constraints:true);
+				constraintsTopologyChanged = true;
 			} else {
 				Debug.Log("Can't remove this constraint!");
 			}
@@ -330,7 +328,7 @@ public class Sketch : CADObject, ISketch  {
 		}
 	}
 
-	public override CADObject GetChild(Guid guid) {
+	public override ICADObject GetChild(Guid guid) {
 		var e = GetEntity(guid);
 		if(e != null) return e;
 		return constraints.Find(c => c.guid == guid);

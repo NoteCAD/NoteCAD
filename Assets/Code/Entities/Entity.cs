@@ -4,10 +4,21 @@ using System.Linq;
 using System.Xml;
 using System;
 
-public interface IEntity : ISketchObject {
-	IEnumerable<IPoint> points { get; }				// enough for dragging
+public interface IEntity : ICADObject {
+	IEnumerable<ExpVector> points { get; }				// enough for dragging
 	IEnumerable<Vector3> segments { get; }			// enough for drawing
 	ExpVector PointOn(Exp t);						// enough for constraining
+}
+
+public static class IEntityUtils {
+	public static ExpVector GetDirection(this IEntity entity) {
+		var points = entity.points.GetEnumerator();
+		points.MoveNext();
+		var p0 = points.Current;
+		points.MoveNext();
+		var p1 = points.Current;
+		return p1 - p0;
+	}
 }
 
 public abstract partial class Entity : SketchObject, IEntity {
@@ -20,9 +31,9 @@ public abstract partial class Entity : SketchObject, IEntity {
 	public virtual IEnumerable<PointEntity> points { get { yield break; } }
 	public virtual BBox bbox { get { return new BBox(Vector3.zero, Vector3.zero); } }
 
-	IEnumerable<IPoint> IEntity.points {
+	IEnumerable<ExpVector> IEntity.points {
 		get {
-			return points.Cast<IPoint>();
+			return points.Select(p => p.exp);
 		}
 	}
 

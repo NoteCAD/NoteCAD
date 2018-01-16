@@ -65,7 +65,7 @@ public class DraftStroke : MonoBehaviour {
 
 	Mesh CreateMesh(Lines lines) {
 		var go = new GameObject(lines.style.name);
-		go.transform.parent = parent != null ? parent.transform : gameObject.transform;
+		go.transform.SetParent(parent != null ? parent.transform : gameObject.transform, false);
 		var mr = go.AddComponent<MeshRenderer>();
 		mr.material = material;
 		var mf = go.AddComponent<MeshFilter>();
@@ -133,7 +133,7 @@ public class DraftStroke : MonoBehaviour {
 			mesh.tangents = tangents;
 			mesh.normals = normals;
 			mesh.SetIndices(indices, MeshTopology.Triangles, 0, true);
-			mesh.RecalculateBounds();
+			//mesh.RecalculateBounds();
 			lineStartIndex += curLinesCount;
 		}
 	}
@@ -142,7 +142,7 @@ public class DraftStroke : MonoBehaviour {
 
 	public void UpdateDirty() {
 		var pixel = (Camera.main.ScreenToWorldPoint(new Vector3(1f, 0f, 0f)) - Camera.main.ScreenToWorldPoint(Vector3.zero)).magnitude;
-		Vector4 dir = Camera.main.transform.forward;
+		Vector4 dir = Camera.main.transform.forward.normalized;
 		foreach(var l in lines) {
 			var style = l.Key;
 			if(l.Value.dirty) {

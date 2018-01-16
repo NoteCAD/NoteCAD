@@ -22,10 +22,10 @@ public class Tool : MonoBehaviour {
 	protected virtual void OnActivate() { }
 	protected virtual void OnDeactivate() { }
 	protected virtual void OnUpdate() { }
-	protected virtual void OnMouseDown(Vector3 pos, ISketchObject sko) { }
-	protected virtual void OnMouseUp(Vector3 pos, ISketchObject sko) { }
-	protected virtual void OnMouseMove(Vector3 pos, ISketchObject sko) { }
-	protected virtual void OnMouseDoubleClick(Vector3 pos, ISketchObject sko) { }
+	protected virtual void OnMouseDown(Vector3 pos, ICADObject sko) { }
+	protected virtual void OnMouseUp(Vector3 pos, ICADObject sko) { }
+	protected virtual void OnMouseMove(Vector3 pos, ICADObject sko) { }
+	protected virtual void OnMouseDoubleClick(Vector3 pos, ICADObject sko) { }
 
 	public void Activate() {
 		shouldStop = false;
@@ -40,19 +40,19 @@ public class Tool : MonoBehaviour {
 		OnUpdate();
 	}
 
-	public void MouseDown(Vector3 pos, ISketchObject sko) {
+	public void MouseDown(Vector3 pos, ICADObject sko) {
 		OnMouseDown(pos, sko);
 	}
 
-	public void MouseUp(Vector3 pos, ISketchObject sko) {
+	public void MouseUp(Vector3 pos, ICADObject sko) {
 		OnMouseUp(pos, sko);
 	}
 
-	public void MouseMove(Vector3 pos, ISketchObject sko) {
+	public void MouseMove(Vector3 pos, ICADObject sko) {
 		OnMouseMove(pos, sko);
 	}
 
-	public void MouseDoubleClick(Vector3 pos, ISketchObject sko) {
+	public void MouseDoubleClick(Vector3 pos, ICADObject sko) {
 		OnMouseDoubleClick(pos, sko);
 	}
 
@@ -61,6 +61,17 @@ public class Tool : MonoBehaviour {
 	}
 
 	public static Vector3 MousePos {
+		get {
+			var sk = DetailEditor.instance.currentSketch;
+			var pos = WorldPlanePos;
+			if(sk != null) {
+				pos = sk.WorldToLocal(pos);
+			}
+			return pos;
+		}
+	}
+
+	public static Vector3 WorldMousePos {
 		get {
 			var mousePos = Input.mousePosition;
 #if UNITY_WEBGL
@@ -73,6 +84,25 @@ public class Tool : MonoBehaviour {
 			return ray.GetPoint(cast);
 		}
 	}
+
+	public static Vector3 WorldPlanePos {
+		get {
+			var mousePos = Input.mousePosition;
+#if UNITY_WEBGL
+			if(Input.touches.Length > 0) mousePos = Input.touches[0].position;
+#endif
+			var plane = new Plane(Camera.main.transform.forward, Vector3.zero);
+			var sk = DetailEditor.instance.currentSketch;
+			if(sk != null) {
+				plane = new Plane(sk.GetNormal().Eval(), sk.GetPosition().Eval());
+			}
+			var ray = Camera.main.ScreenPointToRay(mousePos);
+			float cast;
+			plane.Raycast(ray, out cast);
+			return ray.GetPoint(cast);
+		}
+	}
+
 
 	public static Vector3 CenterPos {
 		get {

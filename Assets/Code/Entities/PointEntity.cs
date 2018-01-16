@@ -3,11 +3,7 @@ using UnityEngine;
 using System.Linq;
 using System.Xml;
 
-public interface IPoint {
-	ExpVector exp { get; }
-}
-
-public class PointEntity : Entity, IPoint {
+public class PointEntity : Entity {
 
 	public Param x = new Param("x");
 	public Param y = new Param("y");

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class SplitTool : Tool {
-	protected override void OnMouseDown(Vector3 pos, ISketchObject sko) {
+	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		if(sko == null) return;
 		if(!(sko is Entity)) return;
 		if(!(sko is ISegmentaryEntity || sko is ILoopEntity)) return;

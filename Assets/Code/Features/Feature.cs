@@ -14,9 +14,6 @@ public abstract class Feature : CADObject {
 		get {
 			return guid_;
 		}
-		protected set {
-			guid_ = value;
-		}
 	}
 
 	public override CADObject parentObject {
@@ -58,7 +55,7 @@ public abstract class Feature : CADObject {
 	}
 
 	public Feature() {
-		guid = Guid.NewGuid();
+		guid_ = Guid.NewGuid();
 	}
 
 	protected virtual void OnUpdate() { }
@@ -91,7 +88,7 @@ public abstract class Feature : CADObject {
 	}
 
 	public virtual void Read(XmlNode xml) {
-		guid = new Guid(xml.Attributes["guid"].Value);
+		guid_ = new Guid(xml.Attributes["guid"].Value);
 		if(xml.Attributes.GetNamedItem("source") != null) {
 			var srcGuid = new Guid(xml.Attributes["source"].Value);
 			source = detail.GetFeature(srcGuid);
@@ -112,11 +109,11 @@ public abstract class Feature : CADObject {
 		OnClear();
 	}
 
-	public ISketchObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
+	public ICADObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
 		return OnHover(mouse, camera, tf, ref dist);
 	}
 
-	protected virtual ISketchObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
+	protected virtual ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
 		return null;
 	}
 
@@ -170,10 +167,10 @@ public abstract class Feature : CADObject {
 
 public abstract class MeshFeature : Feature {
 
-	public Mesh GenerateMesh() {
+	public CombineInstance GenerateMesh() {
 		return OnGenerateMesh();
 	}
 
-	protected abstract Mesh OnGenerateMesh();
+	protected abstract CombineInstance OnGenerateMesh();
 }
 

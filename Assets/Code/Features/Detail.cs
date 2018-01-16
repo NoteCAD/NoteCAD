@@ -16,7 +16,7 @@ public class Detail : Feature {
 		}
 	}
 
-	public override CADObject GetChild(Guid guid) {
+	public override ICADObject GetChild(Guid guid) {
 		return features.Find(f => f.guid == guid);
 	}
 
@@ -76,9 +76,9 @@ public class Detail : Feature {
 		return text.ToString();
 	}
 
-	public ISketchObject HoverUntil(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist, Feature feature) {
+	public ICADObject HoverUntil(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist, Feature feature) {
 		double min = -1.0;
-		ISketchObject result = null;
+		ICADObject result = null;
 		foreach(var f in features) {
 			if(!f.ShouldHoverWhenInactive() && !f.active) {
 				continue;
@@ -96,7 +96,7 @@ public class Detail : Feature {
 		return result;
 	}
 
-	protected override ISketchObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
 		return HoverUntil(mouse, camera, tf, ref objDist, features.Last());
 	}
 

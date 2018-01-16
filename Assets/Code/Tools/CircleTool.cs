@@ -7,7 +7,7 @@ public class CircleTool : Tool {
 	CircleEntity current;
 	bool canCreate = true;
 
-	protected override void OnMouseDown(Vector3 pos, ISketchObject sko) {
+	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
 		if(current != null) {
 			if(!canCreate) return;
@@ -25,7 +25,7 @@ public class CircleTool : Tool {
 		current.c.isSelectable = false;
 	}
 
-	protected override void OnMouseMove(Vector3 pos, ISketchObject entity) {
+	protected override void OnMouseMove(Vector3 pos, ICADObject entity) {
 		if(current != null) {
 			current.radius.value = (current.center.pos - pos).magnitude;
 			var itr = new Vector3();

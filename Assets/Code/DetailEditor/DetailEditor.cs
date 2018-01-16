@@ -23,8 +23,8 @@ public class DetailEditor : MonoBehaviour {
 	LineCanvas canvas;
 	EquationSystem sys = new EquationSystem();
 
-	ISketchObject hovered_;
-	public ISketchObject hovered {
+	ICADObject hovered_;
+	public ICADObject hovered {
 		get {
 			return hovered_;
 		}
@@ -37,6 +37,9 @@ public class DetailEditor : MonoBehaviour {
 			}
 			hovered_ = value;
 			if(hovered_ != null) {
+				var id = hovered_.id;
+				var hh = detail.GetObjectById(id);
+				Debug.Log(hh.GetType().Name);
 				if(hovered_ is SketchObject) {
 					(hovered_ as SketchObject).isHovered = true;
 				}
@@ -52,12 +55,21 @@ public class DetailEditor : MonoBehaviour {
 			ActivateFeature(value);
 		}
 	}
-	Feature activeFeature;
+
+	Feature activeFeature_;
+	public Feature activeFeature {
+		get {
+			return activeFeature_;
+		}
+		set {
+			ActivateFeature(value);
+		}
+	}
 	
 	IEnumerator LoadWWWFile(string url) {
 		WWW www = new WWW(url);
 		yield return www;
-		detail.ReadXml(www.text);
+		ReadXml(www.text);
 	}
 
 	private void Start() {
@@ -124,13 +136,12 @@ public class DetailEditor : MonoBehaviour {
 			var instances = new List<CombineInstance>();
 			foreach(var f in detail.features) {
 				if(f is MeshFeature) {
-					var instance = new CombineInstance();
-					instance.mesh = (f as MeshFeature).GenerateMesh();
+					var instance = (f as MeshFeature).GenerateMesh();
 					instances.Add(instance);
 				}
 				if(f == activeFeature) break;
 			}
-			mesh.CombineMeshes(instances.ToArray(), mergeSubMeshes:true, useMatrices:false);
+			mesh.CombineMeshes(instances.ToArray(), mergeSubMeshes:true, useMatrices:true);
 		}
 		double dist = -1.0;
 		hovered = detail.HoverUntil(Input.mousePosition, Camera.main, Matrix4x4.identity, ref dist, activeFeature);
@@ -174,41 +185,41 @@ public class DetailEditor : MonoBehaviour {
 	}
 
 	public void AddFeature(Feature feature) {
-		detail.features.Add(feature);
+		detail.AddFeature(feature);
 		meshDirty = true;
 		UpdateFeatures();
 	}
 
 	public void ActivateFeature(Feature feature) {
-		if(activeFeature != null) {
-			var ui = featuresUI.Find(u => u.feature == activeFeature);
+		if(activeFeature_ != null) {
+			var ui = featuresUI.Find(u => u.feature == activeFeature_);
 			var btn = ui.GetComponent<Button>();
 			var cb = btn.colors;
 			cb.normalColor = Color.white;
 			btn.colors = cb;
-			activeFeature.active = false;
+			activeFeature_.active = false;
 		}
-		activeFeature = feature;
-		if(activeFeature != null) {
-			var ui = featuresUI.Find(u => u.feature == activeFeature);
+		activeFeature_ = feature;
+		if(activeFeature_ != null) {
+			var ui = featuresUI.Find(u => u.feature == activeFeature_);
 			var btn = ui.GetComponent<Button>();
 			var cb = btn.colors;
 			cb.normalColor = pressedColor;
 			btn.colors = cb;
-			activeFeature.active = true;
+			activeFeature_.active = true;
 			UpdateSystem();
 		}
 		meshDirty = true;
 		var visible = true;
-		foreach(var f in detail.features) {
-			f.visible = visible;
-			if(f == activeFeature) {
-				visible = false;
+		if(detail != null) {
+			foreach(var f in detail.features) {
+				f.visible = visible;
+				if(f == activeFeature_) {
+					visible = false;
+				}
 			}
 		}
-
 	}
-
 
 	public string ExportSTL() {
 		return mesh.ExportSTL();

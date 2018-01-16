@@ -22,8 +22,7 @@ public class LineCanvas : DraftStroke {
 		}
 	}
 
-	public void DrawArc(Vector3 p0, Vector3 p1, Vector3 c, Vector3 vz) {
-		int subdiv = 32;
+	public void DrawArc(Vector3 p0, Vector3 p1, Vector3 c, Vector3 vz, int subdiv = 32) {
 
 		float angle = Mathf.Acos(Vector3.Dot((p0 - c).normalized, (p1 - c).normalized)) * Mathf.Rad2Deg;
 		
@@ -41,8 +40,8 @@ public class LineCanvas : DraftStroke {
 	}
 
 	public void DrawPoint(Vector3 pos) {
-		DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, Vector3.forward);
-		DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, -Vector3.forward);
+		DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, Vector3.forward, 4);
+		DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, -Vector3.forward, 4);
 	}	
 
 

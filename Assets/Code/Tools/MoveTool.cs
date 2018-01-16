@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class MoveTool : Tool {
 
-	ISketchObject current;
+	ICADObject current;
 	Vector3 click;
 	List<Exp> drag = new List<Exp>();
 	Param dragXP = new Param("dragX");
@@ -20,7 +20,7 @@ public class MoveTool : Tool {
 		input.onEndEdit.AddListener(OnEndEdit);
 	}
 
-	protected override void OnMouseDown(Vector3 pos, ISketchObject sko) {
+	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		ClearDrag();
 		if(valueConstraint != null) return;
 		if(sko == null) return;
@@ -33,10 +33,10 @@ public class MoveTool : Tool {
 		dragXP.value = 0;
 		dragYP.value = 0;
 		dragZP.value = 0;
-		foreach(var pt in entity.points) {
-			var dragX = pt.exp.x.Drag(dragXP.exp + pt.exp.x.Eval());
-			var dragY = pt.exp.y.Drag(dragYP.exp + pt.exp.y.Eval());
-			var dragZ = pt.exp.z.Drag(dragZP.exp + pt.exp.z.Eval());
+		foreach(var ptExp in entity.points) {
+			var dragX = ptExp.x.Drag(dragXP.exp + ptExp.x.Eval());
+			var dragY = ptExp.y.Drag(dragYP.exp + ptExp.y.Eval());
+			var dragZ = ptExp.z.Drag(dragZP.exp + ptExp.z.Eval());
 			drag.Add(dragX);
 			drag.Add(dragY);
 			drag.Add(dragZ);
@@ -61,7 +61,7 @@ public class MoveTool : Tool {
 		input.gameObject.SetActive(false);
 	}
 
-	protected override void OnMouseMove(Vector3 pos, ISketchObject sko) {
+	protected override void OnMouseMove(Vector3 pos, ICADObject sko) {
 		if(current == null) return;
 		var delta = pos - click;
 		if(drag.Count > 0) {
@@ -74,11 +74,11 @@ public class MoveTool : Tool {
 		click = pos;
 	}
 
-	protected override void OnMouseUp(Vector3 pos, ISketchObject sko) {
+	protected override void OnMouseUp(Vector3 pos, ICADObject sko) {
 		ClearDrag();
 	}
 	
-	protected override void OnMouseDoubleClick(Vector3 pos, ISketchObject sko) {
+	protected override void OnMouseDoubleClick(Vector3 pos, ICADObject sko) {
 		if(sko is ValueConstraint) {
 			valueConstraint = sko as ValueConstraint;
 			input.gameObject.SetActive(true);

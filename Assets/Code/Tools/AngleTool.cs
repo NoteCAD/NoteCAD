@@ -8,7 +8,7 @@ public class AngleTool : Tool {
 	AngleConstraint constraint;
 	Vector3 click;
 
-	protected override void OnMouseDown(Vector3 pos, ISketchObject sko) {
+	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		click = pos;
 		if(constraint != null) {
 			constraint = null;
@@ -34,7 +34,7 @@ public class AngleTool : Tool {
 		constraint = null;
 	}
 
-	protected override void OnMouseMove(Vector3 pos, ISketchObject entity) {
+	protected override void OnMouseMove(Vector3 pos, ICADObject entity) {
 		if(constraint != null) {
 			constraint.Drag(pos - click);
 		}

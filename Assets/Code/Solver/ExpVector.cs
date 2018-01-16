@@ -40,6 +40,10 @@ public class ExpVector {
 		return Exp.Sqrt(Exp.Sqr(x) + Exp.Sqr(y) + Exp.Sqr(z));
 	}
 
+	public ExpVector Normalized() {
+		return this / Magnitude();
+	}
+
 	public Vector3 Eval() {
 		return new Vector3((float)x.Eval(), (float)y.Eval(), (float)z.Eval());
 	}

@@ -5,17 +5,6 @@ using System.Linq;
 using System.Xml;
 using UnityEngine;
 
-
-class ExtrudedPoint : IPoint {
-	public ExpVector expression;
-
-	public ExpVector exp {
-		get {
-			return expression;
-		}
-	}
-}
-
 class ExtrudedEntity : IEntity {
 	Entity entity;
 	ExtrusionFeature extrusion;
@@ -31,23 +20,24 @@ class ExtrudedEntity : IEntity {
 		get {
 			var eid = extrusion.id;
 			eid.path.Insert(0, entity.guid);
-			eid.path.Insert(0, new Guid(index, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+			eid.path.Insert(0, Id.IndexGuid(index));
 			return eid;
 		}
 	}
 
-	public IEnumerable<IPoint> points {
+	public IEnumerable<ExpVector> points {
 		get {
-			var shift = new ExpVector(0, 0, extrusion.extrude.exp * index);
+			var shift = extrusion.extrusionDir * index;
 			foreach(var p in entity.points) {
-				yield return new ExtrudedPoint { expression = p.exp + shift };
+				yield return p.exp + shift;
 			}
 		}
 	}
 
 	public IEnumerable<Vector3> segments {
 		get {
-			var shift = new Vector3(0, 0, (float)extrusion.extrude.value * index);
+			var shift = extrusion.extrusionDir.Eval() * index;
+			var ie = entity as IEntity;
 			foreach(var p in (entity as IEntity).segments) {
 				yield return p + shift;
 			}
@@ -59,19 +49,87 @@ class ExtrudedEntity : IEntity {
 	}
 }
 
+class ExtrudedPointEntity : IEntity {
+	PointEntity entity;
+	ExtrusionFeature extrusion;
+
+	public ExtrudedPointEntity(PointEntity e, ExtrusionFeature ex) {
+		entity = e;
+		extrusion = ex;
+	}
+
+	public Id id {
+		get {
+			var eid = extrusion.id;
+			eid.path.Insert(0, entity.guid);
+			eid.path.Insert(0, Id.IndexGuid(2));
+			return eid;
+		}
+	}
+
+	public IEnumerable<ExpVector> points {
+		get {
+			yield return entity.exp;
+			yield return entity.exp + extrusion.extrusionDir;
+		}
+	}
+
+	public IEnumerable<Vector3> segments {
+		get {
+			var pos = entity.pos;
+			yield return pos;
+			yield return pos + extrusion.extrusionDir.Eval();
+		}
+	}
+
+	public ExpVector PointOn(Exp t) {
+		throw new NotImplementedException();
+	}
+}
+
+
+class CADContainter : CADObject {
+	public Entity entity;
+	public ExtrusionFeature feature;
+
+	public override Guid guid {
+		get {
+			return entity.guid;
+		}
+	}
+
+	public override CADObject parentObject {
+		get {
+			return feature;
+		}
+	}
+
+	public override ICADObject GetChild(Guid guid) {
+		int index = Id.GetIndex(guid);
+		if(index == 2) return new ExtrudedPointEntity(entity as PointEntity, feature);
+		return new ExtrudedEntity(entity, feature, index);
+	}
+}
+
 public class ExtrusionFeature : MeshFeature {
 	public Param extrude = new Param("e", 5.0);
 	Mesh mesh = new Mesh();
 	GameObject go;
 
-	public override GameObject gameObject {
+	public Sketch sketch {
 		get {
-			return null;
+			return (source as SketchFeature).GetSketch();
 		}
 	}
 
-	public override CADObject GetChild(Guid guid) {
-		throw new NotImplementedException();
+	public override GameObject gameObject {
+		get {
+			return go;
+		}
+	}
+
+	public override ICADObject GetChild(Guid guid) {
+		return new CADContainter { entity = sketch.GetEntity(guid), feature = this };
 	}
 
 	protected override void OnUpdate() {
@@ -81,9 +139,12 @@ public class ExtrusionFeature : MeshFeature {
 		extrude.changed = false;
 	}
 
-	protected override Mesh OnGenerateMesh() {
+	protected override CombineInstance OnGenerateMesh() {
+		var instance = new CombineInstance();
 		MeshUtils.CreateMeshExtrusion(Sketch.GetPolygons((source as SketchFeature).GetLoops()), (float)extrude.value, ref mesh);
-		return mesh;
+		instance.mesh = mesh;
+		instance.transform = (source as SketchFeature).GetTransform();
+		return instance;
 	}
 
 	protected override void OnUpdateDirty() {
@@ -93,8 +154,12 @@ public class ExtrusionFeature : MeshFeature {
 		bottom.SetActive(true);
 		var top = GameObject.Instantiate(source.gameObject, go.transform);
 		top.SetActive(true);
-		top.transform.localPosition = new Vector3(0, 0, (float)extrude.value);
+		var dir = extrusionDir.Eval();
+		//top.transform.Translate(dir);
+		top.transform.position += dir;
 		go.SetActive(visible);
+		//go.transform.position = skf.gameObject.transform.position;
+		//go.transform.rotation = skf.gameObject.transform.rotation;
 	}
 
 	protected override void OnShow(bool state) {
@@ -107,8 +172,16 @@ public class ExtrusionFeature : MeshFeature {
 
 	}
 
-	protected override ISketchObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
+	public ExpVector extrusionDir {
+		get {
+			var skf = source as SketchFeature;
+			return skf.GetNormal().Normalized() * extrude.exp;
+		}
+	}
+
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
 		var sk = source as SketchFeature;
+
 		double d0 = -1;
 		var r0 = sk.Hover(mouse, camera, tf, ref d0);
 		if(!(r0 is Entity)) r0 = null;
@@ -118,17 +191,38 @@ public class ExtrusionFeature : MeshFeature {
 		var r1 = sk.Hover(mouse, camera, tf * move, ref d1);
 		if(!(r1 is Entity)) r1 = null;
 
-		if(r0 == null || r1 != null && d1 < d0) {
+		if(r1 != null && (r0 == null || d1 < d0)) {
 			r0 = new ExtrudedEntity(r1 as Entity, this, 1);
 			d0 = d1;
 		} else if(r0 != null) {
 			r0 = new ExtrudedEntity(r0 as Entity, this, 0);
 		}
 
-		if(r0 != null && (dist < 0.0 || d0 < dist)) {
+		var points = sk.GetSketch().entityList.OfType<PointEntity>();
+		var dir = extrusionDir.Eval();
+		double min = -1.0;
+		PointEntity hover = null;
+		foreach(var p in points) {
+			var pp = p.pos;
+			var p0 = camera.WorldToScreenPoint(pp);
+			var p1 = camera.WorldToScreenPoint(pp + dir);
+			double d = GeomUtils.DistancePointSegment2D(mouse, p0, p1);
+			if(d > 5.0) continue;
+			if(min >= 0.0 && d > min) continue;
+			min = d;
+			hover = p;
+		}
+
+		if(hover != null && (r0 == null || d0 > min)) {
+			dist = min;
+			return new ExtrudedPointEntity(hover, this);
+		}
+
+		if(r0 != null) {
 			dist = d0;
 			return r0;
 		}
+
 		return null;
 	}
 

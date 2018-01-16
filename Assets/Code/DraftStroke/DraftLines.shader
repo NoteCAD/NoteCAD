@@ -1,4 +1,8 @@
-﻿Shader "NoteCAD/DraftLines" {
+﻿// Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
+
+// Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
+
+Shader "NoteCAD/DraftLines" {
 	
 	Properties {
 		_MainTex ("Texture", 2D) = "white" {}
@@ -44,8 +48,10 @@
 			v2f vert (appdata v) {
 				v2f o;
 				float pix = _Pixel / 2.0;
-				float3 x = normalize(v.tangent) * _Width * pix;
-				float3 y = normalize(cross(_CamDir.xyz, x)) * _Width * pix;
+				float3 tan = normalize(v.tangent);
+				float3 dir = mul((float3x3)unity_WorldToObject, _CamDir);
+				float3 x = tan * _Width * pix;
+				float3 y = normalize(cross(dir, x)) * _Width * pix;
 
 				float3 pos = v.vertex + v.params.x * x + v.params.y * y;
 

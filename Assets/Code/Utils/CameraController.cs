@@ -18,7 +18,7 @@ public class CameraController : MonoBehaviour {
 	}
 
 	void Update () {
-		var pos = Tool.MousePos;
+		var pos = Tool.WorldMousePos;
 		if(Input.GetKeyDown(KeyCode.Mouse2)) {
 			shift = true;
 			screenClick = Input.mousePosition;
@@ -38,13 +38,13 @@ public class CameraController : MonoBehaviour {
 		}
 		if(shift) {
 			camera.transform.position -= pos - click;
-			click = Tool.MousePos;
+			click = Tool.WorldMousePos;
 		}
 		if(rotate) {
 			var delta = -(Input.mousePosition - screenClick).magnitude * rotateSensitivity;
 			var axis = Vector3.Cross(pos - click, camera.transform.forward).normalized;
 			camera.transform.RotateAround(rotPoint, axis,  delta);
-			click = Tool.MousePos;
+			click = Tool.WorldMousePos;
 			screenClick = Input.mousePosition;
 		}
 		if(Input.mouseScrollDelta.y != 0f) {
@@ -58,6 +58,6 @@ public class CameraController : MonoBehaviour {
 	}
 
 	private void OnDrawGizmos() {
-		Gizmos.DrawCube(Tool.MousePos, new Vector3(1, 1, 1));
+		Gizmos.DrawCube(Tool.WorldMousePos, new Vector3(1, 1, 1));
 	}
 }
