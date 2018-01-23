@@ -9,7 +9,7 @@ public abstract class Feature : CADObject {
 	Feature source_;
 	public Detail detail;
 
-	Guid guid_;
+	protected Guid guid_;
 	public override Guid guid {
 		get {
 			return guid_;

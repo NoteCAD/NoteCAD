@@ -46,12 +46,13 @@ class SketchEntity : IEntity {
 	}
 }
 */
-public class SketchFeature : Feature {
+public class SketchFeature : Feature, IPlane {
 	List<List<Entity>> loops = new List<List<Entity>>();
 	protected LineCanvas canvas;
 	Sketch sketch;
 	Mesh mainMesh;
 	GameObject go;
+	GameObject loopObj;
 	Matrix4x4 transform;
 
 	Id uId = new Id();
@@ -84,23 +85,43 @@ public class SketchFeature : Feature {
 			pId = value.id;
 		}
 	}
-	
-	public ExpVector GetNormal() {
-		if(u == null) return new ExpVector(0, 0, 1);
-		var ud = u.GetDirection();
-		var vd = v.GetDirection();
-		return ExpVector.Cross(ud, vd);
+
+	Vector3 IPlane.u {
+		get {
+			return transform.GetColumn(0);
+		}
 	}
 
-	public ExpVector GetPosition() {
-		if(p == null) return new ExpVector(0, 0, 0);
-		return p.points.First();
+	Vector3 IPlane.v {
+		get {
+			return transform.GetColumn(1);
+		}
 	}
 
-	public Matrix4x4 GetTransform() {
+	Vector3 IPlane.n {
+		get {
+			return transform.GetColumn(2);
+		}
+	}
+
+	Vector3 IPlane.o {
+		get {
+			return transform.GetColumn(3);
+		}
+	}
+
+	public Vector3 GetNormal() {
+		return transform.GetColumn(2);
+	}
+
+	public Vector3 GetPosition() {
+		return transform.GetColumn(3);
+	}
+
+	Matrix4x4 CalculateTransform() {
 		if(u == null) return Matrix4x4.identity;
-		var ud = u.GetDirection().Eval().normalized;
-		var vd = v.GetDirection().Eval();
+		var ud = u.GetDirectionInPlane(null).Eval().normalized;
+		var vd = v.GetDirectionInPlane(null).Eval();
 		var nd = Vector3.Cross(ud, vd).normalized;
 		vd = Vector3.Cross(nd, ud).normalized;
 		Vector4 p4 = p.points.First().Eval();
@@ -114,6 +135,10 @@ public class SketchFeature : Feature {
 		return result;
 	}
 
+	public Matrix4x4 GetTransform() {
+		return transform;
+	}
+
 	public Vector3 WorldToLocal(Vector3 pos) {
 		return transform.inverse.MultiplyPoint(pos);
 	}
@@ -123,20 +148,25 @@ public class SketchFeature : Feature {
 	}
 
 	public override ICADObject GetChild(Guid guid) {
-		if(sketch.guid == guid) return sketch;
-		return null;
+		//TODO: get rid of this
+		//if(sketch.guid == guid) return sketch;
+		//return null;
+		return sketch;
 	}
 
 	public SketchFeature() {
 		sketch = new Sketch();
 		sketch.feature = this;
+		sketch.plane = this;
 		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
 		mainMesh = new Mesh();
-		go = new GameObject("SketchFeature");
-		var mf = go.AddComponent<MeshFilter>();
-		var mr = go.AddComponent<MeshRenderer>();
+		loopObj = new GameObject("loops");
+		var mf = loopObj.AddComponent<MeshFilter>();
+		var mr = loopObj.AddComponent<MeshRenderer>();
+		loopObj.transform.SetParent(canvas.gameObject.transform, false);
 		mf.mesh = mainMesh;
-		mr.material = EntityConfig.instance.meshMaterial;
+		mr.material = EntityConfig.instance.loopMaterial;
+		go = new GameObject("SketchFeature");
 		canvas.parent = go;
 	}
 
@@ -149,9 +179,12 @@ public class SketchFeature : Feature {
 	}
 
 	protected override void OnUpdateDirty() {
-		transform = GetTransform();
+		transform = CalculateTransform();
 		go.transform.position = transform.MultiplyPoint(Vector3.zero);
 		go.transform.rotation = Quaternion.LookRotation(transform.GetColumn(2), transform.GetColumn(1));
+		canvas.gameObject.transform.position = go.transform.position;
+		canvas.gameObject.transform.rotation = go.transform.rotation;
+
 		/*
 		if(p != null) {
 			canvas.ClearStyle("error");
@@ -175,7 +208,7 @@ public class SketchFeature : Feature {
 			loops = sketch.GenerateLoops();
 		}
 
-		if(sketch.IsConstraintsChanged()) {
+		if(sketch.IsEntitiesChanged() || sketch.IsConstraintsChanged()) {
 			canvas.ClearStyle("constraints");
 			canvas.SetStyle("constraints");
 			foreach(var c in sketch.constraintList) {
@@ -238,24 +271,38 @@ public class SketchFeature : Feature {
 			}
 		}
 		var polygons = Sketch.GetPolygons(loops.Where(l => l.All(e => !e.isError)).ToList());
-		if(mainMesh == null) {
-		}
 		mainMesh.Clear();
 		MeshUtils.CreateMeshRegion(polygons, ref mainMesh);
 	}
 
 	protected override void OnWrite(XmlTextWriter xml) {
+		xml.WriteStartElement("references");
+		uId.Write(xml, "u");
+		vId.Write(xml, "v");
+		pId.Write(xml, "o");
+		xml.WriteEndElement();
 		sketch.Write(xml);
 	}
 
 	protected override void OnRead(XmlNode xml) {
+		foreach(XmlNode nodeKind in xml.ChildNodes) {
+			if(nodeKind.Name != "references") continue;
+			foreach(XmlNode idNode in nodeKind.ChildNodes) {
+				var name = idNode.Attributes["name"].Value;
+				switch(name) {
+					case "u": uId.Read(idNode); break;
+					case "v": vId.Read(idNode); break;
+					case "o": pId.Read(idNode); break;
+				}
+			}
+		}
 		sketch.Read(xml);
 	}
 
 
 	protected override void OnClear() {
-		sketch.Clear();
-		Update();
+		GameObject.Destroy(go);
+		GameObject.Destroy(canvas.gameObject);
 	}
 
 	public List<List<Entity>> GetLoops() {
@@ -267,6 +314,12 @@ public class SketchFeature : Feature {
 	}
 
 	protected override void OnActivate(bool state) {
+		go.SetActive(state && visible);
+		loopObj.SetActive(state && visible);
+	}
+
+	protected override void OnShow(bool state) {
 		go.SetActive(state);
+		loopObj.SetActive(state);
 	}
 }

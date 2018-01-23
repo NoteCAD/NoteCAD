@@ -34,4 +34,9 @@ public class SketchTool : Tool {
 
 	protected override void OnActivate() {
 	}
+
+	protected override string OnGetDescription() {
+		return "click some point first and then click two non-parallel lines to define a new workplane. The point will be origin of the plane, and plane normal will be perpendicular to lines.";
+	}
+
 }

@@ -1,28 +1,42 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class PointsDistance : ValueConstraint {
 
-	public PointEntity p0 { get { return GetEntity(0) as PointEntity; } set { SetEntity(0, value); } }
-	public PointEntity p1 { get { return GetEntity(1) as PointEntity; } set { SetEntity(1, value); } }
+	public ExpVector p0 {
+		get {
+			var e = GetObjectById(p0id) as IEntity;
+			return e.PointsInPlane(sketch.plane).FirstOrDefault();
+		}
+	}
+	public ExpVector p1 {
+		get {
+			var e = GetObjectById(p1id) as IEntity;
+			return e.PointsInPlane(sketch.plane).FirstOrDefault();
+		}
+	}
+
+	public Id p0id { get; set; }
+	public Id p1id { get; set; }
 
 	public PointsDistance(Sketch sk) : base(sk) { }
 
-	public PointsDistance(Sketch sk, PointEntity p0, PointEntity p1) : base(sk) {
-		AddEntity(p0);
-		AddEntity(p1);
+	public PointsDistance(Sketch sk, IEntity p0, IEntity p1) : base(sk) {
+		p0id = p0.id;
+		p1id = p1.id;
 		Satisfy();
 	}
 
 	public override IEnumerable<Exp> equations {
 		get {
-			yield return (p1.exp - p0.exp).Magnitude() - value.exp;
+			yield return (p1 - p0).Magnitude() - value.exp;
 		}
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
-		Vector3 p0p = p0.GetPosition();
-		Vector3 p1p = p1.GetPosition();
+		Vector3 p0p = p0.Eval();
+		Vector3 p1p = p1.Eval();
 		Vector3 dir = p1p - p0p;
 		Vector3 perp = Vector3.Cross(dir, Vector3.forward).normalized;
 		float dist = Vector3.Dot(pos - p0p, perp);
@@ -57,13 +71,11 @@ public class PointsDistance : ValueConstraint {
 		canvas.DrawLine(p2, p3);
 	}
 
-	protected override bool OnIsChanged() {
-		return p0.IsChanged() || p1.IsChanged();
-	}
-
 	protected override Matrix4x4 OnGetBasis() {
-		var pos = (p0.GetPosition() + p1.GetPosition()) * 0.5f;
-		var dir = p0.GetPosition() - p1.GetPosition();
+		var p0pos = p0.Eval();
+		var p1pos = p1.Eval();
+		var pos = (p0pos + p1pos) * 0.5f;
+		var dir = p0pos - p1pos;
 		var ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
 		var rot = Quaternion.AngleAxis(ang, Vector3.forward);
 		return Matrix4x4.TRS(pos, rot, Vector3.one); 

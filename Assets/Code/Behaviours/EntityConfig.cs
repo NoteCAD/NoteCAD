@@ -9,6 +9,7 @@ public class EntityConfig : MonoBehaviour {
 	public ConstraintBehaviour constraint;
 	public Text labelPrefab;
 	public Material meshMaterial;
+	public Material loopMaterial;
 	public LineCanvas lineCanvas;
 
 	void Start () {

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class CameraController : MonoBehaviour {
 
@@ -47,7 +48,7 @@ public class CameraController : MonoBehaviour {
 			click = Tool.WorldMousePos;
 			screenClick = Input.mousePosition;
 		}
-		if(Input.mouseScrollDelta.y != 0f) {
+		if(!EventSystem.current.IsPointerOverGameObject() && Input.mouseScrollDelta.y != 0f) {
 			var factor = 1f - Input.mouseScrollDelta.y * scaleFactor;
 			var mousePos = pos;
 			var centerPos = Tool.CenterPos;

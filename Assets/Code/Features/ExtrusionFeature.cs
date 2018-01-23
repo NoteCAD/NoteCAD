@@ -25,11 +25,17 @@ class ExtrudedEntity : IEntity {
 		}
 	}
 
+	public IPlane plane {
+		get {
+			return null;
+		}
+	}
+
 	public IEnumerable<ExpVector> points {
 		get {
 			var shift = extrusion.extrusionDir * index;
-			foreach(var p in entity.points) {
-				yield return p.exp + shift;
+			foreach(var pe in entity.PointsInPlane(null)) {
+				yield return pe + shift;
 			}
 		}
 	}
@@ -38,7 +44,7 @@ class ExtrudedEntity : IEntity {
 		get {
 			var shift = extrusion.extrusionDir.Eval() * index;
 			var ie = entity as IEntity;
-			foreach(var p in (entity as IEntity).segments) {
+			foreach(var p in (entity as IEntity).SegmentsInPlane(null)) {
 				yield return p + shift;
 			}
 		}
@@ -67,16 +73,23 @@ class ExtrudedPointEntity : IEntity {
 		}
 	}
 
+	public IPlane plane {
+		get {
+			return null;
+		}
+	}
+
 	public IEnumerable<ExpVector> points {
 		get {
-			yield return entity.exp;
-			yield return entity.exp + extrusion.extrusionDir;
+			var exp = entity.plane.FromPlane(entity.exp);
+			yield return exp;
+			yield return exp + extrusion.extrusionDir;
 		}
 	}
 
 	public IEnumerable<Vector3> segments {
 		get {
-			var pos = entity.pos;
+			var pos = entity.plane.FromPlane(entity.pos);
 			yield return pos;
 			yield return pos + extrusion.extrusionDir.Eval();
 		}
@@ -168,14 +181,22 @@ public class ExtrusionFeature : MeshFeature {
 		}
 	}
 
-	protected override void OnWrite(XmlTextWriter xml) {
+	protected override void OnClear() {
+		GameObject.Destroy(go);
+	}
 
+	protected override void OnWrite(XmlTextWriter xml) {
+		xml.WriteAttributeString("length", extrude.value.ToString());
+	}
+
+	protected override void OnRead(XmlNode xml) {
+		extrude.value = double.Parse(xml.Attributes["length"].Value);
 	}
 
 	public ExpVector extrusionDir {
 		get {
 			var skf = source as SketchFeature;
-			return skf.GetNormal().Normalized() * extrude.exp;
+			return (ExpVector)skf.GetNormal() * extrude.exp;
 		}
 	}
 
@@ -202,8 +223,9 @@ public class ExtrusionFeature : MeshFeature {
 		var dir = extrusionDir.Eval();
 		double min = -1.0;
 		PointEntity hover = null;
+		var sktf = tf * sk.GetTransform();
 		foreach(var p in points) {
-			var pp = p.pos;
+			Vector3 pp = sktf.MultiplyPoint(p.pos);
 			var p0 = camera.WorldToScreenPoint(pp);
 			var p1 = camera.WorldToScreenPoint(pp + dir);
 			double d = GeomUtils.DistancePointSegment2D(mouse, p0, p1);

@@ -22,6 +22,12 @@ public class CircleEntity : Entity, ILoopEntity {
 		return c.IsChanged() || radius.changed;
 	}
 
+	public override IEnumerable<Param> parameters {
+		get {
+			yield return radius;
+		}
+	}
+
 	public PointEntity center { get { return c; } }
 	public IEnumerable<Vector3> loopPoints {
 		get {

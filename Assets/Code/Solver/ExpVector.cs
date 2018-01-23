@@ -12,6 +12,10 @@ public class ExpVector {
 		this.z = z;
 	}
 
+	public static implicit operator ExpVector(Vector3 v) {
+		return  new ExpVector(v.x, v.y, v.z);
+	}
+
 	public static ExpVector operator+(ExpVector a, ExpVector b) { return new ExpVector(a.x + b.x, a.y + b.y, a.z + b.z); } 
 	public static ExpVector operator-(ExpVector a, ExpVector b) { return new ExpVector(a.x - b.x, a.y - b.y, a.z - b.z); } 
 	public static ExpVector operator*(ExpVector a, ExpVector b) { return new ExpVector(a.x * b.x, a.y * b.y, a.z * b.z); } 

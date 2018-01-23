@@ -44,4 +44,8 @@ public class CircleTool : Tool {
 		canCreate = true;
 	}
 
+	protected override string OnGetDescription() {
+		return "click where you want to create the center point and then you can control the radius of the circle by moving mouse and fix it by clicking left button";
+	}
+
 }

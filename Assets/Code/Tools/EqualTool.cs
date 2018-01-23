@@ -24,4 +24,8 @@ public class EqualTool : Tool {
 		l0 = null;
 	}
 
+	protected override string OnGetDescription() {
+		return "hover and click two different lines.";
+	}
+
 }

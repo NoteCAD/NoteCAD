@@ -47,10 +47,21 @@ public class Detail : Feature {
 		}
 	}
 
+	public void UpdateDirtyUntil(Feature until) {
+		foreach(var f in features) {
+			f.UpdateDirty();
+			if(f == until) break;
+		}
+	}
+
 	public void ReadXml(string str) {
 		Clear();
 		var xml = new XmlDocument();
 		xml.LoadXml(str);
+
+		if(xml.DocumentElement.Attributes["guid"] != null) {
+			guid_ = new Guid(xml.DocumentElement.Attributes["guid"].Value);
+		}
 
 		foreach(XmlNode node in xml.DocumentElement) {
 			if(node.Name != "feature") continue;
@@ -68,7 +79,8 @@ public class Detail : Feature {
 		xml.IndentChar = '\t';
 		xml.Indentation = 1;
 		xml.WriteStartDocument();
-		xml.WriteStartElement("features");
+		xml.WriteStartElement("detail");
+		xml.WriteAttributeString("guid", guid.ToString());
 		foreach(var f in features) {
 			f.Write(xml);
 		}

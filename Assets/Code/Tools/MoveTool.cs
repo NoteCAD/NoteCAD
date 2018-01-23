@@ -40,6 +40,9 @@ public class MoveTool : Tool {
 			drag.Add(dragX);
 			drag.Add(dragY);
 			drag.Add(dragZ);
+			Debug.Log("x: " + dragX);
+			Debug.Log("y: " + dragY);
+			Debug.Log("z: " + dragZ);
 			DetailEditor.instance.AddDrag(dragX);
 			DetailEditor.instance.AddDrag(dragY);
 			DetailEditor.instance.AddDrag(dragZ);
@@ -103,6 +106,10 @@ public class MoveTool : Tool {
 		valueConstraint.SetValue(double.Parse(value));
 		valueConstraint = null;
 		input.gameObject.SetActive(false);
+	}
+
+	protected override string OnGetDescription() {
+		return "hover some entity and move it holding left mouse button. To change dimension values just double click it. Please, press Help button for more information.";
 	}
 
 }

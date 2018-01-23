@@ -49,7 +49,7 @@ Shader "NoteCAD/DraftLines" {
 				v2f o;
 				float pix = _Pixel / 2.0;
 				float3 tan = normalize(v.tangent);
-				float3 dir = mul((float3x3)unity_WorldToObject, _CamDir);
+				float3 dir = mul((float3x3)unity_WorldToObject, (float3)_CamDir);
 				float3 x = tan * _Width * pix;
 				float3 y = normalize(cross(dir, x)) * _Width * pix;
 

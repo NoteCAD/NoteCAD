@@ -5,7 +5,7 @@ using UnityEngine;
 public class DistanceTool : Tool {
 
 
-	PointEntity p0;
+	IEntity p0;
 	PointsDistance constraint;
 	Vector3 click;
 
@@ -15,7 +15,7 @@ public class DistanceTool : Tool {
 			constraint = null;
 			return;
 		}
-		var entity = sko as Entity;
+		var entity = sko as IEntity;
 		if(entity == null) return;
 
 		if(p0 == null && entity is LineEntity) {
@@ -25,14 +25,13 @@ public class DistanceTool : Tool {
 			return;
 		}
 
-		if(!(entity is PointEntity)) return;
-		var p = entity as PointEntity;
+		if(!entity.IsPoint()) return;
 		if(p0 != null) {
-			constraint = new PointsDistance(entity.sketch, p0, p);
+			constraint = new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
 			constraint.pos = pos;
 			p0 = null;
 		} else {
-			p0 = p;
+			p0 = entity;
 		}
 	}
 
@@ -46,6 +45,10 @@ public class DistanceTool : Tool {
 			constraint.Drag(pos - click);
 		}
 		click = pos;
+	}
+
+	protected override string OnGetDescription() {
+		return "click a two points or a line for constraining distance/length and then click where you want to create dimension value. You can change dimension value by double clicking it when MoveTool is active.";
 	}
 
 }

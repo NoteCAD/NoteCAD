@@ -5,18 +5,42 @@ using System.Xml;
 using System;
 
 public interface IEntity : ICADObject {
-	IEnumerable<ExpVector> points { get; }				// enough for dragging
+	IEnumerable<ExpVector> points { get; }			// enough for dragging
 	IEnumerable<Vector3> segments { get; }			// enough for drawing
 	ExpVector PointOn(Exp t);						// enough for constraining
+	IPlane plane { get; }
 }
 
 public static class IEntityUtils {
-	public static ExpVector GetDirection(this IEntity entity) {
+
+	public static IEnumerable<ExpVector> PointsInPlane(this IEntity entity, IPlane plane) {
+		if(plane == entity.plane) {
+			return entity.points;
+		}
+		return entity.points.Select(p => plane.ToFrom(p, entity.plane));
+	}
+
+	public static IEnumerable<Vector3> SegmentsInPlane(this IEntity entity, IPlane plane) {
+		return plane.ToFrom(entity.segments, entity.plane);
+	}
+
+	public static bool IsPoint(this IEntity entity) {
+		return entity.segments.Count() == 1;
+	}
+
+	public static ExpVector PointOnInPlane(this IEntity entity, Exp t, IPlane plane) {
+		if(plane == entity.plane) {
+			return entity.PointOn(t);
+		}
+		return plane.ToFrom(entity.PointOn(t), entity.plane);
+	}
+
+	public static ExpVector GetDirectionInPlane(this IEntity entity, IPlane plane) {
 		var points = entity.points.GetEnumerator();
 		points.MoveNext();
-		var p0 = points.Current;
+		var p0 = plane.ToFrom(points.Current, entity.plane);
 		points.MoveNext();
-		var p1 = points.Current;
+		var p1 = plane.ToFrom(points.Current, entity.plane);
 		return p1 - p0;
 	}
 }
@@ -30,6 +54,12 @@ public abstract partial class Entity : SketchObject, IEntity {
 	public IEnumerable<Constraint> constraints { get { return usedInConstraints.AsEnumerable(); } }
 	public virtual IEnumerable<PointEntity> points { get { yield break; } }
 	public virtual BBox bbox { get { return new BBox(Vector3.zero, Vector3.zero); } }
+
+	public IPlane plane {
+		get {
+			return sketch.plane;
+		}
+	}
 
 	IEnumerable<ExpVector> IEntity.points {
 		get {

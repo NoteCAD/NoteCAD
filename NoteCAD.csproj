@@ -332,6 +332,8 @@
     <Compile Include="Assets\Code\Tools\EqualTool.cs" />
     <Compile Include="Assets\Code\Tools\ExportSTLTool.cs" />
     <Compile Include="Assets\Code\Tools\ExtrusionTool.cs" />
+    <Compile Include="Assets\Code\Tools\FullscreenTool.cs" />
+    <Compile Include="Assets\Code\Tools\HelpTool.cs" />
     <Compile Include="Assets\Code\Tools\LineTool.cs" />
     <Compile Include="Assets\Code\Tools\LoadTool.cs" />
     <Compile Include="Assets\Code\Tools\MoveTool.cs" />
@@ -349,6 +351,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Code\DraftStroke\DraftLines.shader" />
+    <None Include="Assets\Materials\LoopShader.shader" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

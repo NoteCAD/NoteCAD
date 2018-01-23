@@ -21,4 +21,9 @@ public class PointsCoincidentTool : Tool {
 	protected override void OnDeactivate() {
 		p0 = null;
 	}
+
+	protected override string OnGetDescription() {
+		return "hover and click two different points to constrain them to be coincident.";
+	}
+
 }

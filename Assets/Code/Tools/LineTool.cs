@@ -56,4 +56,8 @@ public class LineTool : Tool {
 		canCreate = true;
 	}
 
+	protected override string OnGetDescription() {
+		return "click where you want to create the beginning and the ending points of the line";
+	}
+
 }

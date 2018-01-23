@@ -8,4 +8,9 @@ public class RemoveTool : Tool {
 		if(!(sko is SketchObject)) return;
 		(sko as SketchObject).Destroy();
 	}
+
+	protected override string OnGetDescription() {
+		return "click some entity or constraint to remove it.";
+	}
+
 }

@@ -41,4 +41,8 @@ public class AngleTool : Tool {
 		click = pos;
 	}
 
+	protected override string OnGetDescription() {
+		return "hover and click two different lines. You can change dimension value by double clicking it when MoveTool is active.";
+	}
+
 }

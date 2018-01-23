@@ -6,6 +6,23 @@ using UnityEngine;
 public class Id {
 	public List<Guid> path = new List<Guid>();
 
+	public void Write(XmlTextWriter xml, string name) {
+		xml.WriteStartElement("id");
+		xml.WriteAttributeString("name", name);
+		foreach(var guid in path) {
+			xml.WriteElementString("guid", guid.ToString());
+		}
+		xml.WriteEndElement();
+	}
+
+	public void Read(XmlNode xml) {
+		path.Clear();
+		foreach(XmlNode guidNode in xml.ChildNodes) {
+			Guid guid = new Guid(guidNode.InnerText);
+			path.Add(guid);
+		}
+	}
+
 	public static Guid IndexGuid(int index) {
 		return new Guid(index, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	}

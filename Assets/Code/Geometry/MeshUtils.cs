@@ -17,6 +17,11 @@ public static class MeshUtils {
 			for(int i = 0; i < triangles.Count; i++) {
 				indices.Add(i + start);
 			}
+			for(int i = 0; i < triangles.Count / 3; i++) {
+				indices.Add(start + i * 3 + 0);
+				indices.Add(start + i * 3 + 2);
+				indices.Add(start + i * 3 + 1);
+			}
 		}
 		mesh.name = "polygons";
 		mesh.SetVertices(vertices);

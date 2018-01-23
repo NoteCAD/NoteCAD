@@ -127,9 +127,9 @@ public class DetailEditor : MonoBehaviour {
 		}
 
 		detail.Update();
-		detail.MarkDirty();
 		meshDirty = meshDirty | detail.features.OfType<MeshFeature>().Any(f => f.dirty);
-		detail.UpdateDirty();
+		detail.MarkDirty();
+		detail.UpdateDirtyUntil(activeFeature);
 		if(meshDirty) {
 			meshDirty = false;
 			mesh.Clear();
@@ -149,10 +149,11 @@ public class DetailEditor : MonoBehaviour {
 		canvas.ClearStyle("hovered");
 		if(hovered != null) {
 			canvas.SetStyle("hovered");
+			if(hovered is IEntity) {
+				canvas.DrawSegments((hovered as IEntity).SegmentsInPlane(null));
+			} else
 			if(hovered is SketchObject) {
 				(hovered as SketchObject).Draw(canvas);
-			} else if(hovered is IEntity) {
-				canvas.DrawSegments((hovered as IEntity).segments);
 			}
 		}
 	}

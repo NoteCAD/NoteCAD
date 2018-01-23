@@ -12,10 +12,79 @@ interface ISketch {
 	IEntity Hover(Vector3 mouse, Camera camera, Matrix4x4 transform, ref double dist);
 }
 
+public interface IPlane {
+	Vector3 u { get; }
+	Vector3 v { get; }
+	Vector3 n { get; }
+	Vector3 o { get; }
+}
+
+public static class IPlaneUtils {
+
+	public static ExpVector FromPlane(this IPlane plane, ExpVector pt) {
+		if(plane == null) return pt;
+		return plane.o + (ExpVector)plane.u * pt.x + (ExpVector)plane.v * pt.y + (ExpVector)plane.n * pt.z;
+	}
+
+	public static Vector3 FromPlane(this IPlane plane, Vector3 pt) {
+		if(plane == null) return pt;
+		return plane.o + plane.u * pt.x + plane.v * pt.y + plane.n * pt.z;
+	}
+
+	public static IEnumerable<Vector3> FromPlane(this IPlane plane, IEnumerable<Vector3> points) {
+		if(plane == null) return points;
+
+		var pu = plane.u;
+		var pv = plane.v;
+		var pn = plane.n;
+		var po = plane.o;
+
+		return points.Select(pt => po + pu * pt.x + pv * pt.y + pn * pt.z);
+	}
+
+	public static ExpVector ToPlane(this IPlane plane, ExpVector pt) {
+		if(plane == null) return pt;
+		ExpVector result = new ExpVector(0, 0, 0);
+		var dir = pt - plane.o;
+		result.x = ExpVector.Dot(dir, plane.u);
+		result.y = ExpVector.Dot(dir, plane.v);
+		result.z = ExpVector.Dot(dir, plane.n);
+		return result;
+	}
+
+	public static IEnumerable<Vector3> ToPlane(this IPlane plane, IEnumerable<Vector3> points) {
+		if(plane == null) return points;
+
+		var pu = plane.u;
+		var pv = plane.v;
+		var pn = plane.n;
+		var po = plane.o;
+
+		return points.Select(pt => {
+			var dir = pt - po;
+			return new Vector3(
+				Vector3.Dot(dir, pu),
+				Vector3.Dot(dir, pv),
+				Vector3.Dot(dir, pn)
+			);
+		});
+	}
+
+	public static ExpVector ToFrom(this IPlane to, ExpVector pt, IPlane from) {
+		return to.ToPlane(from.FromPlane(pt));
+	}
+
+	public static IEnumerable<Vector3> ToFrom(this IPlane to, IEnumerable<Vector3> points, IPlane from) {
+		return to.ToPlane(from.FromPlane(points));
+	}
+
+}
+
 public class Sketch : CADObject, ISketch  {
 	List<Entity> entities = new List<Entity>();
 	List<Constraint> constraints = new List<Constraint>();
 	public Feature feature;
+	public IPlane plane;
 
 	IEnumerable<IEntity> ISketch.entities {
 		get {

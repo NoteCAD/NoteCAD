@@ -94,7 +94,7 @@ public class Tool : MonoBehaviour {
 			var plane = new Plane(Camera.main.transform.forward, Vector3.zero);
 			var sk = DetailEditor.instance.currentSketch;
 			if(sk != null) {
-				plane = new Plane(sk.GetNormal().Eval(), sk.GetPosition().Eval());
+				plane = new Plane(sk.GetNormal(), sk.GetPosition());
 			}
 			var ray = Camera.main.ScreenPointToRay(mousePos);
 			float cast;
@@ -126,6 +126,34 @@ public class Tool : MonoBehaviour {
 			return true;
 		}
 		return false;
+	}
+
+	public string GetDescription() {
+		var result = this.GetType().Name;
+		if(hotkeys.Length > 0) {
+			result += " [" + hotkeys[0].ToString() + "]";
+		}
+		var desc = OnGetDescription();
+		if(desc != "") {
+			result += ": " + desc;
+		}
+		return result;
+	}
+
+	public string GetTooltip() {
+		var result = this.GetType().Name + ". " + OnGetDescription();
+		if(hotkeys.Length > 0) {
+			result += "[" + hotkeys[0].ToString() + "]";
+		}
+		return result;
+	}
+
+	protected virtual string OnGetDescription() {
+		return "";
+	}
+
+	protected virtual string OnGetTooltip() {
+		return "";
 	}
 
 }

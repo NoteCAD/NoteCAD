@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class ToolBar : MonoBehaviour {
@@ -9,6 +10,8 @@ public class ToolBar : MonoBehaviour {
 	Tool activeTool;
 	public Tool defaultTool;
 	public Color pressedColor;
+
+	public Text description;
 
 	public Tool ActiveTool {
 		get {
@@ -45,6 +48,7 @@ public class ToolBar : MonoBehaviour {
 #if UNITY_WEBGL
 		mouseDown = mouseDown || Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Began;
 #endif
+		mouseDown = mouseDown;
 		if(activeTool != null && mouseDown) {
 			if(doubleClickTime < 0.3f) {
 				activeTool.MouseDoubleClick(Tool.MousePos, DetailEditor.instance.hovered);
@@ -92,6 +96,7 @@ public class ToolBar : MonoBehaviour {
 			cb.normalColor = pressedColor;
 			btn.colors = cb;
 			activeTool.Activate();
+			description.text = activeTool.GetDescription();
 		}
 	}
 

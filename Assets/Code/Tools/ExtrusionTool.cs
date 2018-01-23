@@ -10,5 +10,9 @@ public class ExtrusionTool : Tool {
 		feature.source = DetailEditor.instance.currentSketch;
 		DetailEditor.instance.AddFeature(feature); 
 		DetailEditor.instance.ActivateFeature(feature);
+		if(Vector3.Dot(Camera.main.transform.forward, feature.extrusionDir.Eval()) > 0f) {
+			feature.extrude.value = -feature.extrude.value;
+		}
 	}
+
 }
