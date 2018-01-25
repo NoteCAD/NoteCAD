@@ -319,6 +319,7 @@
     <Compile Include="Assets\Code\Geometry\MeshUtils.cs" />
     <Compile Include="Assets\Code\Geometry\STLExport.cs" />
     <Compile Include="Assets\Code\Geometry\Triangulation.cs" />
+    <Compile Include="Assets\Code\Sketch\IdPath.cs" />
     <Compile Include="Assets\Code\Sketch\Sketch.cs" />
     <Compile Include="Assets\Code\Sketch\SketchObject.cs" />
     <Compile Include="Assets\Code\Solver\EquationSystem.cs" />

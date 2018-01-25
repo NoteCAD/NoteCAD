@@ -55,9 +55,9 @@ public class SketchFeature : Feature, IPlane {
 	GameObject loopObj;
 	Matrix4x4 transform;
 
-	Id uId = new Id();
-	Id vId = new Id();
-	Id pId = new Id();
+	IdPath uId = new IdPath();
+	IdPath vId = new IdPath();
+	IdPath pId = new IdPath();
 
 	public IEntity u {
 		get {
@@ -147,8 +147,8 @@ public class SketchFeature : Feature, IPlane {
 		return sketch;
 	}
 
-	public override ICADObject GetChild(Guid guid) {
-		//TODO: get rid of this
+	public override ICADObject GetChild(Id guid) {
+		//TODO: save sketch id
 		//if(sketch.guid == guid) return sketch;
 		//return null;
 		return sketch;

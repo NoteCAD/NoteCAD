@@ -16,7 +16,7 @@ public class Detail : Feature {
 		}
 	}
 
-	public override ICADObject GetChild(Guid guid) {
+	public override ICADObject GetChild(Id guid) {
 		return features.Find(f => f.guid == guid);
 	}
 
@@ -59,8 +59,8 @@ public class Detail : Feature {
 		var xml = new XmlDocument();
 		xml.LoadXml(str);
 
-		if(xml.DocumentElement.Attributes["guid"] != null) {
-			guid_ = new Guid(xml.DocumentElement.Attributes["guid"].Value);
+		if(xml.DocumentElement.Attributes["id"] != null) {
+			guid_ = idGenerator.Create(0);
 		}
 
 		foreach(XmlNode node in xml.DocumentElement) {
@@ -80,7 +80,7 @@ public class Detail : Feature {
 		xml.Indentation = 1;
 		xml.WriteStartDocument();
 		xml.WriteStartElement("detail");
-		xml.WriteAttributeString("guid", guid.ToString());
+		xml.WriteAttributeString("id", guid.ToString());
 		foreach(var f in features) {
 			f.Write(xml);
 		}
@@ -112,7 +112,7 @@ public class Detail : Feature {
 		return HoverUntil(mouse, camera, tf, ref objDist, features.Last());
 	}
 
-	public Feature GetFeature(Guid guid) {
+	public Feature GetFeature(Id guid) {
 		return features.Find(f => f.guid == guid);
 	}
 

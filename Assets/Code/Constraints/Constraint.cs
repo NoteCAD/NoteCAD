@@ -48,7 +48,7 @@ public class Constraint : SketchObject {
 		base.Write(xml);
 		foreach(var e in entities) {
 			xml.WriteStartElement("entity");
-			xml.WriteAttributeString("guid", e.guid.ToString());
+			xml.WriteAttributeString("id", e.guid.ToString());
 			xml.WriteEndElement();
 		}
 		xml.WriteEndElement();
@@ -57,7 +57,7 @@ public class Constraint : SketchObject {
 	public override void Read(XmlNode xml) {
 		foreach(XmlNode node in xml.ChildNodes) {
 			if(node.Name != "entity") continue;
-			var guid = new Guid(node.Attributes["guid"].Value);
+			var guid = sketch.idGenerator.Create(node.Attributes["id"].Value);
 			var entity = sketch.GetEntity(guid);
 			AddEntity(entity);
 		}

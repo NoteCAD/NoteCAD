@@ -3,72 +3,42 @@ using System.Xml;
 using System;
 using UnityEngine;
 
-public class Id {
-	public List<Guid> path = new List<Guid>();
-
-	public void Write(XmlTextWriter xml, string name) {
-		xml.WriteStartElement("id");
-		xml.WriteAttributeString("name", name);
-		foreach(var guid in path) {
-			xml.WriteElementString("guid", guid.ToString());
-		}
-		xml.WriteEndElement();
-	}
-
-	public void Read(XmlNode xml) {
-		path.Clear();
-		foreach(XmlNode guidNode in xml.ChildNodes) {
-			Guid guid = new Guid(guidNode.InnerText);
-			path.Add(guid);
-		}
-	}
-
-	public static Guid IndexGuid(int index) {
-		return new Guid(index, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-	}
-	public static int GetIndex(Guid guid) {
-		var bytes = guid.ToByteArray();
-		return bytes[0];
-	}
-}
-
 public interface ICADObject {
-	Id id { get; }
+	IdPath id { get; }
 }
 
 public abstract class CADObject : ICADObject {
-	public abstract Guid guid { get; }
-	public abstract ICADObject GetChild(Guid guid);
+	public abstract Id guid { get; }
+	public abstract ICADObject GetChild(Id guid);
 	public abstract CADObject parentObject { get; }
 
-	public Id id {
+	public IdPath id {
 		get {
-			var result = new Id();
-			var p = this;
-			while(p != null) {
-				//Debug.Log("object: " + p.GetType().Name + " guid : " + p.guid);
-				result.path.Add(p.guid);
-				p = p.parentObject;
-			}
-			return result;
+			return GetRelativePath(null);
 		}
 	}
 
-	public string GetIdPath() {
-		var result = "";
+	public IdPath GetRelativePath(CADObject from) {
+		var result = new IdPath();
 		var p = this;
 		while(p != null) {
-			result = p.GetType() + ((result == "") ? "" : "->") + result;
+			if(p == from) return result;
+			if(p.guid == Id.Null) return result;
+			result.path.Add(p.guid);
 			p = p.parentObject;
 		}
 		return result;
 	}
 
-	public ICADObject GetObjectById(Id id) {
+	public ICADObject GetObjectById(IdPath id) {
 		var i = -1;
 		var p = this;
 		while(true) {
-			i = id.path.FindIndex(g => g == p.guid);
+			if(p.guid == Id.Null) {
+				i = id.path.Count;
+				break;
+			}
+			i = id.path.FindLastIndex(g => g == p.guid);
 			if(i != -1) break;
 			p = p.parentObject;
 			if(p == null) return null; 
@@ -91,8 +61,8 @@ public abstract class SketchObject : CADObject, ICADObject {
 	public Sketch sketch { get { return sk; } }
 	public bool isDestroyed { get; private set; }
 
-	Guid guid_;
-	public override Guid guid { get { return guid_; } }
+	Id guid_;
+	public override Id guid { get { return guid_; } }
 
 	public override CADObject parentObject {
 		get {
@@ -100,13 +70,13 @@ public abstract class SketchObject : CADObject, ICADObject {
 		}
 	}
 
-	public override ICADObject GetChild(Guid guid) {
+	public override ICADObject GetChild(Id guid) {
 		return null;
 	}
 
 	public SketchObject(Sketch sketch) {
 		sk = sketch;
-		guid_ = Guid.NewGuid();
+		guid_ = sketch.idGenerator.New();
 	}
 	protected virtual GameObject gameObject { get { return null; } }
 
@@ -214,7 +184,7 @@ public abstract class SketchObject : CADObject, ICADObject {
 	}
 
 	public virtual void Write(XmlTextWriter xml) {
-		xml.WriteAttributeString("guid", guid.ToString());
+		xml.WriteAttributeString("id", guid.ToString());
 		OnWrite(xml);
 	}
 
@@ -223,7 +193,8 @@ public abstract class SketchObject : CADObject, ICADObject {
 	}
 
 	public virtual void Read(XmlNode xml) {
-		guid_ = new Guid(xml.Attributes["guid"].Value);
+
+		guid_ = sketch.idGenerator.Create(xml.Attributes["id"].Value);
 		OnRead(xml);
 	}
 

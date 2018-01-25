@@ -17,8 +17,8 @@ public class PointsDistance : ValueConstraint {
 		}
 	}
 
-	public Id p0id { get; set; }
-	public Id p1id { get; set; }
+	public IdPath p0id { get; set; }
+	public IdPath p1id { get; set; }
 
 	public PointsDistance(Sketch sk) : base(sk) { }
 

@@ -9,7 +9,8 @@ public class DetailEditor : MonoBehaviour {
 
 	public static DetailEditor instance;
 
-	private Detail detail;
+	Detail detail;
+
 	public GameObject labelParent;
 	public Text resultText;
 	public GameObject featuresContent;
@@ -39,7 +40,7 @@ public class DetailEditor : MonoBehaviour {
 			if(hovered_ != null) {
 				var id = hovered_.id;
 				var hh = detail.GetObjectById(id);
-				Debug.Log(hh.GetType().Name);
+				Debug.Log(id.ToString() + " " + hh.GetType().Name);
 				if(hovered_ is SketchObject) {
 					(hovered_ as SketchObject).isHovered = true;
 				}

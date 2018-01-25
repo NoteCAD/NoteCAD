@@ -8,19 +8,18 @@ using UnityEngine;
 class ExtrudedEntity : IEntity {
 	Entity entity;
 	ExtrusionFeature extrusion;
-	int index;
+	long index;
 
-	public ExtrudedEntity(Entity e, ExtrusionFeature ex, int i) {
+	public ExtrudedEntity(Entity e, ExtrusionFeature ex, long i) {
 		entity = e;
 		extrusion = ex;
 		index = i;
 	}
 
-	public Id id {
+	public IdPath id {
 		get {
 			var eid = extrusion.id;
-			eid.path.Insert(0, entity.guid);
-			eid.path.Insert(0, Id.IndexGuid(index));
+			eid.path.Insert(0, entity.guid.WithSecond(index));
 			return eid;
 		}
 	}
@@ -64,11 +63,10 @@ class ExtrudedPointEntity : IEntity {
 		extrusion = ex;
 	}
 
-	public Id id {
+	public IdPath id {
 		get {
 			var eid = extrusion.id;
-			eid.path.Insert(0, entity.guid);
-			eid.path.Insert(0, Id.IndexGuid(2));
+			eid.path.Insert(0, entity.guid.WithSecond(2));
 			return eid;
 		}
 	}
@@ -100,30 +98,6 @@ class ExtrudedPointEntity : IEntity {
 	}
 }
 
-
-class CADContainter : CADObject {
-	public Entity entity;
-	public ExtrusionFeature feature;
-
-	public override Guid guid {
-		get {
-			return entity.guid;
-		}
-	}
-
-	public override CADObject parentObject {
-		get {
-			return feature;
-		}
-	}
-
-	public override ICADObject GetChild(Guid guid) {
-		int index = Id.GetIndex(guid);
-		if(index == 2) return new ExtrudedPointEntity(entity as PointEntity, feature);
-		return new ExtrudedEntity(entity, feature, index);
-	}
-}
-
 public class ExtrusionFeature : MeshFeature {
 	public Param extrude = new Param("e", 5.0);
 	Mesh mesh = new Mesh();
@@ -141,8 +115,10 @@ public class ExtrusionFeature : MeshFeature {
 		}
 	}
 
-	public override ICADObject GetChild(Guid guid) {
-		return new CADContainter { entity = sketch.GetEntity(guid), feature = this };
+	public override ICADObject GetChild(Id guid) {
+		var entity = sketch.GetEntity(guid.WithoutSecond());
+		if(guid.second == 2) return new ExtrudedPointEntity(entity as PointEntity, this);
+		return new ExtrudedEntity(entity, this, guid.second);
 	}
 
 	protected override void OnUpdate() {

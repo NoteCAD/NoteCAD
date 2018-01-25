@@ -7,10 +7,24 @@ using UnityEngine;
 public abstract class Feature : CADObject {
 	IEnumerator<Entity> entities { get { yield break; } }
 	Feature source_;
-	public Detail detail;
+	public Detail detail_;
+	public IdGenerator idGenerator = new IdGenerator();
 
-	protected Guid guid_;
-	public override Guid guid {
+	public Detail detail {
+		get {
+			return detail_;
+		}
+
+		set {
+			detail_ = value;
+			if(detail_ != null && guid_ == Id.Null) {
+				guid_ = detail.idGenerator.New();
+			}
+		}
+	}
+
+	protected Id guid_;
+	public override Id guid {
 		get {
 			return guid_;
 		}
@@ -54,10 +68,6 @@ public abstract class Feature : CADObject {
 		}
 	}
 
-	public Feature() {
-		guid_ = Guid.NewGuid();
-	}
-
 	protected virtual void OnUpdate() { }
 
 	public void Update() {
@@ -75,7 +85,7 @@ public abstract class Feature : CADObject {
 	public virtual void Write(XmlTextWriter xml) {
 		xml.WriteStartElement("feature");
 		xml.WriteAttributeString("type", this.GetType().Name);
-		xml.WriteAttributeString("guid", guid.ToString());
+		xml.WriteAttributeString("id", guid.ToString());
 		if(source != null) {
 			xml.WriteAttributeString("source", source.guid.ToString());
 		}
@@ -88,9 +98,9 @@ public abstract class Feature : CADObject {
 	}
 
 	public virtual void Read(XmlNode xml) {
-		guid_ = new Guid(xml.Attributes["guid"].Value);
+		guid_ = detail.idGenerator.Create(xml.Attributes["id"].Value);
 		if(xml.Attributes.GetNamedItem("source") != null) {
-			var srcGuid = new Guid(xml.Attributes["source"].Value);
+			var srcGuid = detail.idGenerator.Create(xml.Attributes["source"].Value);
 			source = detail.GetFeature(srcGuid);
 		}
 

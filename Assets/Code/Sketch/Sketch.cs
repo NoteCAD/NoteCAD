@@ -83,7 +83,20 @@ public static class IPlaneUtils {
 public class Sketch : CADObject, ISketch  {
 	List<Entity> entities = new List<Entity>();
 	List<Constraint> constraints = new List<Constraint>();
-	public Feature feature;
+	Feature feature_;
+
+	public Feature feature {
+		get {
+			return feature_;
+		}
+
+		set {
+			feature_ = value;
+			if(feature_ != null && guid_ == Id.Null) {
+				guid_ = feature.idGenerator.New();
+			}
+		}
+	}
 	public IPlane plane;
 
 	IEnumerable<IEntity> ISketch.entities {
@@ -104,8 +117,9 @@ public class Sketch : CADObject, ISketch  {
 		}
 	}
 
-	Guid guid_ = Guid.NewGuid();
-	public override Guid guid {
+	public IdGenerator idGenerator = new IdGenerator();
+	Id guid_;
+	public override Id guid {
 		get {
 			return guid_;
 		}
@@ -123,7 +137,7 @@ public class Sketch : CADObject, ISketch  {
 		MarkDirtySketch(topo:true, entities:true);
 	}
 
-	public Entity GetEntity(Guid guid) {
+	public Entity GetEntity(Id guid) {
 		return entities.Find(e => e.guid == guid);
 	}
 
@@ -397,7 +411,7 @@ public class Sketch : CADObject, ISketch  {
 		}
 	}
 
-	public override ICADObject GetChild(Guid guid) {
+	public override ICADObject GetChild(Id guid) {
 		var e = GetEntity(guid);
 		if(e != null) return e;
 		return constraints.Find(c => c.guid == guid);
