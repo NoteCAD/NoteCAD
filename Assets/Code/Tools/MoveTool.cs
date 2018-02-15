@@ -40,9 +40,9 @@ public class MoveTool : Tool {
 			drag.Add(dragX);
 			drag.Add(dragY);
 			drag.Add(dragZ);
-			Debug.Log("x: " + dragX);
-			Debug.Log("y: " + dragY);
-			Debug.Log("z: " + dragZ);
+			//Debug.Log("x: " + dragX);
+			//Debug.Log("y: " + dragY);
+			//Debug.Log("z: " + dragZ);
 			DetailEditor.instance.AddDrag(dragX);
 			DetailEditor.instance.AddDrag(dragY);
 			DetailEditor.instance.AddDrag(dragZ);

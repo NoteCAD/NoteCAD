@@ -4,39 +4,29 @@ using System.Linq;
 
 public class PointsDistance : ValueConstraint {
 
-	public ExpVector p0 {
-		get {
-			var e = GetObjectById(p0id) as IEntity;
-			return e.PointsInPlane(sketch.plane).FirstOrDefault();
-		}
-	}
-	public ExpVector p1 {
-		get {
-			var e = GetObjectById(p1id) as IEntity;
-			return e.PointsInPlane(sketch.plane).FirstOrDefault();
-		}
-	}
+	public IEntity p0 { get { return GetEntity(0); } set { SetEntity(0, value); } }
+	public IEntity p1 { get { return GetEntity(1); } set { SetEntity(1, value); } }
 
-	public IdPath p0id { get; set; }
-	public IdPath p1id { get; set; }
+	public ExpVector p0exp { get { return p0.PointExpInPlane(sketch.plane); } }
+	public ExpVector p1exp { get { return p1.PointExpInPlane(sketch.plane); } }
 
 	public PointsDistance(Sketch sk) : base(sk) { }
 
 	public PointsDistance(Sketch sk, IEntity p0, IEntity p1) : base(sk) {
-		p0id = p0.id;
-		p1id = p1.id;
+		AddEntity(p0);
+		AddEntity(p1);
 		Satisfy();
 	}
 
 	public override IEnumerable<Exp> equations {
 		get {
-			yield return (p1 - p0).Magnitude() - value.exp;
+			yield return (p1exp - p0exp).Magnitude() - value.exp;
 		}
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
-		Vector3 p0p = p0.Eval();
-		Vector3 p1p = p1.Eval();
+		Vector3 p0p = p0.PointExpInPlane(sketch.plane).Eval();
+		Vector3 p1p = p1.PointExpInPlane(sketch.plane).Eval();
 		Vector3 dir = p1p - p0p;
 		Vector3 perp = Vector3.Cross(dir, Vector3.forward).normalized;
 		float dist = Vector3.Dot(pos - p0p, perp);
@@ -72,8 +62,8 @@ public class PointsDistance : ValueConstraint {
 	}
 
 	protected override Matrix4x4 OnGetBasis() {
-		var p0pos = p0.Eval();
-		var p1pos = p1.Eval();
+		var p0pos = p0.PointExpInPlane(sketch.plane).Eval();
+		var p1pos = p1.PointExpInPlane(sketch.plane).Eval();
 		var pos = (p0pos + p1pos) * 0.5f;
 		var dir = p0pos - p1pos;
 		var ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;

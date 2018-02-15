@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Csg;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -128,17 +129,23 @@ public class ExtrusionFeature : MeshFeature {
 		extrude.changed = false;
 	}
 
-	protected override CombineInstance OnGenerateMesh() {
-		var instance = new CombineInstance();
+	protected override Solid OnGenerateMesh() {
 		MeshUtils.CreateMeshExtrusion(Sketch.GetPolygons((source as SketchFeature).GetLoops()), (float)extrude.value, ref mesh);
-		instance.mesh = mesh;
-		instance.transform = (source as SketchFeature).GetTransform();
-		return instance;
+		var solid = mesh.ToSolid((source as SketchFeature).GetTransform());
+		return solid;
 	}
-
+	LineCanvas canvas;
 	protected override void OnUpdateDirty() {
 		GameObject.Destroy(go);
 		go = new GameObject("ExtrusionFeature");
+		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas, go.transform);
+		canvas.SetStyle("entities");
+		var sk = (source as SketchFeature).GetSketch();
+		foreach(var e in sk.entityList.OfType<PointEntity>()) {
+			var ext = new ExtrudedPointEntity(e, this);
+			canvas.DrawSegments(ext.segments);
+		}
+
 		var bottom = GameObject.Instantiate(source.gameObject, go.transform);
 		bottom.SetActive(true);
 		var top = GameObject.Instantiate(source.gameObject, go.transform);
@@ -161,11 +168,11 @@ public class ExtrusionFeature : MeshFeature {
 		GameObject.Destroy(go);
 	}
 
-	protected override void OnWrite(XmlTextWriter xml) {
+	protected override void OnWriteMeshFeature(XmlTextWriter xml) {
 		xml.WriteAttributeString("length", extrude.value.ToString());
 	}
 
-	protected override void OnRead(XmlNode xml) {
+	protected override void OnReadMeshFeature(XmlNode xml) {
 		extrude.value = double.Parse(xml.Attributes["length"].Value);
 	}
 
@@ -176,14 +183,14 @@ public class ExtrusionFeature : MeshFeature {
 		}
 	}
 
-	protected override ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
 		var sk = source as SketchFeature;
 
 		double d0 = -1;
 		var r0 = sk.Hover(mouse, camera, tf, ref d0);
 		if(!(r0 is Entity)) r0 = null;
 
-		Matrix4x4 move = Matrix4x4.Translate(Vector3.forward * (float)extrude.value);
+		UnityEngine.Matrix4x4 move = UnityEngine.Matrix4x4.Translate(Vector3.forward * (float)extrude.value);
 		double d1 = -1;
 		var r1 = sk.Hover(mouse, camera, tf * move, ref d1);
 		if(!(r1 is Entity)) r1 = null;

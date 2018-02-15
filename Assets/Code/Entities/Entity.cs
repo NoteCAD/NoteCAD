@@ -13,6 +13,10 @@ public interface IEntity : ICADObject {
 
 public static class IEntityUtils {
 
+	public static ExpVector PointExpInPlane(this IEntity entity, IPlane plane) {
+		return entity.PointsInPlane(plane).Single();
+	}
+
 	public static IEnumerable<ExpVector> PointsInPlane(this IEntity entity, IPlane plane) {
 		if(plane == entity.plane) {
 			return entity.points;
@@ -97,12 +101,12 @@ public abstract partial class Entity : SketchObject, IEntity {
 
 	public override void Destroy() {
 		if(isDestroyed) return;
+		while(usedInConstraints.Count > 0) {
+			usedInConstraints[0].Destroy();
+		}
 		base.Destroy();
 		if(parent != null) {
 			parent.Destroy();
-		}
-		while(usedInConstraints.Count > 0) {
-			usedInConstraints[0].Destroy();
 		}
 		while(children.Count > 0) {
 			children[0].Destroy();

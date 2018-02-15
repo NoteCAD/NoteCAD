@@ -21,6 +21,16 @@ public interface IPlane {
 
 public static class IPlaneUtils {
 
+	public static Matrix4x4 GetTransform(this IPlane plane) {
+		var result = Matrix4x4.identity;
+		result.SetColumn(0, plane.u);
+		result.SetColumn(1, plane.v);
+		result.SetColumn(2, plane.n);
+		Vector4 pos = new Vector4(plane.o.x, plane.o.y, plane.o.z, 1);
+		result.SetColumn(3, pos);
+		return result;
+	}
+
 	public static ExpVector FromPlane(this IPlane plane, ExpVector pt) {
 		if(plane == null) return pt;
 		return plane.o + (ExpVector)plane.u * pt.x + (ExpVector)plane.v * pt.y + (ExpVector)plane.n * pt.z;

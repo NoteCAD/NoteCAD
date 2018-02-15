@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using Csg;
 
 public class DetailEditor : MonoBehaviour {
 
@@ -40,7 +41,7 @@ public class DetailEditor : MonoBehaviour {
 			if(hovered_ != null) {
 				var id = hovered_.id;
 				var hh = detail.GetObjectById(id);
-				Debug.Log(id.ToString() + " " + hh.GetType().Name);
+				//Debug.Log(id.ToString() + " " + hh.GetType().Name);
 				if(hovered_ is SketchObject) {
 					(hovered_ as SketchObject).isHovered = true;
 				}
@@ -71,6 +72,12 @@ public class DetailEditor : MonoBehaviour {
 		WWW www = new WWW(url);
 		yield return www;
 		ReadXml(www.text);
+	}
+
+	public bool IsFirstMeshFeature(MeshFeature mf) {
+		var fi = detail.features.FindIndex(f => f is MeshFeature);
+		var mi = detail.features.IndexOf(mf);
+		return fi == mi;
 	}
 
 	private void Start() {
@@ -134,18 +141,35 @@ public class DetailEditor : MonoBehaviour {
 		if(meshDirty) {
 			meshDirty = false;
 			mesh.Clear();
-			var instances = new List<CombineInstance>();
+			Solid result = null;
+			int combinedCount = 0;
 			foreach(var f in detail.features) {
-				if(f is MeshFeature) {
-					var instance = (f as MeshFeature).GenerateMesh();
-					instances.Add(instance);
+				var mf = f as MeshFeature;
+				if(mf != null) {
+					if(result == null) {
+						result = mf.solid;
+					} else {
+						if(mf.combined == null) {
+							switch(mf.operation) {
+								case CombineOp.Union: mf.combined = Solids.Union(result, mf.solid); break;
+								case CombineOp.Difference: mf.combined = Solids.Difference(result, mf.solid); break;
+								case CombineOp.Intersection: mf.combined = Solids.Intersection(result, mf.solid); break;
+							}
+							combinedCount++;
+						}
+						result = mf.combined;
+					}
 				}
 				if(f == activeFeature) break;
 			}
-			mesh.CombineMeshes(instances.ToArray(), mergeSubMeshes:true, useMatrices:true);
+			Debug.Log("combined " + combinedCount + " meshes");
+			if(result != null) {
+				mesh.FromSolid(result);
+			}
 		}
+
 		double dist = -1.0;
-		hovered = detail.HoverUntil(Input.mousePosition, Camera.main, Matrix4x4.identity, ref dist, activeFeature);
+		hovered = detail.HoverUntil(Input.mousePosition, Camera.main, UnityEngine.Matrix4x4.identity, ref dist, activeFeature);
 
 		canvas.ClearStyle("hovered");
 		if(hovered != null) {
@@ -212,8 +236,8 @@ public class DetailEditor : MonoBehaviour {
 			UpdateSystem();
 		}
 		meshDirty = true;
-		var visible = true;
 		if(detail != null) {
+			var visible = true;
 			foreach(var f in detail.features) {
 				f.visible = visible;
 				if(f == activeFeature_) {
@@ -225,5 +249,12 @@ public class DetailEditor : MonoBehaviour {
 
 	public string ExportSTL() {
 		return mesh.ExportSTL();
+	}
+
+	public string ExportCurrentSTL() {
+		if(activeFeature is MeshFeature) {
+			return (activeFeature as MeshFeature).solid.ToStlString(activeFeature.GetType().Name);
+		}
+		return "";
 	}
 }

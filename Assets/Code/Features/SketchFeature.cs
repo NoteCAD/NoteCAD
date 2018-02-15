@@ -4,48 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using UnityEngine;
-/*
-class SketchEntity : IEntity {
-	Entity entity;
-	SketchFeature sketch;
 
-	public SketchEntity(Entity e, SketchFeature sk) {
-		entity = e;
-		sketch = sk;
-	}
-
-	public Id id {
-		get {
-			var eid = sketch.id;
-			eid.path.Insert(0, entity.guid);
-			return eid;
-		}
-	}
-
-	public IEnumerable<ExpVector> points {
-		get {
-			var shift = extrusion.extrusionDir * index;
-			foreach(var p in entity.points) {
-				yield return p.exp + shift;
-			}
-		}
-	}
-
-	public IEnumerable<Vector3> segments {
-		get {
-			var shift = extrusion.extrusionDir.Eval() * index;
-			var ie = entity as IEntity;
-			foreach(var p in (entity as IEntity).segments) {
-				yield return p + shift;
-			}
-		}
-	}
-
-	public ExpVector PointOn(Exp t) {
-		throw new NotImplementedException();
-	}
-}
-*/
 public class SketchFeature : Feature, IPlane {
 	List<List<Entity>> loops = new List<List<Entity>>();
 	protected LineCanvas canvas;
@@ -53,7 +12,16 @@ public class SketchFeature : Feature, IPlane {
 	Mesh mainMesh;
 	GameObject go;
 	GameObject loopObj;
-	Matrix4x4 transform;
+	Matrix4x4 transform_;
+	public Matrix4x4 transform {
+		get {
+			if(transformDirty) {
+				transform_ = CalculateTransform();
+			}
+			return transform_;
+		}
+	}
+	bool transformDirty = true;
 
 	IdPath uId = new IdPath();
 	IdPath vId = new IdPath();
@@ -132,6 +100,7 @@ public class SketchFeature : Feature, IPlane {
 		result.SetColumn(1, vd);
 		result.SetColumn(2, nd);
 		result.SetColumn(3, p4);
+		transformDirty = false;
 		return result;
 	}
 
@@ -178,13 +147,23 @@ public class SketchFeature : Feature, IPlane {
 		return sketch.topologyChanged || sketch.constraintsTopologyChanged;
 	}
 
+	public void Solve() {
+		var sys = new EquationSystem();
+		GenerateEquations(sys);
+		Debug.Log(sys.Solve().ToString());
+	}
+
 	protected override void OnUpdateDirty() {
-		transform = CalculateTransform();
+		transformDirty = true;
 		go.transform.position = transform.MultiplyPoint(Vector3.zero);
 		go.transform.rotation = Quaternion.LookRotation(transform.GetColumn(2), transform.GetColumn(1));
 		canvas.gameObject.transform.position = go.transform.position;
 		canvas.gameObject.transform.rotation = go.transform.rotation;
 
+		if(sourceChanged) {
+			Debug.Log("Solve!!!!!!");
+			Solve();
+		}
 		/*
 		if(p != null) {
 			canvas.ClearStyle("error");
@@ -319,7 +298,7 @@ public class SketchFeature : Feature, IPlane {
 	}
 
 	protected override void OnShow(bool state) {
-		go.SetActive(state);
-		loopObj.SetActive(state);
+		go.SetActive(state && active);
+		loopObj.SetActive(state && active);
 	}
 }

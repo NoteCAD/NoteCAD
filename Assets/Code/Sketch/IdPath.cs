@@ -37,7 +37,8 @@ public struct Id {
 	}
 
 	public override string ToString() {
-		return value.ToString("X");
+		if(second == 0) return value.ToString("X");
+		return value.ToString("X") + ":" + second.ToString("X");
 	}
 }
 
@@ -115,4 +116,11 @@ public class IdPath {
 		Parse(xml.Attributes["path"].Value);
 	}
 
+	public static bool operator==(IdPath a, IdPath b) {
+		return a.ToString() == b.ToString();
+	}
+
+	public static bool operator!=(IdPath a, IdPath b) {
+		return a.ToString() != b.ToString();
+	}
 }

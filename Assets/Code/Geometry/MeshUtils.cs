@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using Csg;
 
 public static class MeshUtils {
 
@@ -103,6 +104,67 @@ public static class MeshUtils {
 		mesh.RecalculateBounds();
 		mesh.RecalculateNormals();
 		mesh.RecalculateTangents();
+	}
+	
+	public static Vector3D ToVector3D(this Vector3 v) {
+		return new Vector3D(v.x, v.y, v.z);
+	}
+
+	public static Vertex ToVertex(this Vector3 v) {
+		return new Vertex(v.ToVector3D());
+	}
+
+	public static Vector3 ToVector3(this Vector3D v) {
+		return new Vector3((float)v.X, (float)v.Y, (float)v.Z);
+	}
+
+	public static Solid ToSolid(this Mesh mesh, UnityEngine.Matrix4x4 tf) {
+		var indices = mesh.GetIndices(0);
+		var polygons = new List<Polygon>();
+		for(int i = 0; i < indices.Length / 3; i++) {
+			var vertices = new List<Vertex>();
+			for(int j = 0; j < 3; j++) {
+				var v = mesh.vertices[indices[i * 3 + j]];
+				v = tf.MultiplyPoint(v);
+				vertices.Add(v.ToVertex());
+			}
+			polygons.Add(new Polygon(vertices));
+		}
+		return Solid.FromPolygons(polygons);
+	}
+
+	public static void FromSolid(this Mesh mesh, Solid solid) {
+		var vertices = new List<Vector3>();
+
+		foreach(var polygon in solid.Polygons) {
+			if (polygon.Vertices.Count < 3) continue;
+			var first = polygon.Vertices[0];
+			for (var i = 0; i < polygon.Vertices.Count - 2; i++) {
+				vertices.Add(first.Pos.ToVector3());
+				vertices.Add(polygon.Vertices[i + 1].Pos.ToVector3());
+				vertices.Add(polygon.Vertices[i + 2].Pos.ToVector3());
+			}
+		}
+		var indices = new int[vertices.Count];
+		for(int i = 0; i < indices.Length; i++) indices[i] = i;
+
+		mesh.SetVertices(vertices);
+		mesh.SetIndices(indices, MeshTopology.Triangles, 0);
+		mesh.RecalculateBounds();
+		mesh.RecalculateNormals();
+		mesh.RecalculateTangents();
+	}
+
+	public static Solid Clone(this Solid solid) {
+		var polygons = new List<Polygon>();
+		foreach(var p in solid.Polygons) {
+			var vertices = new List<Vertex>();
+			foreach(var v in p.Vertices) {
+				vertices.Add(new Vertex(v.Pos));
+			}
+			polygons.Add(new Polygon(vertices));
+		}
+		return Solid.FromPolygons(polygons);
 	}
 
 }

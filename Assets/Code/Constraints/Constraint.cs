@@ -18,12 +18,14 @@ public class Constraint : SketchObject {
 
 	public bool changed;
 	protected override GameObject gameObject { get { return null; } }
-	List<Entity> entities = new List<Entity>();
+	//List<Entity> entities = new List<Entity>();
+	List<IdPath> ids = new List<IdPath>();
 
-	protected T AddEntity<T>(T e) where T : Entity {
-		e.AddConstraint(this);
-		entities.Add(e);
-		return e;
+	protected void AddEntity<T>(T e) where T : IEntity {
+		if(e is Entity) (e as Entity).AddConstraint(this);
+		//ientities.Add(e);
+		ids.Add(e.id);
+		//return e;
 	}
 
 	public Constraint(Sketch sk) : base(sk) {
@@ -33,8 +35,10 @@ public class Constraint : SketchObject {
 	public override void Destroy() {
 		if(isDestroyed) return;
 		base.Destroy();
-		foreach(var e in entities) {
-			e.RemoveConstraint(this);
+		for(int i = 0; i < ids.Count; i++) {
+			var ent = GetEntity(i) as Entity;
+			if(ent == null) continue;
+			ent.RemoveConstraint(this);
 		}
 	}
 
@@ -46,32 +50,39 @@ public class Constraint : SketchObject {
 		xml.WriteStartElement("constraint");
 		xml.WriteAttributeString("type", this.GetType().Name);
 		base.Write(xml);
-		foreach(var e in entities) {
+		foreach(var id in ids) {
 			xml.WriteStartElement("entity");
-			xml.WriteAttributeString("id", e.guid.ToString());
+			xml.WriteAttributeString("path", id.ToString());
 			xml.WriteEndElement();
 		}
 		xml.WriteEndElement();
 	}
 
 	public override void Read(XmlNode xml) {
+		ids.Clear();
 		foreach(XmlNode node in xml.ChildNodes) {
 			if(node.Name != "entity") continue;
-			var guid = sketch.idGenerator.Create(node.Attributes["id"].Value);
-			var entity = sketch.GetEntity(guid);
-			AddEntity(entity);
+			var path = IdPath.From(node.Attributes["path"].Value);
+			var e = sketch.feature.detail.GetObjectById(path) as IEntity;
+			AddEntity(e);
 		}
 		base.Read(xml);
 	}
 
-	public Entity GetEntity(int i) {
-		return entities[i];
+	public IEntity GetEntity(int i) {
+		return sketch.feature.GetObjectById(ids[i]) as IEntity;
 	}
 
-	protected void SetEntity(int i, Entity e) {
-		entities[i].RemoveConstraint(this);
-		entities[i] = e;
-		entities[i].AddConstraint(this);
+	protected void SetEntity(int i, IEntity e) {
+		var ent = GetEntity(i) as Entity;
+		if(ent != null) {
+			ent.RemoveConstraint(this);
+		}
+		ids[i] = e.id;
+		ent = GetEntity(i) as Entity;
+		if(ent != null) {
+			ent.AddConstraint(this);
+		}
 		changed = true;
 	}
 
@@ -79,10 +90,11 @@ public class Constraint : SketchObject {
 		return base.IsChanged() || changed;
 	}
 
-	public bool ReplaceEntity(Entity before, Entity after) {
+	public bool ReplaceEntity(IEntity before, IEntity after) {
 		bool result = false;
-		for(int i = 0; i < entities.Count; i++) {
-			if(entities[i] != before) continue;
+		var beforeId = before.id;
+		for(int i = 0; i < ids.Count; i++) {
+			if(ids[i] != beforeId) continue;
 			SetEntity(i, after);
 			result = true;
 		}
@@ -133,7 +145,7 @@ public class ValueConstraint : Constraint {
 	}
 
 	public Matrix4x4 GetBasis() {
-		return OnGetBasis();
+		return OnGetBasis() * sketch.plane.GetTransform();
 	}
 
 	protected virtual Matrix4x4 OnGetBasis() {

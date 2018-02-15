@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Csg;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
@@ -61,10 +62,14 @@ public abstract class Feature : CADObject {
 		}
 	}
 
-	public void MarkDirty() {
+	public bool sourceChanged { get; private set; }
+
+	public void MarkDirty(bool srcChanged = false) {
 		dirty_ = true;
+		sourceChanged = srcChanged;
 		foreach(var c in children) {
-			c.MarkDirty();
+			Debug.Log("MarkDirty srcChanged!");
+			c.MarkDirty(true);
 		}
 	}
 
@@ -76,10 +81,11 @@ public abstract class Feature : CADObject {
 
 	protected virtual void OnUpdateDirty() { }
 
-	public void UpdateDirty() {
+	public virtual void UpdateDirty() {
 		if(!dirty) return;
 		OnUpdateDirty();
 		dirty_ = false;
+		sourceChanged = false;
 	}
 
 	public virtual void Write(XmlTextWriter xml) {
@@ -119,11 +125,11 @@ public abstract class Feature : CADObject {
 		OnClear();
 	}
 
-	public ICADObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
+	public ICADObject Hover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
 		return OnHover(mouse, camera, tf, ref dist);
 	}
 
-	protected virtual ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
+	protected virtual ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
 		return null;
 	}
 
@@ -149,7 +155,7 @@ public abstract class Feature : CADObject {
 
 	}
 
-	bool active_ = true;
+	bool active_ = false;
 	public bool active {
 		set {
 			if(active_ == value) return;
@@ -175,12 +181,65 @@ public abstract class Feature : CADObject {
 
 }
 
+public enum CombineOp {
+	Union,
+	Difference,
+	Intersection
+}
+
 public abstract class MeshFeature : Feature {
 
-	public CombineInstance GenerateMesh() {
+	Solid solid_ = new Solid();
+	public Solid combined;
+	CombineOp operation_ = CombineOp.Union;
+	public CombineOp operation {
+		get {
+			return operation_;
+		}
+
+		set {
+			if(value == operation_) return;
+			operation_ = value;
+			MarkDirty();
+		}
+	}
+
+
+	public Solid solid {
+		get {
+			return solid_;
+		}
+	}
+
+	public override void UpdateDirty() {
+		if(!dirty) return;
+		base.UpdateDirty();
+		solid_ = OnGenerateMesh();
+		combined = null;
+	}
+
+	public Solid GenerateMesh() {
 		return OnGenerateMesh();
 	}
 
-	protected abstract CombineInstance OnGenerateMesh();
+	protected virtual void OnWriteMeshFeature(XmlTextWriter xml) {
+
+	}
+
+	protected virtual void OnReadMeshFeature(XmlNode xml) {
+
+	}
+
+	protected sealed override void OnWrite(XmlTextWriter xml) {
+		xml.WriteAttributeString("op", operation.ToString());
+		OnWriteMeshFeature(xml);
+	}
+
+	protected sealed override void OnRead(XmlNode xml) {
+		operation = (CombineOp)Enum.Parse(typeof(CombineOp), xml.Attributes["op"].Value);
+		OnReadMeshFeature(xml);
+	}
+
+	protected abstract Solid OnGenerateMesh();
 }
 
