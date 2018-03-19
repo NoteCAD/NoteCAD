@@ -9,7 +9,7 @@ namespace Csg
 		PolygonTreeNode polygonTree;
 		Node rootnode;
 
-		public Node RootNode => rootnode;
+		public Node RootNode { get { return rootnode; } }
 
 		public Tree(BoundingBox bbox, List<Polygon> polygons)
 		{
@@ -226,7 +226,7 @@ namespace Csg
 			removed = false;
 		}
 
-		public BoundingBox BoundingBox => polygon?.BoundingBox;
+		public BoundingBox BoundingBox { get { if(polygon == null) return null; return polygon.BoundingBox; } }
 
 		public void AddPolygons(List<Polygon> polygons)
 		{
@@ -260,9 +260,9 @@ namespace Csg
 			}
 		}
 
-		public bool IsRemoved => removed;
+		public bool IsRemoved { get { return removed; } }
 
-		public bool IsRootNode => parent == null;
+		public bool IsRootNode { get { return parent == null; } }
 
 		public void Invert()
 		{

@@ -171,9 +171,9 @@ namespace Csg
 			}
 		}
 
-		public Vector2D Negated => new Vector2D(-X, -Y);
+		public Vector2D Negated { get { return new Vector2D(-X, -Y); } }
 
-		public Vector2D Normal => new Vector2D(Y, -X);
+		public Vector2D Normal { get { return new Vector2D(Y, -X); } }
 
 		public static Vector2D operator +(Vector2D a, Vector2D b)
 		{
@@ -220,8 +220,8 @@ namespace Csg
 			Min = new Vector3D(-dx / 2, -dy / 2, -dz / 2);
 			Max = new Vector3D(dx / 2, dy / 2, dz / 2);
 		}
-		public Vector3D Size => Max - Min;
-		public Vector3D Center => (Min + Max) / 2;
+		public Vector3D Size { get { return Max - Min; } }
+		public Vector3D Center { get {  return (Min + Max) / 2; } }
 		public static BoundingBox operator +(BoundingBox a, Vector3D b)
 		{
 			return new BoundingBox(a.Min + b, a.Max + b);
@@ -236,7 +236,7 @@ namespace Csg
 			if (Min.Z > b.Max.Z) return false;
 			return true;
 		}
-		public override string ToString() => $"{Center}, s={Size}";
+		//public override string ToString() => $"{Center}, s={Size}";
 	}
 
 	public class BoundingSphere
@@ -281,7 +281,7 @@ namespace Csg
 			this.normal = normal;
 			//this.w = w;
 		}
-		public Vector2D Direction => normal.Normal;
+		public Vector2D Direction { get { return normal.Normal; } }
 		public static Line2D FromPoints(Vector2D p1, Vector2D p2)
 		{
 			var direction = p2 - (p1);
@@ -307,7 +307,7 @@ namespace Csg
 		{
 		}
 
-		public double[] Elements => elements;
+		public double[] Elements { get { return elements; } }
 
 		public static Matrix4x4 Scaling(Vector3D vec)
 		{

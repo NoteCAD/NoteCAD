@@ -132,7 +132,7 @@ namespace Csg
 			return this;
 		}
 
-		public override string ToString() => Pos.ToString();
+		public override string ToString() { return Pos.ToString(); }
 
 		public Vertex Transform(Matrix4x4 matrix4x4)
 		{

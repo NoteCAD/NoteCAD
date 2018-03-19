@@ -88,6 +88,6 @@ namespace Csg
 				AddPolygon(p);
 			}
 		}
-		public override string ToString() => $"{Polygons.Count} @ [{BoundingBox}]";
+		//public override string ToString() => $"{Polygons.Count} @ [{BoundingBox}]";
 	}
 }
