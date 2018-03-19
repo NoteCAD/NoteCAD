@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 public class CameraController : MonoBehaviour {
 
-	Camera camera;
+	new Camera camera;
 	bool shift;
 	bool rotate;
 	Vector3 click;
@@ -13,12 +13,39 @@ public class CameraController : MonoBehaviour {
 	Vector3 screenClick;
 	public float rotateSensitivity = 0.3f;
 	public float scaleFactor = 0.2f;
+	public float animationTime = 1.0f;
+	Quaternion srcRot;
+	Quaternion dstRot;
+	Vector3 srcPos;
+	Vector3 dstPos;
+	float phase = 1.0f;
+
+	public static CameraController instance;
+
+	public void Start() {
+		instance = this;
+	}
 
 	private void Awake() {
 		camera = GetComponent<Camera>();
 	}
 
-	void Update () {
+	public void AnimateToPlane(IPlane plane) {
+		srcRot = camera.transform.rotation;
+		dstRot = plane.GetRotation();
+		srcPos = camera.transform.position;
+		dstPos = plane.o;
+		phase = 0.0f;
+	}
+
+	void Update() {
+		if(phase < 1.0f) {
+			phase += Time.deltaTime * 1.0f / animationTime;
+			phase = Mathf.Clamp01(phase);
+			camera.transform.rotation = Quaternion.Lerp(srcRot, dstRot, phase);
+			camera.transform.position = Vector3.Lerp(srcPos, dstPos, phase);
+			return;
+		}
 		var pos = Tool.WorldMousePos;
 		if(Input.GetKeyDown(KeyCode.Mouse2)) {
 			shift = true;
@@ -59,6 +86,6 @@ public class CameraController : MonoBehaviour {
 	}
 
 	private void OnDrawGizmos() {
-		Gizmos.DrawCube(Tool.WorldMousePos, new Vector3(1, 1, 1));
+		Gizmos.DrawCube(Tool.WorldPlanePos, new Vector3(1, 1, 1));
 	}
 }

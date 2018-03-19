@@ -14,6 +14,8 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		c = AddChild(new PointEntity(sk));
 	}
 
+	public override IEntityType type { get { return IEntityType.Arc; } }
+
 	public override IEnumerable<Exp> equations {
 		get {
 			yield return (p0.exp - c.exp).Magnitude() - (p1.exp - c.exp).Magnitude();

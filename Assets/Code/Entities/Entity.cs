@@ -4,11 +4,19 @@ using System.Linq;
 using System.Xml;
 using System;
 
+public enum IEntityType {
+	Point,
+	Line,
+	Arc,
+	Circle,
+}
+
 public interface IEntity : ICADObject {
 	IEnumerable<ExpVector> points { get; }			// enough for dragging
 	IEnumerable<Vector3> segments { get; }			// enough for drawing
 	ExpVector PointOn(Exp t);						// enough for constraining
 	IPlane plane { get; }
+	IEntityType type { get; }
 }
 
 public static class IEntityUtils {
@@ -58,6 +66,7 @@ public abstract partial class Entity : SketchObject, IEntity {
 	public IEnumerable<Constraint> constraints { get { return usedInConstraints.AsEnumerable(); } }
 	public virtual IEnumerable<PointEntity> points { get { yield break; } }
 	public virtual BBox bbox { get { return new BBox(Vector3.zero, Vector3.zero); } }
+	public abstract IEntityType type { get; }
 
 	public IPlane plane {
 		get {

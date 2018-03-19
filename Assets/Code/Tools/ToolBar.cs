@@ -46,9 +46,8 @@ public class ToolBar : MonoBehaviour {
 
 		bool mouseDown = Input.GetKeyDown(KeyCode.Mouse0) || Input.GetMouseButtonDown(0);
 #if UNITY_WEBGL
-		mouseDown = mouseDown || Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Began;
+		//mouseDown = mouseDown || Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Began;
 #endif
-		mouseDown = mouseDown;
 		if(activeTool != null && mouseDown) {
 			if(doubleClickTime < 0.3f) {
 				activeTool.MouseDoubleClick(Tool.MousePos, DetailEditor.instance.hovered);
@@ -59,7 +58,7 @@ public class ToolBar : MonoBehaviour {
 
 		bool mouseUp = Input.GetKeyUp(KeyCode.Mouse0) || Input.GetMouseButtonUp(0);
 #if UNITY_WEBGL
-		mouseUp = mouseUp || Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Ended;
+		//mouseUp = mouseUp || Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Ended;
 #endif
 
 		if(activeTool != null && mouseUp) {

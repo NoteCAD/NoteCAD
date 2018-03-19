@@ -15,6 +15,11 @@ public class FeatureUI : MonoBehaviour, IPointerDownHandler {
 	}
 
 	void OnClick() {
+		if(feature is IPlane) {
+			if(DetailEditor.instance.activeFeature == feature) {
+				CameraController.instance.AnimateToPlane(feature as IPlane);
+			}
+		}
 		DetailEditor.instance.ActivateFeature(feature);
 	}
 

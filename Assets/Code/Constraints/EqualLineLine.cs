@@ -23,16 +23,20 @@ public class EqualLineLine : Constraint {
 		}
 	}
 
-	void DrawStroke(LineCanvas canvas, LineEntity line) {
+	void DrawStroke(LineCanvas canvas, LineEntity line, int rpt) {
 		Vector3 dir = (line.p1.GetPosition() - line.p0.GetPosition()).normalized;
-		Vector3 perp = Vector3.Cross(dir, Vector3.forward);
+		Vector3 perp = Vector3.Cross(dir, Vector3.forward) * 5f * getPixelSize();
 		Vector3 pos = (line.p1.GetPosition() + line.p0.GetPosition()) / 2f;
+		ref_points[rpt] = pos;
 		canvas.DrawLine(pos + perp, pos - perp);
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
-		DrawStroke(canvas, l0);
-		DrawStroke(canvas, l1);
+		DrawStroke(canvas, l0, 0);
+		DrawStroke(canvas, l1, 1);
+		if(DetailEditor.instance.hovered == this) {
+			DrawReferenceLink(canvas, Camera.main);
+		}
 	}
 
 	protected override bool OnIsChanged() {

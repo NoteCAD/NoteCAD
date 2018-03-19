@@ -9,7 +9,7 @@ public class AngleTool : Tool {
 	Vector3 click;
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
-		click = pos;
+		click = WorldPlanePos;
 		if(constraint != null) {
 			constraint = null;
 			return;
@@ -22,7 +22,7 @@ public class AngleTool : Tool {
 		var l = entity as LineEntity;
 		if(l0 != null) {
 			constraint = new AngleConstraint(entity.sketch, l0, l);
-			constraint.pos = pos;
+			constraint.pos = WorldPlanePos;
 			l0 = null;
 		} else {
 			l0 = l;
@@ -36,9 +36,9 @@ public class AngleTool : Tool {
 
 	protected override void OnMouseMove(Vector3 pos, ICADObject entity) {
 		if(constraint != null) {
-			constraint.Drag(pos - click);
+			constraint.Drag(WorldPlanePos - click);
 		}
-		click = pos;
+		click = WorldPlanePos;
 	}
 
 	protected override string OnGetDescription() {

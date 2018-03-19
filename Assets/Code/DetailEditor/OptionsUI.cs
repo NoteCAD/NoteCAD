@@ -16,7 +16,7 @@ public class OptionsUI : MonoBehaviour {
 	void changeValue(int value) {
 		var mf = DetailEditor.instance.activeFeature as MeshFeature;
 		if(mf != null) {
-			mf.operation = (CombineOp)Enum.Parse(typeof(CombineOp), dropdown.options[value].text);
+			mf.operation = dropdown.options[value].text.ToEnum<CombineOp>();
 		}
 
 	}

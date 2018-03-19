@@ -8,6 +8,8 @@ public class CircleEntity : Entity, ILoopEntity {
 	public PointEntity c;
 	public Param radius = new Param("r");
 
+	public override IEntityType type { get { return IEntityType.Circle; } }
+
 	public CircleEntity(Sketch sk) : base(sk) {
 		c = AddChild(new PointEntity(sk));
 	}
@@ -48,10 +50,10 @@ public class CircleEntity : Entity, ILoopEntity {
 	}
 
 	protected override void OnWrite(XmlTextWriter xml) {
-		xml.WriteAttributeString("r", radius.value.ToString());
+		xml.WriteAttributeString("r", radius.value.ToStr());
 	}
 
 	protected override void OnRead(XmlNode xml) {
-		radius.value = double.Parse(xml.Attributes["r"].Value);
+		radius.value = xml.Attributes["r"].Value.ToDouble();
 	}
 }

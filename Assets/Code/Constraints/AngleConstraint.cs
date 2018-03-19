@@ -5,29 +5,47 @@ using System.Linq;
 
 public class AngleConstraint : ValueConstraint {
 
-	public LineEntity l0 { get { return GetEntity(0) as LineEntity; } set { SetEntity(0, value); } }
-	public LineEntity l1 { get { return GetEntity(1) as LineEntity; } set { SetEntity(1, value); } }
+	public IEntity l0p0 { get { return GetEntity(0); } set { SetEntity(0, value); } }
+	public IEntity l0p1 { get { return GetEntity(1); } set { SetEntity(1, value); } }
+	public IEntity l1p0 { get { return GetEntity(2); } set { SetEntity(2, value); } }
+	public IEntity l1p1 { get { return GetEntity(3); } set { SetEntity(3, value); } }
 
 	public AngleConstraint(Sketch sk) : base(sk) { }
 
 	public AngleConstraint(Sketch sk, LineEntity l0, LineEntity l1) : base(sk) {
-		AddEntity(l0);
-		AddEntity(l1);
+		var points = GetPoints(l0, l1);
+		foreach(var p in points) {
+			AddEntity(p);
+		}
+		Satisfy();
+	}
+
+	public AngleConstraint(Sketch sk, IEntity l0, IEntity l1) : base(sk) {
 		Satisfy();
 	}
 
 	public override IEnumerable<Exp> equations {
 		get {
-			var p = GetPoints();
-			ExpVector d0 = p[0].exp - p[1].exp;
-			ExpVector d1 = p[3].exp - p[2].exp;
+			var points = new IEntity[] { l0p0, l0p1, l1p0, l1p1 };
+			var p = points.Select(pt => pt.PointExpInPlane(sketch.plane)).ToArray();
+			ExpVector d0 = p[0] - p[1];
+			ExpVector d1 = p[3] - p[2];
 			Exp du = d1.x * d0.x + d1.y * d0.y;
 			Exp dv = d0.x * d1.y - d0.y * d1.x;
 			yield return Exp.Atan2(dv, du) - value;
 		}
 	}
 
-	PointEntity[] GetPoints() {
+	Vector3[] GetPointsInPlane(IPlane plane) {
+		var points = new IEntity[] { l0p0, l0p1, l1p0, l1p1 };
+		return points.Select(pt => pt.PointExpInPlane(plane).Eval()).ToArray();
+	}
+
+	Vector3[] GetPoints() {
+		return GetPointsInPlane(sketch.plane);
+	}
+
+	PointEntity[] GetPoints(LineEntity l0, LineEntity l1) {
 		if(l0.p0.IsCoincidentWith(l1.p0)) return new PointEntity[4] { l0.p1, l0.p0, l1.p0, l1.p1 };
 		if(l0.p0.IsCoincidentWith(l1.p1)) return new PointEntity[4] { l0.p1, l0.p0, l1.p1, l1.p0 };
 		if(l0.p1.IsCoincidentWith(l1.p0)) return new PointEntity[4] { l0.p0, l0.p1, l1.p0, l1.p1 };
@@ -35,114 +53,120 @@ public class AngleConstraint : ValueConstraint {
 		return new PointEntity[4] { l0.p0, l0.p1, l1.p0, l1.p1 };
 	}
 
-	bool DrawLineExtend(LineCanvas canvas, Vector3 p0, Vector3 p1, Vector3 to, float salient) {
-		var dir = p1 - p0;
-		float k = Vector3.Dot(dir, to - p0) / Vector3.Dot(dir, dir);
-		var pt_on_line = p0 + dir * k;
-		canvas.DrawLine(to, pt_on_line);
-		Vector3 sd = Vector3.zero;
-		if(salient > 0.0) sd = dir.normalized * salient;
-		if(k < 0.0) {
-			canvas.DrawLine(p0, pt_on_line - sd);
-			return true;
-		} else
-		if(k > 1.0) {
-			canvas.DrawLine(p1, pt_on_line + sd);
-			return true;
-		}
-		return false;
-	}
-
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(LineCanvas renderer) {
+		
+		//drawBasis(renderer, camera);
 		var basis = GetBasis();
-		var vx = (Vector3)basis.GetColumn(0);
-		var vy = (Vector3)basis.GetColumn(1);
-		var vz = (Vector3)basis.GetColumn(2);
-		var p = (Vector3)basis.GetColumn(3);
+		//Vector3 vy = basis.GetColumn(1);
+		Vector3 vz = basis.GetColumn(2);
+		Vector3 p = basis.GetColumn(3);
 
-		float pix = 0.1f;
-		double value = GetValue();
+		float pix = getPixelSize();
 		
-		if(Math.Abs(value) > Mathf.Epsilon) {
-		
-			Vector3[] pts = GetPoints().Select(pt => pt.pos).ToArray();
-			var dir0 = pts[0] - pts[1];
-			var dir1 = pts[3] - pts[2];
-			
-			var refer = pos;
-			var offset = GetBasis().inverse.MultiplyPoint(pos);
+		var plane = getPlane();
+		var value = GetValue();
+		var offset = localPos;
 
-			float size = ((p - refer).magnitude - 15.0f * pix);
-			size = Math.Max(15.0f * pix, size);
-			float y_sgn = (offset.y < 0.0f) ? -1.0f : 1.0f;
+		if(Math.Abs(value) > EPSILON) {
+			Vector3[] pts = GetPointsInPlane(null);
+					
+			Vector3 dir0 = plane.projectVectorInto(pts[0]) - plane.projectVectorInto(pts[1]);
+			Vector3 dir1 = plane.projectVectorInto(pts[3]) - plane.projectVectorInto(pts[2]);
 			
-			var pt0 = p + dir0.normalized * size * y_sgn;
-			var pt1 = p + dir1.normalized * size * y_sgn;
-			var spt = pt0;
+			Vector3 rref = pos;
+			float size = (length(p - rref) - 15f * pix);
+			size = Mathf.Max(15f * pix, size);
+			float y_sgn = (offset.y < 0f) ? -1f : 1f;
+			
+			Vector3 pt0 = p + normalize(dir0) * size * y_sgn;
+			Vector3 pt1 = p + normalize(dir1) * size * y_sgn;
+			Vector3 spt = pt0;
 			if(offset.x * y_sgn < 0.0) spt = pt1;
 			
 			// arc to the label
-			canvas.DrawArc(spt, refer, p, vz);
+			drawArc(renderer, spt, rref, p, vz);
 			
-			// line extends to the arc
-			DrawLineExtend(canvas, pts[1], pts[0], pt0, 4.0f * pix);
-			DrawLineExtend(canvas, pts[2], pts[3], pt1, 4.0f * pix);
-
+			//if(hasEntitiesTyped <EntityPoint> (3)) {
+			//	drawDottedLine(pts[0], pt0, renderer, R_DASH * pix);
+			//	drawDottedLine(pts[3], pt1, renderer, R_DASH * pix);
+			//} else {
+				// line extends to the arc
+				drawLineExtendInPlane(plane, renderer, pts[1], pts[0], pt0, R_DASH * pix, 4f * pix, false);
+				drawLineExtendInPlane(plane, renderer, pts[2], pts[3], pt1, R_DASH * pix, 4f * pix, false);
+			//}
+			double angle = value;
 			
-			bool less180 = Math.Abs(value) < 180.0 - Mathf.Epsilon;
-			/*
+			bool less180 = Math.Abs(angle) < 180.0 - EPSILON;
+			
 			if(length(pt0 - pt1) > (2.0 * R_ARROW_W + 4.0) * pix || !less180) {
-				dVec3 dd = normalize(pt0 - pt1);
-				if(length(pt0 - pt1) < EPSILON) dd = normalize(cross(dir1, vz));
+				Vector3 dd = normalize(pt0 - pt1);
+				if(length(pt0 - pt1) < EPSILON) dd = normalize(Vector3.Cross(dir1, vz));
 				
 				// arrow 0
-				dVec3 perp0 = normalize(cross(cross(dd, dir0), dir0)) * ((less180) ? 1.0 : -1.0);
-				dVec3 pc0 = normalize(pt0 + perp0 * R_ARROW_W * pix - p) * size + p;
+				Vector3 perp0 = normalize(Vector3.Cross(Vector3.Cross(dd, dir0), dir0)) * ((less180) ? 1f : -1f);
+				Vector3 pc0 = normalize(pt0 + perp0 * R_ARROW_W * pix - p) * size + p;
 				
-				dVec3 bx0 = normalize(pc0 - pt0);
-				dVec3 by0 = normalize(cross(bx0, vz));
-				renderer->line(pt0, pt0 - by0 * R_ARROW_H * pix + bx0 * R_ARROW_W * pix);
-				renderer->line(pt0, pt0 + by0 * R_ARROW_H * pix + bx0 * R_ARROW_W * pix);
+				Vector3 bx0 = normalize(pc0 - pt0);
+				Vector3 by0 = normalize(Vector3.Cross(bx0, vz));
+				renderer.DrawLine(pt0, pt0 - by0 * R_ARROW_H * pix + bx0 * R_ARROW_W * pix);
+				renderer.DrawLine(pt0, pt0 + by0 * R_ARROW_H * pix + bx0 * R_ARROW_W * pix);
 				
 				// arrow 1
-				dVec3 perp1 = -normalize(cross(cross(dd, dir1), dir1)) * ((less180) ? 1.0 : -1.0);
-				dVec3 pc1 = normalize(pt1 + perp1 * R_ARROW_W * pix - p) * size + p;
+				Vector3 perp1 = -normalize(Vector3.Cross(Vector3.Cross(dd, dir1), dir1)) * ((less180) ? 1f : -1f);
+				Vector3 pc1 = normalize(pt1 + perp1 * R_ARROW_W * pix - p) * size + p;
 				
-				dVec3 bx1 = normalize(pc1 - pt1);
-				dVec3 by1 = normalize(cross(bx1, vz));
-				renderer->line(pt1, pt1 - by1 * R_ARROW_H * pix + bx1 * R_ARROW_W * pix);
-				renderer->line(pt1, pt1 + by1 * R_ARROW_H * pix + bx1 * R_ARROW_W * pix);
+				Vector3 bx1 = normalize(pc1 - pt1);
+				Vector3 by1 = normalize(Vector3.Cross(bx1, vz));
+				renderer.DrawLine(pt1, pt1 - by1 * R_ARROW_H * pix + bx1 * R_ARROW_W * pix);
+				renderer.DrawLine(pt1, pt1 + by1 * R_ARROW_H * pix + bx1 * R_ARROW_W * pix);
 			}
-			*/
+			
 			// angle arc
-			//if(less180) {
-				canvas.DrawArc(pt0, pt1, p, vz);
-			//} else {
-			//	drawAngleArc(renderer, pt0, p, angle * PI / 180.0, vz);
-			//}
-			/*
-			dVec3 refp = offset;
-			refp.z = 0.0;
+			if(less180) {
+				drawArc(renderer, pt0, pt1, p, vz);
+			} else {
+				drawAngleArc(renderer, pt0, p, (float)angle * Mathf.PI / 180f, vz);
+			}
+			
+			Vector3 refp = offset;
+			refp.z = 0f;
 			refp = basis * refp;
-			setRefPoint(p + normalize(refp - p) * (size + 15.0 * pix));
-			*/
+			setRefPoint(p + normalize(refp - p) * (size + 15f * pix));
 		}
-	}
-
-	protected override bool OnIsChanged() {
-		return l0.IsChanged() || l1.IsChanged();
+		//drawLabel(renderer, camera);
 	}
 	
+/*
+		EntityPoint *points[4];
+  		if(!getSortedPoints(points)) return dMat4();
+		EntityPlane *plane = getPlane();
+		dVec3 pos[4];
+		for(int i=0; i<4; i++) {
+			pos[i] = points[i]->getPos();
+			if(plane != nullptr) pos[i] = plane->projectVectorInto(pos[i]);
+		}
+		dVec3 p = pos[1];
+		
+		if(abs(getValueParamValue()) > EPSILON) {
+			p = atIntersectionOfLines(pos[0], pos[1], pos[2], pos[3], nullptr);
+		}
+		
+		double angle = getValueParamValue();
+		
+		if(is_signed && variant != 1 && option == 1) {
+			angle = -angle;
+		}
+		
+		dVec3 z = getBasisPlaneDir(normalize(cross(pos[0] - pos[1], pos[3] - pos[2])));
+		if(length(z) < EPSILON) z = dVec3(0.0, 0.0, 1.0);
+		
+		dVec3 y = rotatedAbout(normalize(pos[0] - pos[1]), z, angle / 2.0);
+		dVec3 x = normalize(cross(y, z));
+		
+		return makeBasis(x, y, z, p);
+*/
 	protected override Matrix4x4 OnGetBasis() {
-		/*
-		var points = GetPoints();
-		var pos = points[1].GetPosition();
-		var dir = l0.p0.GetPosition() - l0.p1.GetPosition();
-		var ang = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-		var rot = Quaternion.AngleAxis(ang, Vector3.forward);
-		return Matrix4x4.TRS(pos, rot, Vector3.one); 
-		*/
-		var pos = GetPoints().Select(pt => pt.pos).ToArray();
+		var pos = GetPoints();
 		var p = pos[1];
 		double angle = Math.Abs(GetValue());
 		if(GeomUtils.isLinesCrossed(pos[0], pos[1], pos[2], pos[3], ref p, Mathf.Epsilon)) {
@@ -157,11 +181,11 @@ public class AngleConstraint : ValueConstraint {
 		var result = new Matrix4x4();
 		Vector4 p4 = p;
 		p4.w = 1.0f;
-		result.SetColumn(0, x);
+		result.SetColumn(0, x);	
 		result.SetColumn(1, y);
 		result.SetColumn(2, z);
 		result.SetColumn(3, p4);
-		return result;
+		return getPlane().GetTransform() * result;
 	}
 
 	public override double LabelToValue(double label) {

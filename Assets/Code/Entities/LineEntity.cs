@@ -12,6 +12,8 @@ public class LineEntity : Entity, ISegmentaryEntity {
 		p1 = AddChild(new PointEntity(sk));
 	}
 
+	public override IEntityType type { get { return IEntityType.Line; } }
+
 	public override IEnumerable<PointEntity> points {
 		get {
 			yield return p0;

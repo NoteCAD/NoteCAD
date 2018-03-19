@@ -236,7 +236,7 @@ public abstract class MeshFeature : Feature {
 	}
 
 	protected sealed override void OnRead(XmlNode xml) {
-		operation = (CombineOp)Enum.Parse(typeof(CombineOp), xml.Attributes["op"].Value);
+		xml.Attributes["op"].Value.ToEnum(ref operation_);
 		OnReadMeshFeature(xml);
 	}
 

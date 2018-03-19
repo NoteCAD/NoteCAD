@@ -40,7 +40,7 @@ public class LineTool : Tool {
 	protected override void OnMouseMove(Vector3 pos, ICADObject entity) {
 		if(current != null) {
 			current.p1.SetPosition(pos);
-			var itr = new Vector3();
+			//var itr = new Vector3();
 			canCreate = true;//!current.sketch.IsCrossed(current, ref itr);
 			current.isError = !canCreate;
 		} else {

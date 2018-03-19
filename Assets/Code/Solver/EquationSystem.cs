@@ -111,7 +111,12 @@ public class EquationSystem  {
 		return J;
 	}
 
+	public bool HasDragged() {
+		return equations.Any(e => e.IsDrag());
+	}
+
 	public void EvalJacobian(Exp[,] J, ref double[,] A, bool clearDrag) {
+		UpdateDirty();
 		UnityEngine.Profiling.Profiler.BeginSample("EvalJacobian");
 		for(int r = 0; r < J.GetLength(0); r++) {
 			if(clearDrag && equations[r].IsDrag()) {
@@ -169,11 +174,19 @@ public class EquationSystem  {
 		UpdateDirty();
 	}
 
+	public bool TestRank(out int dof) {
+		EvalJacobian(J, ref A, clearDrag:false);
+		int rank = GaussianMethod.Rank(A);
+		dof = A.GetLength(1) - rank;
+		return rank == A.GetLength(0);
+	}
+
 	void UpdateDirty() {
 		if(isDirty) {
 			equations = sourceEquations.Select(e => e.DeepClone()).ToList();
+			currentParams = parameters.ToList();
+			//currentParams = parameters.Where(p => equations.Any(e => e.IsDependOn(p))).ToList();
 			subs = SolveBySubstitution();
-			currentParams = parameters.Where(p => equations.Any(e => e.IsDependOn(p))).ToList();
 
 			J = WriteJacobian(equations, currentParams);
 			A = new double[J.GetLength(0), J.GetLength(1)];
@@ -204,6 +217,15 @@ public class EquationSystem  {
 			var a = eq.GetSubstitutionParamA();
 			var b = eq.GetSubstitutionParamB();
 			if(Math.Abs(a.value - b.value) > GaussianMethod.epsilon) continue;
+			if(!currentParams.Contains(b)) {
+				var t = a;
+				a = b;
+				b = t;
+			}
+			// TODO: Check errors
+			//if(!parameters.Contains(b)) {
+			//	continue;
+			//}
 
 			foreach(var k in subs.Keys.ToList()) {
 				if(subs[k] == b) {
@@ -212,6 +234,7 @@ public class EquationSystem  {
 			}
 			subs[b] = a;
 			equations.RemoveAt(i--);
+			currentParams.Remove(b);
 
 			for(int j = 0; j < equations.Count; j++) {
 				equations[j].Substitute(b, a);

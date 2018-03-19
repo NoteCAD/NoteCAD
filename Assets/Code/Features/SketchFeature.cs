@@ -33,6 +33,7 @@ public class SketchFeature : Feature, IPlane {
 		}
 		set {
 			uId = value.id;
+			transformDirty = true;
 		}
 	}
 
@@ -42,6 +43,7 @@ public class SketchFeature : Feature, IPlane {
 		}
 		set {
 			vId = value.id;
+			transformDirty = true;
 		}
 	}
 	
@@ -51,6 +53,7 @@ public class SketchFeature : Feature, IPlane {
 		}
 		set {
 			pId = value.id;
+			transformDirty = true;
 		}
 	}
 
@@ -147,10 +150,37 @@ public class SketchFeature : Feature, IPlane {
 		return sketch.topologyChanged || sketch.constraintsTopologyChanged;
 	}
 
-	public void Solve() {
+	public EquationSystem.SolveResult Solve() {
 		var sys = new EquationSystem();
 		GenerateEquations(sys);
-		Debug.Log(sys.Solve().ToString());
+		return sys.Solve();
+	}
+	/*
+	public bool IsRedundant() {
+		var sys = new EquationSystem();
+		GenerateEquations(sys);
+		int dof;
+		if(!sys.TestRank(out dof)) {
+			return true;
+		}
+		var result = sys.Solve();
+		if(!sys.TestRank(out dof)) {
+			return true;
+		}
+		return false;
+	}
+	*/
+
+	public bool ShouldRedrawConstraints() {
+		return sketch.IsEntitiesChanged() || sketch.IsConstraintsChanged();
+	}
+
+	public void DrawConstraints(LineCanvas canvas) {
+		canvas.ClearStyle("constraints");
+		canvas.SetStyle("constraints");
+		foreach(var c in sketch.constraintList) {
+			c.Draw(canvas);
+		}
 	}
 
 	protected override void OnUpdateDirty() {
@@ -185,14 +215,6 @@ public class SketchFeature : Feature, IPlane {
 		}*/
 		if(sketch.topologyChanged) {
 			loops = sketch.GenerateLoops();
-		}
-
-		if(sketch.IsEntitiesChanged() || sketch.IsConstraintsChanged()) {
-			canvas.ClearStyle("constraints");
-			canvas.SetStyle("constraints");
-			foreach(var c in sketch.constraintList) {
-				c.Draw(canvas);
-			}
 		}
 
 		if(sketch.IsEntitiesChanged()) {
@@ -288,8 +310,10 @@ public class SketchFeature : Feature, IPlane {
 		return loops;
 	}
 
+	public bool shouldHoverWhenInactive = false;
+
 	public override bool ShouldHoverWhenInactive() {
-		return false;
+		return shouldHoverWhenInactive;
 	}
 
 	protected override void OnActivate(bool state) {

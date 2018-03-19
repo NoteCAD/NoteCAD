@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,7 +15,12 @@ public class ConstraintBehaviour : MonoBehaviour {
 	public void Update() {
 		transform.position = constraint.pos;
 		text.transform.position = Camera.main.WorldToScreenPoint(transform.position);
-		text.text = constraint.GetValue().ToString("#.##");
+		text.text = Math.Abs(constraint.GetValue()).ToString("0.##");
+		Sketch sk = null;
+		if(DetailEditor.instance.currentSketch != null) {
+			sk = DetailEditor.instance.currentSketch.GetSketch();
+		}
+		text.gameObject.SetActive(sk == constraint.sketch);
 	}
 	private void OnDestroy() {
 		if(text != null) {

@@ -6,11 +6,10 @@ public class DistanceTool : Tool {
 
 
 	IEntity p0;
-	PointsDistance constraint;
+	ValueConstraint constraint;
 	Vector3 click;
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
-		click = pos;
 		if(constraint != null) {
 			constraint = null;
 			return;
@@ -21,16 +20,23 @@ public class DistanceTool : Tool {
 		if(p0 == null && entity is LineEntity) {
 			var line = entity as LineEntity;
 			constraint = new PointsDistance(line.sketch, line.p0, line.p1);
-			constraint.pos = pos;
+			constraint.pos = WorldPlanePos;
+			click = WorldPlanePos;
 			return;
 		}
 
-		if(!entity.IsPoint()) return;
+		//if(!entity.IsPoint()) return;
 		if(p0 != null) {
-			constraint = new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
-			constraint.pos = pos;
-			p0 = null;
-		} else {
+			if(entity.IsPoint()) {
+				constraint = new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
+				constraint.pos = WorldPlanePos;
+				p0 = null;
+			} else if(entity is LineEntity) {
+				constraint = new PointLineDistance(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
+				constraint.pos = WorldPlanePos;
+				p0 = null;
+			}
+		} else if(entity.IsPoint()) {
 			p0 = entity;
 		}
 	}
@@ -42,9 +48,9 @@ public class DistanceTool : Tool {
 
 	protected override void OnMouseMove(Vector3 pos, ICADObject entity) {
 		if(constraint != null) {
-			constraint.Drag(pos - click);
+			constraint.Drag(WorldPlanePos - click);
 		}
-		click = pos;
+		click = WorldPlanePos;
 	}
 
 	protected override string OnGetDescription() {

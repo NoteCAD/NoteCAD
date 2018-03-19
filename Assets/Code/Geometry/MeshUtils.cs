@@ -121,10 +121,11 @@ public static class MeshUtils {
 	public static Solid ToSolid(this Mesh mesh, UnityEngine.Matrix4x4 tf) {
 		var indices = mesh.GetIndices(0);
 		var polygons = new List<Polygon>();
+		var mverts = mesh.vertices;
 		for(int i = 0; i < indices.Length / 3; i++) {
 			var vertices = new List<Vertex>();
 			for(int j = 0; j < 3; j++) {
-				var v = mesh.vertices[indices[i * 3 + j]];
+				var v = mverts[indices[i * 3 + j]];
 				v = tf.MultiplyPoint(v);
 				vertices.Add(v.ToVertex());
 			}

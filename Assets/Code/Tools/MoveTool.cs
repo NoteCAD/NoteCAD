@@ -3,18 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using UnityEngine.UI;
+using System;
 
 public class MoveTool : Tool {
 
 	ICADObject current;
 	Vector3 click;
+	Vector3 worldClick;
 	List<Exp> drag = new List<Exp>();
 	Param dragXP = new Param("dragX");
 	Param dragYP = new Param("dragY");
 	Param dragZP = new Param("dragZ");
 	ValueConstraint valueConstraint;
 	public InputField input;
-	bool canMove = true;
+	//bool canMove = true;
 
 	private void Start() {
 		input.onEndEdit.AddListener(OnEndEdit);
@@ -27,6 +29,7 @@ public class MoveTool : Tool {
 		var entity = sko as IEntity;
 		current = sko;
 		click = pos;
+		worldClick = WorldPlanePos;
 		int count = 0;
 		if(entity != null) count = entity.points.Count();
 		if(count == 0) return;
@@ -55,7 +58,7 @@ public class MoveTool : Tool {
 			DetailEditor.instance.RemoveDrag(d);
 		}
 		drag.Clear();
-		canMove = true;
+		//canMove = true;
 	}
 
 	protected override void OnDeactivate() {
@@ -67,14 +70,16 @@ public class MoveTool : Tool {
 	protected override void OnMouseMove(Vector3 pos, ICADObject sko) {
 		if(current == null) return;
 		var delta = pos - click;
+		var worldDelta = WorldPlanePos - worldClick;
 		if(drag.Count > 0) {
 			dragXP.value += delta.x;
 			dragYP.value += delta.y;
 			dragZP.value += delta.z;
 		} else if(current is Constraint) {
-			(current as Constraint).Drag(delta);
+			(current as Constraint).Drag(worldDelta);
 		}
 		click = pos;
+		worldClick = WorldPlanePos;
 	}
 
 	protected override void OnMouseUp(Vector3 pos, ICADObject sko) {
@@ -85,7 +90,7 @@ public class MoveTool : Tool {
 		if(sko is ValueConstraint) {
 			valueConstraint = sko as ValueConstraint;
 			input.gameObject.SetActive(true);
-			input.text = valueConstraint.GetValue().ToString();
+			input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
 			input.Select();
 			UpdateInputPosition();
 		}
@@ -103,7 +108,8 @@ public class MoveTool : Tool {
 
 	void OnEndEdit(string value) {
 		if(valueConstraint == null) return;
-		valueConstraint.SetValue(double.Parse(value));
+		var sign = Math.Sign(valueConstraint.GetValue());
+		valueConstraint.SetValue(sign * value.ToDouble());
 		valueConstraint = null;
 		input.gameObject.SetActive(false);
 	}

@@ -227,7 +227,7 @@ public class Exp {
 
 	public override string ToString() {
 		switch(op) {
-			case Op.Const:	return value.ToString();
+			case Op.Const:	return value.ToStr();
 			case Op.Param:	return param.name;
 			case Op.Add:	return a.ToString() + " + " + b.ToString();
 			case Op.Sub:	return a.ToString() + " - " + b.QuotedAdd();

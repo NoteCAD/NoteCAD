@@ -8,7 +8,15 @@ using Csg;
 
 public class DetailEditor : MonoBehaviour {
 
-	public static DetailEditor instance;
+	static DetailEditor instance_;
+	public static DetailEditor instance {
+		get {
+			if(instance_ == null) {
+				instance_ = FindObjectOfType<DetailEditor>();
+			}
+			return instance_;
+		}
+	}
 
 	Detail detail;
 
@@ -21,6 +29,7 @@ public class DetailEditor : MonoBehaviour {
 	Mesh mesh;
 
 	bool meshDirty = true;
+	bool justSwitchedToSketch = true;
 
 	LineCanvas canvas;
 	EquationSystem sys = new EquationSystem();
@@ -40,7 +49,7 @@ public class DetailEditor : MonoBehaviour {
 			hovered_ = value;
 			if(hovered_ != null) {
 				var id = hovered_.id;
-				var hh = detail.GetObjectById(id);
+				//var hh = detail.GetObjectById(id);
 				//Debug.Log(id.ToString() + " " + hh.GetType().Name);
 				if(hovered_ is SketchObject) {
 					(hovered_ as SketchObject).isHovered = true;
@@ -81,7 +90,7 @@ public class DetailEditor : MonoBehaviour {
 	}
 
 	private void Start() {
-		instance = this;
+		instance_ = this;
 		var go = new GameObject("DetailMesh");
 		var mf = go.AddComponent<MeshFilter>();
 		var mr = go.AddComponent<MeshRenderer>();
@@ -129,8 +138,22 @@ public class DetailEditor : MonoBehaviour {
 			if(currentSketch != null && currentSketch.IsTopologyChanged()) {
 				UpdateSystem();
 			}
-			string result = sys.Solve().ToString();
-			result += "\n" + sys.stats;
+			var res = sys.Solve();
+			string result = res.ToString() + "\n";
+			if(res == EquationSystem.SolveResult.OKAY && !sys.HasDragged()) {
+				int dof;
+				bool ok = sys.TestRank(out dof);
+				if(!ok) {
+					result += "<color=\"#FF3030\">DOF: " + dof + "</color>\n";
+				} else if(dof == 0) {
+					result += "<color=\"#30FF30\">DOF: " + dof + "</color>\n";
+				} else {
+					result += "<color=\"#FFFFFF\">DOF: " + dof + "</color>\n";
+				}
+			} else {
+				result += "<color=\"#303030\">DOF: ?</color>\n";
+			}
+			//result += sys.stats;
 			resultText.text = result.ToString();
 		}
 
@@ -150,6 +173,11 @@ public class DetailEditor : MonoBehaviour {
 						result = mf.solid;
 					} else {
 						if(mf.combined == null) {
+							//#if UNITY_WEBGL
+								//if(combinedCount > 0) {
+								//	break;
+								//}
+							//#endif
 							switch(mf.operation) {
 								case CombineOp.Union: mf.combined = Solids.Union(result, mf.solid); break;
 								case CombineOp.Difference: mf.combined = Solids.Difference(result, mf.solid); break;
@@ -181,6 +209,15 @@ public class DetailEditor : MonoBehaviour {
 				(hovered as SketchObject).Draw(canvas);
 			}
 		}
+
+		if(activeFeature is SketchFeature) {
+			var sk = activeFeature as SketchFeature;
+			if(sk.ShouldRedrawConstraints() || justSwitchedToSketch) {
+				sk.DrawConstraints(canvas);
+			}
+		} else {
+			canvas.ClearStyle("constraints");
+		}
 	}
 
 	private void LateUpdate() {
@@ -194,6 +231,10 @@ public class DetailEditor : MonoBehaviour {
 		activeFeature = null;
 		detail = new Detail();
 		var sk = new SketchFeature();
+		sk.shouldHoverWhenInactive = true;
+		new PointEntity(sk.GetSketch());
+		detail.AddFeature(sk);
+		sk = new SketchFeature();
 		detail.AddFeature(sk);
 		UpdateFeatures();
 		ActivateFeature(sk);
@@ -217,13 +258,14 @@ public class DetailEditor : MonoBehaviour {
 	}
 
 	public void ActivateFeature(Feature feature) {
+		bool skipActive = (activeFeature_ == feature);
 		if(activeFeature_ != null) {
 			var ui = featuresUI.Find(u => u.feature == activeFeature_);
 			var btn = ui.GetComponent<Button>();
 			var cb = btn.colors;
 			cb.normalColor = Color.white;
 			btn.colors = cb;
-			activeFeature_.active = false;
+			if(!skipActive) activeFeature_.active = false;
 		}
 		activeFeature_ = feature;
 		if(activeFeature_ != null) {
@@ -232,7 +274,8 @@ public class DetailEditor : MonoBehaviour {
 			var cb = btn.colors;
 			cb.normalColor = pressedColor;
 			btn.colors = cb;
-			activeFeature_.active = true;
+			if(!skipActive) activeFeature_.active = true;
+			justSwitchedToSketch = activeFeature_ is SketchFeature;
 			UpdateSystem();
 		}
 		meshDirty = true;

@@ -17,12 +17,21 @@ public class SketchTool : Tool {
 			v = sko as IEntity;
 			StopTool();
 			var feature = new SketchFeature();
+			DetailEditor.instance.AddFeature(feature); 
 			feature.u = u;
 			feature.v = v;
 			feature.p = p;
 			feature.source = DetailEditor.instance.activeFeature;
-			DetailEditor.instance.AddFeature(feature); 
+
+			IPlane plane = feature as IPlane;
+
+			if(Vector3.Dot(plane.n, Camera.main.transform.forward) < 0f) {
+				feature.u = v;
+				feature.v = u;
+			}
+
 			DetailEditor.instance.ActivateFeature(feature);
+			CameraController.instance.AnimateToPlane(feature);
 		}
 	}
 

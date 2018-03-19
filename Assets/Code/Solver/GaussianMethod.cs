@@ -3,6 +3,7 @@
 public static class GaussianMethod {
 
 	public const double epsilon = 1e-10;
+	public const double rankEpsilon = 1e-8;
 
 
 	public static string Print<T>(this T[,] A) {
@@ -22,6 +23,40 @@ public static class GaussianMethod {
 			result += A[r].ToString() + "\n";
 		}
 		return result;
+	}
+
+
+	public static int Rank(double[,] A) {
+		var rows = A.GetLength(0);
+		var cols = A.GetLength(1);
+
+		int rank = 0;
+		double[] rowsLength = new double[rows];
+
+		for(int i = 0; i < rows; i++) {
+			for(int ii = 0; ii < i; ii++) {
+				if(rowsLength[ii] <= rankEpsilon) continue;
+
+				double sum = 0;
+				for(int j = 0; j < cols; j++) {
+					sum += A[ii, j] * A[i, j];
+				}
+				for(int j = 0; j < cols; j++) {
+					A[i, j] -= A[ii, j] * sum / rowsLength[ii];
+				}
+			}
+
+			double len = 0;
+			for(int j = 0; j < cols; j++) {
+				len += A[i, j] * A[i, j];
+			}
+			if(len > rankEpsilon) {
+				rank++;
+			}
+			rowsLength[i] = len;
+		}
+
+		return rank;
 	}
 
 	public static void Solve(double[,] A, double[] B, ref double[] X) {

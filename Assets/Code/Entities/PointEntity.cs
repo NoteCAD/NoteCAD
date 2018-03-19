@@ -15,6 +15,8 @@ public class PointEntity : Entity {
 		is3d = false;
 	}
 
+	public override IEntityType type { get { return IEntityType.Point; } }
+
 	public Vector3 GetPosition() {
 		if(transform != null) {
 			return exp.Eval();
@@ -102,15 +104,15 @@ public class PointEntity : Entity {
 	}
 
 	protected override void OnWrite(XmlTextWriter xml) {
-		xml.WriteAttributeString("x", x.value.ToString());
-		xml.WriteAttributeString("y", y.value.ToString());
-		if(is3d) xml.WriteAttributeString("z", z.value.ToString());
+		xml.WriteAttributeString("x", x.value.ToStr());
+		xml.WriteAttributeString("y", y.value.ToStr());
+		if(is3d) xml.WriteAttributeString("z", z.value.ToStr());
 	}
 
 	protected override void OnRead(XmlNode xml) {
-		x.value = double.Parse(xml.Attributes["x"].Value);
-		y.value = double.Parse(xml.Attributes["y"].Value);
-		if(is3d) z.value = double.Parse(xml.Attributes["z"].Value);
+		x.value = xml.Attributes["x"].Value.ToDouble();
+		y.value = xml.Attributes["y"].Value.ToDouble();
+		if(is3d) z.value = xml.Attributes["z"].Value.ToDouble();
 	}
 
 	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {

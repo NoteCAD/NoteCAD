@@ -11,6 +11,8 @@ class ExtrudedEntity : IEntity {
 	ExtrusionFeature extrusion;
 	long index;
 
+	IEntityType IEntity.type { get { return entity.type; } }
+
 	public ExtrudedEntity(Entity e, ExtrusionFeature ex, long i) {
 		entity = e;
 		extrusion = ex;
@@ -43,7 +45,6 @@ class ExtrudedEntity : IEntity {
 	public IEnumerable<Vector3> segments {
 		get {
 			var shift = extrusion.extrusionDir.Eval() * index;
-			var ie = entity as IEntity;
 			foreach(var p in (entity as IEntity).SegmentsInPlane(null)) {
 				yield return p + shift;
 			}
@@ -58,6 +59,8 @@ class ExtrudedEntity : IEntity {
 class ExtrudedPointEntity : IEntity {
 	PointEntity entity;
 	ExtrusionFeature extrusion;
+
+	IEntityType IEntity.type { get { return IEntityType.Line; } }
 
 	public ExtrudedPointEntity(PointEntity e, ExtrusionFeature ex) {
 		entity = e;
@@ -169,11 +172,11 @@ public class ExtrusionFeature : MeshFeature {
 	}
 
 	protected override void OnWriteMeshFeature(XmlTextWriter xml) {
-		xml.WriteAttributeString("length", extrude.value.ToString());
+		xml.WriteAttributeString("length", extrude.value.ToStr());
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {
-		extrude.value = double.Parse(xml.Attributes["length"].Value);
+		extrude.value = xml.Attributes["length"].Value.ToDouble();
 	}
 
 	public ExpVector extrusionDir {

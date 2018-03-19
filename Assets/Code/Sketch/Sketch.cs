@@ -21,6 +21,10 @@ public interface IPlane {
 
 public static class IPlaneUtils {
 
+	public static Quaternion GetRotation(this IPlane plane) {
+		return Quaternion.LookRotation(plane.n, plane.v);
+	}
+
 	public static Matrix4x4 GetTransform(this IPlane plane) {
 		var result = Matrix4x4.identity;
 		result.SetColumn(0, plane.u);
@@ -60,6 +64,24 @@ public static class IPlaneUtils {
 		result.y = ExpVector.Dot(dir, plane.v);
 		result.z = ExpVector.Dot(dir, plane.n);
 		return result;
+	}
+
+	public static Vector3 ToPlane(this IPlane plane, Vector3 pt) {
+		if(plane == null) return pt;
+		Vector3 result = new Vector3(0, 0, 0);
+		var dir = pt - plane.o;
+		result.x = Vector3.Dot(dir, plane.u);
+		result.y = Vector3.Dot(dir, plane.v);
+		result.z = Vector3.Dot(dir, plane.n);
+		return result;
+	}
+
+	public static Vector3 projectVectorInto(this IPlane plane, Vector3 val) {
+		if(plane == null) return val;
+		Vector3 r = val - plane.o;
+		float up = Vector3.Dot(r, plane.u);
+		float vp = Vector3.Dot(r, plane.v);
+		return plane.u * up + plane.v * vp + plane.o;
 	}
 
 	public static IEnumerable<Vector3> ToPlane(this IPlane plane, IEnumerable<Vector3> points) {
@@ -237,7 +259,6 @@ public class Sketch : CADObject, ISketch  {
 		var first = all.FirstOrDefault();
 		var current = first;
 		PointEntity prevPoint = null;
-		ISegmentaryEntity prev = null;
 		List<Entity> loop = new List<Entity>();
 		List<List<Entity>> loops = new List<List<Entity>>();
 		while(current != null && all.Count > 0) {
@@ -252,11 +273,10 @@ public class Sketch : CADObject, ISketch  {
 					.OfType<PointsCoincident>()
 					.Select(p => p.GetOtherPoint(point))
 					.Where(p => p != prevPoint)
-					.Where(p => p.parent.IsEnding(p))
+					.Where(p => p.parent != null && p.parent.IsEnding(p))
 					.Select(p => p.parent)
 					.OfType<ISegmentaryEntity>();
 				if(connected.Any()) {
-					prev = current;
 					current = connected.First() as ISegmentaryEntity;
 					found = true;
 					prevPoint = point;
@@ -348,7 +368,6 @@ public class Sketch : CADObject, ISketch  {
 				foreach(XmlNode node in nodeKind.ChildNodes) {
 					if(node.Name != "constraint") continue;
 					var type = node.Attributes["type"].Value;
-					var t = Type.GetType(type).GetConstructor(types);
 					var constraint = Type.GetType(type).GetConstructor(types).Invoke(param) as Constraint;
 					constraint.Read(node);
 				}
