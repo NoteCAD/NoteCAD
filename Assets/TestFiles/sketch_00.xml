@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="utf-16"?>
+<detail id="0">
+	<feature type="SketchFeature" id="1">
+		<references>
+			<ref name="u" path="" />
+			<ref name="v" path="" />
+			<ref name="o" path="" />
+		</references>
+		<entities>
+			<entity type="PointEntity" id="1" x="0" y="0" />
+		</entities>
+		<constraints />
+	</feature>
+	<feature type="SketchFeature" id="2">
+		<references>
+			<ref name="u" path="" />
+			<ref name="v" path="" />
+			<ref name="o" path="" />
+		</references>
+		<entities>
+			<entity type="LineEntity" id="1">
+				<entity type="PointEntity" id="2" x="-2" y="32" />
+				<entity type="PointEntity" id="3" x="-2" y="20" />
+			</entity>
+			<entity type="LineEntity" id="4">
+				<entity type="PointEntity" id="5" x="-2" y="20" />
+				<entity type="PointEntity" id="6" x="0" y="20" />
+			</entity>
+			<entity type="LineEntity" id="8">
+				<entity type="PointEntity" id="9" x="0" y="20" />
+				<entity type="PointEntity" id="A" x="0" y="0" />
+			</entity>
+			<entity type="LineEntity" id="C">
+				<entity type="PointEntity" id="D" x="0" y="0" />
+				<entity type="PointEntity" id="E" x="20" y="0" />
+			</entity>
+			<entity type="LineEntity" id="10">
+				<entity type="PointEntity" id="11" x="20" y="0" />
+				<entity type="PointEntity" id="12" x="20" y="15" />
+			</entity>
+			<entity type="LineEntity" id="14">
+				<entity type="PointEntity" id="15" x="20" y="15" />
+				<entity type="PointEntity" id="16" x="8" y="15" />
+			</entity>
+			<entity type="LineEntity" id="18">
+				<entity type="PointEntity" id="19" x="8" y="15" />
+				<entity type="PointEntity" id="1A" x="8" y="22" />
+			</entity>
+			<entity type="LineEntity" id="1C">
+				<entity type="PointEntity" id="1D" x="8" y="22" />
+				<entity type="PointEntity" id="1E" x="18" y="22" />
+			</entity>
+			<entity type="LineEntity" id="20">
+				<entity type="PointEntity" id="21" x="18" y="22" />
+				<entity type="PointEntity" id="22" x="18" y="32" />
+			</entity>
+			<entity type="LineEntity" id="24">
+				<entity type="PointEntity" id="25" x="18" y="32" />
+				<entity type="PointEntity" id="26" x="-2" y="32" />
+			</entity>
+			<entity type="LineEntity" id="33">
+				<entity type="PointEntity" id="34" x="-46.1297642188789" y="34.7703313071901" />
+				<entity type="PointEntity" id="35" x="-25.7137073465762" y="39.4601298191707" />
+			</entity>
+			<entity type="LineEntity" id="36">
+				<entity type="PointEntity" id="37" x="-25.7137073465762" y="39.4601298191707" />
+				<entity type="PointEntity" id="38" x="-22" y="32" />
+			</entity>
+			<entity type="LineEntity" id="3A">
+				<entity type="PointEntity" id="3B" x="-22" y="32" />
+				<entity type="PointEntity" id="3C" x="-32.8279570202492" y="32.2359773242013" />
+			</entity>
+			<entity type="LineEntity" id="43">
+				<entity type="PointEntity" id="44" x="-22" y="32" />
+				<entity type="PointEntity" id="45" x="-7.85682806431165" y="46.8852901922668" />
+			</entity>
+			<entity type="LineEntity" id="46">
+				<entity type="PointEntity" id="47" x="-7.85682806431165" y="46.8852901922668" />
+				<entity type="PointEntity" id="48" x="-1.5302220106705" y="41.9889593372254" />
+			</entity>
+			<entity type="LineEntity" id="4A">
+				<entity type="PointEntity" id="4B" x="-1.5302220106705" y="41.9889593372254" />
+				<entity type="PointEntity" id="4C" x="-2" y="32" />
+			</entity>
+			<entity type="LineEntity" id="4E">
+				<entity type="PointEntity" id="4F" x="-2" y="32" />
+				<entity type="PointEntity" id="50" x="-22" y="32" />
+			</entity>
+			<entity type="LineEntity" id="6C">
+				<entity type="PointEntity" id="6D" x="-32.8279570202492" y="32.2359773242013" />
+				<entity type="PointEntity" id="6E" x="-46.1297642188789" y="34.7703313071901" />
+			</entity>
+		</entities>
+		<constraints>
+			<constraint type="PointsCoincident" id="7">
+				<entity path="3-1-2" />
+				<entity path="5-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="B">
+				<entity path="6-1-2" />
+				<entity path="9-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="F">
+				<entity path="A-1-2" />
+				<entity path="D-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="13">
+				<entity path="E-1-2" />
+				<entity path="11-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="17">
+				<entity path="12-1-2" />
+				<entity path="15-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="1B">
+				<entity path="16-1-2" />
+				<entity path="19-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="1F">
+				<entity path="1A-1-2" />
+				<entity path="1D-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="23">
+				<entity path="1E-1-2" />
+				<entity path="21-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="27">
+				<entity path="22-1-2" />
+				<entity path="25-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="28">
+				<entity path="26-1-2" />
+				<entity path="2-1-2" />
+			</constraint>
+			<constraint type="HVConstraint" id="29" orientation="OX">
+				<entity path="2-1-2" />
+				<entity path="3-1-2" />
+			</constraint>
+			<constraint type="HVConstraint" id="2A" orientation="OX">
+				<entity path="21-1-2" />
+				<entity path="22-1-2" />
+			</constraint>
+			<constraint type="HVConstraint" id="2B" orientation="OX">
+				<entity path="19-1-2" />
+				<entity path="1A-1-2" />
+			</constraint>
+			<constraint type="HVConstraint" id="2C" orientation="OX">
+				<entity path="11-1-2" />
+				<entity path="12-1-2" />
+			</constraint>
+			<constraint type="HVConstraint" id="2D" orientation="OX">
+				<entity path="9-1-2" />
+				<entity path="A-1-2" />
+			</constraint>
+			<constraint type="HVConstraint" id="2E" orientation="OY">
+				<entity path="D-1-2" />
+				<entity path="E-1-2" />
+			</constraint>
+			<constraint type="HVConstraint" id="2F" orientation="OY">
+				<entity path="5-1-2" />
+				<entity path="6-1-2" />
+			</constraint>
+			<constraint type="HVConstraint" id="30" orientation="OY">
+				<entity path="25-1-2" />
+				<entity path="26-1-2" />
+			</constraint>
+			<constraint type="HVConstraint" id="31" orientation="OY">
+				<entity path="1D-1-2" />
+				<entity path="1E-1-2" />
+			</constraint>
+			<constraint type="HVConstraint" id="32" orientation="OY">
+				<entity path="15-1-2" />
+				<entity path="16-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="39">
+				<entity path="35-1-2" />
+				<entity path="37-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="3D">
+				<entity path="38-1-2" />
+				<entity path="3B-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="49">
+				<entity path="45-1-2" />
+				<entity path="47-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="4D">
+				<entity path="48-1-2" />
+				<entity path="4B-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="51">
+				<entity path="4C-1-2" />
+				<entity path="4F-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="52">
+				<entity path="50-1-2" />
+				<entity path="44-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="53" x="10.27279" y="-3.313079" z="0" value="20">
+				<entity path="D-1-2" />
+				<entity path="E-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="55" x="23.8742" y="26.73303" z="0" value="10">
+				<entity path="21-1-2" />
+				<entity path="22-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="56" x="8.22213" y="34.9535" z="0" value="20">
+				<entity path="25-1-2" />
+				<entity path="26-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="57" x="-5.980918" y="19.62877" z="0" value="2">
+				<entity path="5-1-2" />
+				<entity path="6-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="58" x="5.918313" y="19.07545" z="0" value="7">
+				<entity path="19-1-2" />
+				<entity path="1A-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="59" x="13.81753" y="24.80542" z="0" value="10">
+				<entity path="1D-1-2" />
+				<entity path="1E-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="5A" x="23.26958" y="8.000185" z="0" value="15">
+				<entity path="11-1-2" />
+				<entity path="12-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="5B" x="3.229122" y="9.396654" z="0" value="20">
+				<entity path="9-1-2" />
+				<entity path="A-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="5C" x="0.7947366" y="37.41415" z="0" value="10">
+				<entity path="4B-1-2" />
+				<entity path="4C-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="5D" x="-1.966081" y="46.39603" z="0" value="8">
+				<entity path="47-1-2" />
+				<entity path="48-1-2" />
+			</constraint>
+			<constraint type="AngleConstraint" id="5E" x="-10.47177" y="37.71854" z="0" value="92.6926206265065">
+				<entity path="4B-1-2" />
+				<entity path="4C-1-2" />
+				<entity path="4F-1-2" />
+				<entity path="50-1-2" />
+			</constraint>
+			<constraint type="AngleConstraint" id="5F" x="-7.653132" y="43.56267" z="0" value="-95.7982881214433">
+				<entity path="48-1-2" />
+				<entity path="47-1-2" />
+				<entity path="45-1-2" />
+				<entity path="44-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="60" x="-27.54508" y="30.56631" z="0" value="10.830528081765">
+				<entity path="3B-1-2" />
+				<entity path="3C-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="61" x="-22.59028" y="36.93407" z="0" value="8.33337621704992">
+				<entity path="37-1-2" />
+				<entity path="38-1-2" />
+			</constraint>
+			<constraint type="AngleConstraint" id="63" x="-26.65871" y="33.95475" z="0" value="62.2870726456849">
+				<entity path="37-1-2" />
+				<entity path="38-1-2" />
+				<entity path="3B-1-2" />
+				<entity path="3C-1-2" />
+			</constraint>
+			<constraint type="AngleConstraint" id="65" x="-26.89136" y="36.7589" z="0" value="103.527406615005">
+				<entity path="34-1-2" />
+				<entity path="35-1-2" />
+				<entity path="37-1-2" />
+				<entity path="38-1-2" />
+			</constraint>
+			<constraint type="HVConstraint" id="66" orientation="OY">
+				<entity path="4F-1-2" />
+				<entity path="50-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="67">
+				<entity path="3B-1-2" />
+				<entity path="50-1-2" />
+			</constraint>
+			<constraint type="AngleConstraint" id="68" x="-19.9151" y="47.02344" z="0" value="70">
+				<entity path="45-1-2" />
+				<entity path="44-1-2" />
+				<entity path="38-1-2" />
+				<entity path="37-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="69">
+				<entity path="4F-1-2" />
+				<entity path="26-1-2" />
+			</constraint>
+			<constraint type="PointsDistance" id="6A" x="-9.696419" y="30.39777" z="0" value="20">
+				<entity path="4F-1-2" />
+				<entity path="50-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="6B">
+				<entity path="D-1-2" />
+				<entity path="1-1-1" />
+			</constraint>
+			<constraint type="PointsCoincident" id="6F">
+				<entity path="6D-1-2" />
+				<entity path="3C-1-2" />
+			</constraint>
+			<constraint type="PointsCoincident" id="70">
+				<entity path="6E-1-2" />
+				<entity path="34-1-2" />
+			</constraint>
+			<constraint type="AngleConstraint" id="71" x="-36.56238" y="35.20649" z="0" value="-23.7241615236732">
+				<entity path="35-1-2" />
+				<entity path="34-1-2" />
+				<entity path="6E-1-2" />
+				<entity path="6D-1-2" />
+			</constraint>
+		</constraints>
+	</feature>
+</detail>

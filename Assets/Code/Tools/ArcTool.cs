@@ -22,7 +22,7 @@ public class ArcTool : Tool {
 				return;
 			}
 		}
-
+		if(DetailEditor.instance.currentSketch == null) return;
 		var newEntity = new ArcEntity(DetailEditor.instance.currentSketch.GetSketch());
 		newEntity.p0.pos = pos;
 		newEntity.p1.pos = pos;

@@ -38,8 +38,8 @@ public abstract class CADObject : ICADObject {
 				i = id.path.Count;
 				break;
 			}
-			i = id.path.FindLastIndex(g => g == p.guid);
-			if(i != -1) break;
+			//i = id.path.FindLastIndex(g => g == p.guid);
+			//if(i != -1) break;
 			p = p.parentObject;
 			if(p == null) return null; 
 		}

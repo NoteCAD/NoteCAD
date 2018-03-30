@@ -165,7 +165,12 @@ public static class GeomUtils {
 		Ray ray = new Ray(A2, L2);
 		float enter = 0.0f;
 		
-		if (plane.Raycast(ray, out enter) == false) return false;
+		if (!plane.Raycast(ray, out enter)) {
+			ray = new Ray(A2, -L2);
+			if (!plane.Raycast(ray, out enter)) {
+				return false;
+			}
+		}
 		
 		itr = ray.GetPoint(enter);
 		

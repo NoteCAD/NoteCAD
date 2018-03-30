@@ -36,10 +36,6 @@ public static class IEntityUtils {
 		return plane.ToFrom(entity.segments, entity.plane);
 	}
 
-	public static bool IsPoint(this IEntity entity) {
-		return entity.segments.Count() == 1;
-	}
-
 	public static ExpVector PointOnInPlane(this IEntity entity, Exp t, IPlane plane) {
 		if(plane == entity.plane) {
 			return entity.PointOn(t);
@@ -54,6 +50,20 @@ public static class IEntityUtils {
 		points.MoveNext();
 		var p1 = plane.ToFrom(points.Current, entity.plane);
 		return p1 - p0;
+	}
+
+	public static ExpVector GetLineP0(this IEntity entity, IPlane plane) {
+		var points = entity.points.GetEnumerator();
+		points.MoveNext();
+		return plane.ToFrom(points.Current, entity.plane);
+	}
+
+	public static ExpVector GetLineP1(this IEntity entity, IPlane plane) {
+		var points = entity.points.GetEnumerator();
+		points.MoveNext();
+		points.MoveNext();
+		return plane.ToFrom(points.Current, entity.plane);
+
 	}
 }
 

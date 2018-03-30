@@ -91,8 +91,8 @@ public class AngleConstraint : ValueConstraint {
 			//	drawDottedLine(pts[3], pt1, renderer, R_DASH * pix);
 			//} else {
 				// line extends to the arc
-				drawLineExtendInPlane(plane, renderer, pts[1], pts[0], pt0, R_DASH * pix, 4f * pix, false);
-				drawLineExtendInPlane(plane, renderer, pts[2], pts[3], pt1, R_DASH * pix, 4f * pix, false);
+				drawLineExtendInPlane(plane, renderer, pts[1], pts[0], pt0, 0f, 4f * pix, false);
+				drawLineExtendInPlane(plane, renderer, pts[2], pts[3], pt1, 0f, 4f * pix, false);
 			//}
 			double angle = value;
 			
@@ -170,9 +170,7 @@ public class AngleConstraint : ValueConstraint {
 		var p = pos[1];
 		double angle = Math.Abs(GetValue());
 		if(GeomUtils.isLinesCrossed(pos[0], pos[1], pos[2], pos[3], ref p, Mathf.Epsilon)) {
-			
 		}
-
 		var z = Vector3.Cross(pos[0] - pos[1], pos[3] - pos[2]).normalized;
 		if(z.magnitude < Mathf.Epsilon) z = new Vector3(0.0f, 0.0f, 1.0f);
 		

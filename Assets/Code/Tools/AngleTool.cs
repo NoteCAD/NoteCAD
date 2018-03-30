@@ -11,6 +11,7 @@ public class AngleTool : Tool {
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		click = WorldPlanePos;
 		if(constraint != null) {
+			MoveTool.instance.EditConstraintValue(constraint);
 			constraint = null;
 			return;
 		}

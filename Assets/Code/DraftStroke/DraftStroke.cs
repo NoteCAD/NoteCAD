@@ -52,6 +52,7 @@ public class DraftStroke : MonoBehaviour {
 				Destroy(m);
 			}
 			objects.Clear();
+			meshes.Clear();
 			dirty = true;
 		}
 

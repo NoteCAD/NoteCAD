@@ -110,7 +110,7 @@ public class Constraint : SketchObject {
 		return v.normalized;
 	}
 
-	public static float EPSILON   = 1e-6f;
+	public static float EPSILON   = 1e-4f;
 	public static float R_ARROW_H = 2.5f;
 	public static float R_ARROW_W = 12.5f;
 	public static float R_CIRLE_R = 5f;
@@ -629,11 +629,11 @@ public class ValueConstraint : Constraint {
 		//drawLabel(renderer, camera);
 	}
 	
-	Vector3 getLabelOffset() {
+	protected Vector3 getLabelOffset() {
 		return pos;
 	}
 
-	protected void drawPointsDistance(Vector3 pp0, Vector3 pp1, LineCanvas renderer, Camera camera, bool label, bool arrow0, bool arrow1, int style) {
+	protected void drawPointsDistance(Vector3 pp0, Vector3 pp1, LineCanvas renderer, Camera camera, bool label, bool arrow0 = true, bool arrow1 = true, int style = 0) {
 		float pix = getPixelSize();
 		
 		Vector3 p0 = drawPointProjection(renderer, pp0, R_DASH * pix);
@@ -745,6 +745,17 @@ public class ValueConstraint : Constraint {
 		
 		//drawCameraCircle(renderer, camera, getLabelOffset(), 3f * pix);
 		//if(label) drawLabel(renderer, camera);
+	}
+
+	protected void drawBasis(LineCanvas canvas) {
+		var basis = GetBasis();
+		var pix = getPixelSize();
+		Vector3 vx = basis.GetColumn(0);
+		Vector3 vy = basis.GetColumn(1);
+		//Vector3 vz = basis.GetColumn(2);
+		Vector3 p = basis.GetColumn(3);
+		canvas.DrawLine(p, p + vx * 10f * pix);
+		canvas.DrawLine(p, p + vy * 10f * pix);
 	}
 }
 

@@ -21,7 +21,7 @@ public class HVTool : Tool {
 			return;
 		}
 
-		if(!entity.IsPoint()) return;
+		if(entity.type != IEntityType.Point) return;
 		if(p0 != null) {
 			constraint = new HVConstraint(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
 			constraint.orientation = vertical ? HVOrientation.OX : HVOrientation.OY;

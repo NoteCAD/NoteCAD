@@ -408,6 +408,9 @@ public class Sketch : CADObject, ISketch  {
 		while(entities.Count > 0) {
 			entities[0].Destroy();
 		}
+		foreach(var c in constraints) {
+			c.Destroy();
+		}
 		MarkDirtySketch(topo:true, entities:true, constraints:true, loops:true);
 	}
 

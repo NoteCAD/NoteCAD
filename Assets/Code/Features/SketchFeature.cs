@@ -302,6 +302,7 @@ public class SketchFeature : Feature, IPlane {
 
 
 	protected override void OnClear() {
+		sketch.Clear();
 		GameObject.Destroy(go);
 		GameObject.Destroy(canvas.gameObject);
 	}

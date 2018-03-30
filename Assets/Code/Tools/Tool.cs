@@ -125,6 +125,10 @@ public class Tool : MonoBehaviour {
 			point.SetPosition(p1.GetPosition());
 			return true;
 		}
+		if(with is LineEntity) {
+			new PointOnLine(point.sketch, point, with);
+			return true;
+		}
 		return false;
 	}
 

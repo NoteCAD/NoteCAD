@@ -16,10 +16,12 @@ public class MoveTool : Tool {
 	Param dragZP = new Param("dragZ");
 	ValueConstraint valueConstraint;
 	public InputField input;
+	public static MoveTool instance;
 	//bool canMove = true;
 
 	private void Start() {
 		input.onEndEdit.AddListener(OnEndEdit);
+		instance = this;
 	}
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
@@ -86,13 +88,17 @@ public class MoveTool : Tool {
 		ClearDrag();
 	}
 	
+	public void EditConstraintValue(ValueConstraint constraint) {
+		valueConstraint = constraint;
+		input.gameObject.SetActive(true);
+		input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
+		input.Select();
+		UpdateInputPosition();
+	}
+
 	protected override void OnMouseDoubleClick(Vector3 pos, ICADObject sko) {
 		if(sko is ValueConstraint) {
-			valueConstraint = sko as ValueConstraint;
-			input.gameObject.SetActive(true);
-			input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
-			input.Select();
-			UpdateInputPosition();
+			EditConstraintValue(sko as ValueConstraint);
 		}
 	}
 

@@ -299,9 +299,11 @@
     <Compile Include="Assets\Code\Behaviours\LineCanvas.cs" />
     <Compile Include="Assets\Code\Constraints\AngleConstraint.cs" />
     <Compile Include="Assets\Code\Constraints\Constraint.cs" />
+    <Compile Include="Assets\Code\Constraints\Diameter.cs" />
     <Compile Include="Assets\Code\Constraints\EqualLineLine.cs" />
     <Compile Include="Assets\Code\Constraints\HVConstraint.cs" />
     <Compile Include="Assets\Code\Constraints\PointLineDistance.cs" />
+    <Compile Include="Assets\Code\Constraints\PointOnLine.cs" />
     <Compile Include="Assets\Code\Constraints\PointsCoincident.cs" />
     <Compile Include="Assets\Code\Constraints\PointsDistance.cs" />
     <Compile Include="Assets\Code\CSG\Formats.cs" />
@@ -366,6 +368,7 @@
   <ItemGroup>
     <None Include="Assets\Code\DraftStroke\DraftLines.shader" />
     <None Include="Assets\Materials\LoopShader.shader" />
+    <None Include="Assets\TestFiles\sketch_00.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

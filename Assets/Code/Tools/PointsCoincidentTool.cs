@@ -6,15 +6,20 @@ public class PointsCoincidentTool : Tool {
 
 	PointEntity p0;
 
-	protected override void OnMouseDown(Vector3 pos, ICADObject entity) {
+	protected override void OnMouseDown(Vector3 pos, ICADObject ico) {
+		IEntity entity = ico as IEntity;
 		if(entity == null) return;
-		if(!(entity is PointEntity)) return;
-		var p = entity as PointEntity;
 		if(p0 != null) {
-			new PointsCoincident(DetailEditor.instance.currentSketch.GetSketch(), p0, p);
+			if(entity is PointEntity) {
+				var p = entity as PointEntity;
+				new PointsCoincident(DetailEditor.instance.currentSketch.GetSketch(), p0, p);
+			} else 
+			if(entity.type == IEntityType.Line) {
+				new PointOnLine(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
+			}
 			p0 = null;
-		} else {
-			p0 = p;
+		} else if(entity is PointEntity) {
+			p0 = entity as PointEntity;
 		}
 	}
 

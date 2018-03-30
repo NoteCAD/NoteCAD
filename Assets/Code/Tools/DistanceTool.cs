@@ -11,32 +11,41 @@ public class DistanceTool : Tool {
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		if(constraint != null) {
+			MoveTool.instance.EditConstraintValue(constraint);
 			constraint = null;
 			return;
 		}
 		var entity = sko as IEntity;
 		if(entity == null) return;
 
-		if(p0 == null && entity is LineEntity) {
-			var line = entity as LineEntity;
-			constraint = new PointsDistance(line.sketch, line.p0, line.p1);
-			constraint.pos = WorldPlanePos;
-			click = WorldPlanePos;
-			return;
+		if(p0 == null) {
+			if(entity is LineEntity) {
+				var line = entity as LineEntity;
+				constraint = new PointsDistance(line.sketch, line.p0, line.p1);
+				constraint.pos = WorldPlanePos;
+				click = WorldPlanePos;
+				return;
+			} else 
+			if(entity is CircleEntity) {
+				var circle = entity as CircleEntity;
+				constraint = new Diameter(circle.sketch, circle);
+				constraint.pos = WorldPlanePos;
+				click = WorldPlanePos;
+				return;
+			}
 		}
 
-		//if(!entity.IsPoint()) return;
 		if(p0 != null) {
-			if(entity.IsPoint()) {
+			if(entity.type == IEntityType.Point) {
 				constraint = new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
 				constraint.pos = WorldPlanePos;
 				p0 = null;
-			} else if(entity is LineEntity) {
+			} else if(entity.type == IEntityType.Line) {
 				constraint = new PointLineDistance(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
 				constraint.pos = WorldPlanePos;
 				p0 = null;
 			}
-		} else if(entity.IsPoint()) {
+		} else if(entity.type == IEntityType.Point) {
 			p0 = entity;
 		}
 	}
