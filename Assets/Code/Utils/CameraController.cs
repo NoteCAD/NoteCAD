@@ -14,11 +14,14 @@ public class CameraController : MonoBehaviour {
 	public float rotateSensitivity = 0.3f;
 	public float scaleFactor = 0.2f;
 	public float animationTime = 1.0f;
+	public float minSize = 0.01f;
+	public float maxSize = 10000f;
 	Quaternion srcRot;
 	Quaternion dstRot;
 	Vector3 srcPos;
 	Vector3 dstPos;
 	float phase = 1.0f;
+	double orthoSize;
 
 	public static CameraController instance;
 
@@ -28,6 +31,7 @@ public class CameraController : MonoBehaviour {
 
 	private void Awake() {
 		camera = GetComponent<Camera>();
+		orthoSize = camera.orthographicSize;
 	}
 
 	public void AnimateToPlane(IPlane plane) {
@@ -76,12 +80,34 @@ public class CameraController : MonoBehaviour {
 			screenClick = Input.mousePosition;
 		}
 		if(!EventSystem.current.IsPointerOverGameObject() && Input.mouseScrollDelta.y != 0f) {
-			var factor = 1f - Input.mouseScrollDelta.y * scaleFactor;
-			var mousePos = pos;
-			var centerPos = Tool.CenterPos;
-			var delta = (centerPos - mousePos) * (factor - 1f);
-			camera.transform.position += delta;
-			camera.orthographicSize *= factor;
+			var mouse = Input.mouseScrollDelta.y;
+			if(mouse < 0f) {
+				mouse = -1f;
+				if(orthoSize > maxSize) mouse = 0f;
+			} else 
+			if(mouse > 0f) {
+				mouse = 1f;
+				if(orthoSize < minSize) mouse = 0f;
+			}
+
+			var count = (int)Mathf.Abs(Input.mouseScrollDelta.y);
+
+			for(int i = 0; i < count; i++) {
+				double factor = mouse * scaleFactor;
+				if(factor < 0.0) {
+					factor = 1.0 / (1.0 + factor);
+				} else {
+					factor = 1.0 - factor;
+				}
+				var mousePos = pos;
+				var centerPos = Tool.CenterPos;
+				var delta = (centerPos - mousePos) * ((float)factor - 1f);
+				camera.transform.position += delta;
+				orthoSize *= factor;
+				camera.orthographicSize = (float)orthoSize;
+				//camera.farClipPlane = (float)(orthoSize * 10.0);
+				//camera.nearClipPlane = (float)(-orthoSize * 10.0);
+			}
 		}
 	}
 
