@@ -132,7 +132,7 @@ public class DetailEditor : MonoBehaviour {
 		sys.Clear();
 		activeFeature.GenerateEquations(sys);
 	}
-
+	string dofText;
 	private void Update() {
 		if(activeFeature != null) {
 			if(currentSketch != null && currentSketch.IsTopologyChanged()) {
@@ -140,19 +140,22 @@ public class DetailEditor : MonoBehaviour {
 			}
 			var res = sys.Solve();
 			string result = res.ToString() + "\n";
-			if(res == EquationSystem.SolveResult.OKAY && !sys.HasDragged()) {
-				int dof;
-				bool ok = sys.TestRank(out dof);
-				if(!ok) {
-					result += "<color=\"#FF3030\">DOF: " + dof + "</color>\n";
-				} else if(dof == 0) {
-					result += "<color=\"#30FF30\">DOF: " + dof + "</color>\n";
+			if(sys.dofChanged) {
+				if(res == EquationSystem.SolveResult.OKAY && !sys.HasDragged()) {
+					int dof;
+					bool ok = sys.TestRank(out dof);
+					if(!ok) {
+						dofText = "<color=\"#FF3030\">DOF: " + dof + "</color>\n";
+					} else if(dof == 0) {
+						dofText = "<color=\"#30FF30\">DOF: " + dof + "</color>\n";
+					} else {
+						dofText = "<color=\"#FFFFFF\">DOF: " + dof + "</color>\n";
+					}
 				} else {
-					result += "<color=\"#FFFFFF\">DOF: " + dof + "</color>\n";
+					dofText = "<color=\"#303030\">DOF: ?</color>\n";
 				}
-			} else {
-				result += "<color=\"#303030\">DOF: ?</color>\n";
 			}
+			result += dofText;
 			//result += sys.stats;
 			resultText.text = result.ToString();
 		}
@@ -223,6 +226,28 @@ public class DetailEditor : MonoBehaviour {
 	private void LateUpdate() {
 		GC.Collect();
 	}
+
+	private void OnGUI() {
+		GUIStyle style = new GUIStyle();
+		style.alignment = TextAnchor.MiddleCenter;
+		if(activeFeature is SketchFeature) {
+			var sk = activeFeature as SketchFeature;
+			foreach(var c in sk.GetSketch().constraintList) {
+				if(!(c is ValueConstraint)) continue;
+				if(hovered == c) {
+					style.normal.textColor = canvas.GetStyle("hovered").color;
+				} else {
+					style.normal.textColor = Color.white;
+				}
+				var constraint = c as ValueConstraint;
+				var pos = constraint.pos;
+				pos = Camera.main.WorldToScreenPoint(pos);
+				var txt = Math.Abs(constraint.GetValue()).ToString("0.##");
+				GUI.Label(new Rect(pos.x, Camera.main.pixelHeight - pos.y, 0, 0), txt, style);
+			}
+		}
+	}
+		
 
 	public void New() {
 		if(detail != null) {
@@ -299,5 +324,17 @@ public class DetailEditor : MonoBehaviour {
 			return (activeFeature as MeshFeature).solid.ToStlString(activeFeature.GetType().Name);
 		}
 		return "";
+	}
+
+	private void OnDrawGizmos() {
+		if(currentSketch != null) {
+			var bounds = currentSketch.bounds;
+			if(currentSketch is LinearArrayFeature) {
+				var laf = currentSketch as LinearArrayFeature;
+				laf.DrawGizmos(Input.mousePosition, Camera.main);
+			} else {
+				Gizmos.DrawWireCube(bounds.center, bounds.size);
+			}
+		}
 	}
 }

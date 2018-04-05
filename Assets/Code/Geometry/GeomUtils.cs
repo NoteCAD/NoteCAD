@@ -176,6 +176,27 @@ public static class GeomUtils {
 		
 		return true;
 	}
+
+	public static Bounds Transformed(this Bounds bounds, Matrix4x4 tf) {
+		return TransformBounds(tf, bounds);
+	}
+
+    static Bounds TransformBounds(Matrix4x4 _transform, Bounds _localBounds) {
+        var center = _transform.MultiplyPoint(_localBounds.center);
+ 
+        // transform the local extents' axes
+        var extents = _localBounds.extents;
+        var axisX = _transform.MultiplyVector(new Vector3(extents.x, 0, 0));
+        var axisY = _transform.MultiplyVector(new Vector3(0, extents.y, 0));
+        var axisZ = _transform.MultiplyVector(new Vector3(0, 0, extents.z));
+ 
+        // sum their absolute value to get the world extents
+        extents.x = Mathf.Abs(axisX.x) + Mathf.Abs(axisY.x) + Mathf.Abs(axisZ.x);
+        extents.y = Mathf.Abs(axisX.y) + Mathf.Abs(axisY.y) + Mathf.Abs(axisZ.y);
+        extents.z = Mathf.Abs(axisX.z) + Mathf.Abs(axisY.z) + Mathf.Abs(axisZ.z);
+ 
+        return new Bounds { center = center, extents = extents };
+    }
 	
 }
 

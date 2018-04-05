@@ -31,6 +31,8 @@ public abstract class Feature : CADObject {
 		}
 	}
 
+	public virtual Bounds bounds { get { return new Bounds(); } }
+
 	public override CADObject parentObject {
 		get {
 			return detail;

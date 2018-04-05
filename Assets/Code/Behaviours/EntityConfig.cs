@@ -6,7 +6,6 @@ using UnityEngine.UI;
 public class EntityConfig : MonoBehaviour {
 
 	public static EntityConfig instance;
-	public ConstraintBehaviour constraint;
 	public Text labelPrefab;
 	public Material meshMaterial;
 	public Material loopMaterial;

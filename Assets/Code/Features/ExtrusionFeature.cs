@@ -215,7 +215,7 @@ public class ExtrusionFeature : MeshFeature {
 			var p0 = camera.WorldToScreenPoint(pp);
 			var p1 = camera.WorldToScreenPoint(pp + dir);
 			double d = GeomUtils.DistancePointSegment2D(mouse, p0, p1);
-			if(d > 5.0) continue;
+			if(d > Sketch.hoverRadius) continue;
 			if(min >= 0.0 && d > min) continue;
 			min = d;
 			hover = p;

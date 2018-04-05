@@ -201,7 +201,7 @@ public class Sketch : CADObject, ISketch  {
 	IEntity ISketch.Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
 		return Hover(mouse, camera, tf, ref objDist) as IEntity;
 	}
-
+	public static double hoverRadius = 5.0;
 	public SketchObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
 		double min = -1.0;
 		SketchObject hoveredObject = null;
@@ -209,7 +209,7 @@ public class Sketch : CADObject, ISketch  {
 			if(!e.isSelectable) continue;
 			var dist = e.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
-			if(dist > 5.0) continue;
+			if(dist > hoverRadius) continue;
 			if(min >= 0.0 && dist > min) continue;
 			min = dist;
 			hoveredObject = e;
@@ -218,7 +218,7 @@ public class Sketch : CADObject, ISketch  {
 			if(!c.isSelectable) continue;
 			var dist = c.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
-			if(dist > 5.0) continue;
+			if(dist > Sketch.hoverRadius) continue;
 			if(min >= 0.0 && dist > min) continue;
 			min = dist;
 			hoveredObject = c;
@@ -447,5 +447,11 @@ public class Sketch : CADObject, ISketch  {
 		var e = GetEntity(guid);
 		if(e != null) return e;
 		return constraints.Find(c => c.guid == guid);
+	}
+
+	public Bounds calculateBounds() {
+		var points = entities.SelectMany(e => e.SegmentsInPlane(null)).ToArray();
+		if(points.Length == 0) return new Bounds();
+		return GeometryUtility.CalculateBounds(points, Matrix4x4.identity);
 	}
 }

@@ -196,6 +196,7 @@ public class EquationSystem  {
 			AAT = new double[A.GetLength(0), A.GetLength(0)];
 			oldParamValues = new double[parameters.Count];
 			isDirty = false;
+			dofChanged = true;
 		}
 	}
 
@@ -244,8 +245,10 @@ public class EquationSystem  {
 	}
 
 	public string stats { get; private set; }
+	public bool dofChanged { get; private set; }
 
 	public SolveResult Solve() {
+		dofChanged = false;
 		UpdateDirty();
 		StoreParams();
 		int steps = 0;
@@ -254,6 +257,7 @@ public class EquationSystem  {
 			Eval(ref B, clearDrag: !isDragStep);
 			if(IsConverged(checkDrag: isDragStep)) {
 				if(steps > 0) {
+					dofChanged = true;
 					Debug.Log(String.Format("solved {0} equations with {1} unknowns in {2} steps", equations.Count, currentParams.Count, steps));
 				}
 				stats = String.Format("eqs:{0}\nunkn: {1}", equations.Count, currentParams.Count);
@@ -267,6 +271,7 @@ public class EquationSystem  {
 			}
 		} while(steps++ <= maxSteps);
 		RevertParams();
+		dofChanged = false;
 		return SolveResult.DIDNT_CONVEGE;
 	}
 }

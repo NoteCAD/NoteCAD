@@ -164,6 +164,10 @@ public class DraftStroke : MonoBehaviour {
 	StrokeStyle currentStyle = new StrokeStyle();
 	Lines currentLines = null;
 
+	public StrokeStyle GetStyle(string name) {
+		return styles.First(s => s.name == name);
+	}
+
 	public void SetStyle(string name) {
 		currentStyle = styles.First(s => s.name == name);
 		if(!lines.ContainsKey(currentStyle)) {

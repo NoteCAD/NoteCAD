@@ -55,8 +55,6 @@ public class PointEntity : Entity {
 		}
 	}
 
-	protected override GameObject gameObject { get { return null; } }
-
 	public override IEnumerable<Param> parameters {
 		get {
 			yield return x;

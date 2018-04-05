@@ -126,6 +126,8 @@ public class SketchFeature : Feature, IPlane {
 		return sketch;
 	}
 
+	public override Bounds bounds { get { return sketch.calculateBounds(); } }
+
 	public SketchFeature() {
 		sketch = new Sketch();
 		sketch.feature = this;
@@ -217,6 +219,11 @@ public class SketchFeature : Feature, IPlane {
 			loops = sketch.GenerateLoops();
 		}
 
+		var loopsChanged = loops.Any(l => l.Any(e => e.IsChanged()));
+		if(loopsChanged || sketch.topologyChanged) {
+			CreateLoops();
+		}
+
 		if(sketch.IsEntitiesChanged()) {
 			canvas.ClearStyle("entities");
 			canvas.SetStyle("entities");
@@ -232,10 +239,6 @@ public class SketchFeature : Feature, IPlane {
 			}
 		}
 
-		var loopsChanged = loops.Any(l => l.Any(e => e.IsChanged()));
-		if(loopsChanged || sketch.topologyChanged) {
-			CreateLoops();
-		}
 		sketch.MarkUnchanged();
 		canvas.UpdateDirty();
 	}

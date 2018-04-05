@@ -78,7 +78,6 @@ public abstract class SketchObject : CADObject, ICADObject {
 		sk = sketch;
 		guid_ = sketch.idGenerator.New();
 	}
-	protected virtual GameObject gameObject { get { return null; } }
 
 	public virtual IEnumerable<Param> parameters { get { yield break; } }
 	public virtual IEnumerable<Exp> equations { get { yield break; } }
@@ -99,27 +98,6 @@ public abstract class SketchObject : CADObject, ICADObject {
 		set {
 			if(value == hovered) return;
 			hovered = value;
-			if(gameObject == null) return;
-			var r = gameObject.GetComponent<Renderer>();
-			var t = gameObject.GetComponent<UnityEngine.UI.Text>();
-			if(isError) return;
-			if(!hovered) {
-				if(r != null) {
-					r.material.color = oldColor;
-					r.material.renderQueue--;
-				} else if(t != null) {
-					t.color = oldColor;
-				}
-			} else {
-				if(r != null) {
-					oldColor = r.material.color;
-					r.material.color = Color.yellow;
-					r.material.renderQueue++;
-				} else if(t != null) {
-					oldColor = t.color;
-					t.color = Color.yellow;
-				}
-			}
 		}
 	}
 
@@ -134,26 +112,6 @@ public abstract class SketchObject : CADObject, ICADObject {
 				isHovered = false;
 			}
 			error = value;
-			if(gameObject == null) return;
-			var r = gameObject.GetComponent<Renderer>();
-			var t = gameObject.GetComponent<UnityEngine.UI.Text>();
-			if(!error) {
-				if(r != null) {
-					r.material.color = oldColor;
-					r.material.renderQueue--;
-				} else if(t != null) {
-					t.color = oldColor;
-				}
-			} else {
-				if(r != null) {
-					oldColor = r.material.color;
-					r.material.color = Color.red;
-					r.material.renderQueue++;
-				} else if(t != null) {
-					oldColor = t.color;
-					t.color = Color.red;
-				}
-			}
 		}
 	}
 
@@ -165,10 +123,6 @@ public abstract class SketchObject : CADObject, ICADObject {
 		set {
 			if(value == selectable) return;
 			selectable = value;
-			if(gameObject == null) return;
-			var c = gameObject.GetComponent<Collider>();
-			if(c == null) return;
-			c.enabled = selectable;
 		}
 	}
 

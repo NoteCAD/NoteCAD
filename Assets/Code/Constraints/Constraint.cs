@@ -17,7 +17,6 @@ public abstract partial class Entity {
 public class Constraint : SketchObject {
 
 	public bool changed;
-	protected override GameObject gameObject { get { return null; } }
 	//List<Entity> entities = new List<Entity>();
 	List<IdPath> ids = new List<IdPath>();
 	protected Vector3[] ref_points = new Vector3[2];
@@ -120,7 +119,7 @@ public class Constraint : SketchObject {
 		return sketch.plane;
 	}
 
-	protected float getPixelSize() {
+	public static float getPixelSize() {
 		return (Camera.main.ScreenToWorldPoint(new Vector3(1f, 0f, 0f)) - Camera.main.ScreenToWorldPoint(Vector3.zero)).magnitude;
 	}
 
@@ -436,21 +435,12 @@ public class ValueConstraint : Constraint {
 			if(position_ == newPos) return;
 			position_ = newPos;
 			changed = true;
-			behaviour.Update();
+			//behaviour.Update();
 		}
 	}
-	//public bool changed;
-	ConstraintBehaviour behaviour;
-	protected override GameObject gameObject { get { return behaviour.text.gameObject; } }
 
-	public ValueConstraint(Sketch sk) : base(sk) {
-		behaviour = GameObject.Instantiate(EntityConfig.instance.constraint);
-		behaviour.constraint = this;
-	}
+	public ValueConstraint(Sketch sk) : base(sk) {}
 
-	protected override void OnDestroy() {
-		GameObject.Destroy(behaviour.gameObject);
-	}
 
 	public override IEnumerable<Param> parameters {
 		get {

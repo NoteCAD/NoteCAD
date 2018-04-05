@@ -131,7 +131,6 @@ public abstract partial class Entity : SketchObject, IEntity {
 			children[0].Destroy();
 			children.RemoveAt(0);
 		}
-		GameObject.Destroy(gameObject);
 	}
 
 	public override void Write(XmlTextWriter xml) {

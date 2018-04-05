@@ -3,7 +3,7 @@
 // Upgrade NOTE: replaced '_World2Object' with 'unity_WorldToObject'
 
 Shader "NoteCAD/DraftLines" {
-	
+
 	Properties {
 		_MainTex ("Texture", 2D) = "white" {}
 		_Width("Width", Float) = 1.0
@@ -22,7 +22,8 @@ Shader "NoteCAD/DraftLines" {
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			
+			#pragma multi_compile_instancing				
+
 			#include "UnityCG.cginc"
 
 			struct appdata {
@@ -30,7 +31,8 @@ Shader "NoteCAD/DraftLines" {
 				float2 uv : TEXCOORD0;
 				float4 tangent: NORMAL;
 				float4 params: TANGENT;
-		};
+				UNITY_VERTEX_INPUT_INSTANCE_ID
+			};
 
 			struct v2f
 			{
@@ -47,9 +49,11 @@ Shader "NoteCAD/DraftLines" {
 			
 			v2f vert (appdata v) {
 				v2f o;
+				UNITY_SETUP_INSTANCE_ID(v);
 				float pix = _Pixel / 2.0;
 				float3 tan = normalize(v.tangent);
 				float3 dir = mul((float3x3)unity_WorldToObject, (float3)_CamDir);
+
 				float3 x = tan * _Width * pix;
 				float3 y = normalize(cross(dir, x)) * _Width * pix;
 
