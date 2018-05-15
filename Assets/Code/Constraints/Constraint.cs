@@ -120,7 +120,7 @@ public class Constraint : SketchObject {
 	}
 
 	public static float getPixelSize() {
-		return (Camera.main.ScreenToWorldPoint(new Vector3(1f, 0f, 0f)) - Camera.main.ScreenToWorldPoint(Vector3.zero)).magnitude;
+		return (float)DraftStroke.getPixelSize();
 	}
 
 	protected Matrix4x4 makeBasis(Vector3 x, Vector3 y, Vector3 z, Vector3 p) {

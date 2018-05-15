@@ -123,6 +123,7 @@ public class PointEntity : Entity {
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
+		canvas.SetStyle("points");
 		canvas.DrawPoint(pos);
 	}
 

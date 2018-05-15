@@ -40,8 +40,7 @@ public class LineCanvas : DraftStroke {
 	}
 
 	public void DrawPoint(Vector3 pos) {
-		DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, Vector3.forward, 4);
-		DrawArc(pos - new Vector3(0.2f, 0, 0), pos + new Vector3(0.2f, 0, 0), pos, -Vector3.forward, 4);
+		DrawLine(pos, pos);
 	}	
 
 

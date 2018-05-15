@@ -22,14 +22,21 @@ public interface IEntity : ICADObject {
 public static class IEntityUtils {
 
 	public static ExpVector PointExpInPlane(this IEntity entity, IPlane plane) {
-		return entity.PointsInPlane(plane).Single();
+		var it = entity.PointsInPlane(plane).GetEnumerator();
+		it.MoveNext();
+		return it.Current;
+		//return entity.PointsInPlane(plane).Single();
 	}
 
 	public static IEnumerable<ExpVector> PointsInPlane(this IEntity entity, IPlane plane) {
 		if(plane == entity.plane) {
-			return entity.points;
+			for(var it = entity.points.GetEnumerator(); it.MoveNext();) {
+				yield return it.Current;
+			}
 		}
-		return entity.points.Select(p => plane.ToFrom(p, entity.plane));
+		for(var it = entity.points.GetEnumerator(); it.MoveNext();) {
+			yield return plane.ToFrom(it.Current, entity.plane);
+		}
 	}
 
 	public static IEnumerable<Vector3> SegmentsInPlane(this IEntity entity, IPlane plane) {
@@ -86,7 +93,9 @@ public abstract partial class Entity : SketchObject, IEntity {
 
 	IEnumerable<ExpVector> IEntity.points {
 		get {
-			return points.Select(p => p.exp);
+			for(var it = points.GetEnumerator(); it.MoveNext(); ) {
+				yield return it.Current.exp;
+			}
 		}
 	}
 
@@ -227,6 +236,7 @@ public abstract partial class Entity : SketchObject, IEntity {
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
+		canvas.SetStyle("entities");
 		ForEachSegment((a, b) => {
 			canvas.DrawLine(a, b);
 		});

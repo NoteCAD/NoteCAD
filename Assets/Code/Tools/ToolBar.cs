@@ -102,4 +102,5 @@ public class ToolBar : MonoBehaviour {
 	public void ActivateDefaultTool() {
 		ActiveTool = defaultTool;
 	}
+
 }

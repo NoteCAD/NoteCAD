@@ -90,7 +90,10 @@ public class SketchFeature : Feature, IPlane {
 	}
 
 	Matrix4x4 CalculateTransform() {
-		if(u == null) return Matrix4x4.identity;
+		if(u == null) {
+			transformDirty = false;
+			return Matrix4x4.identity;
+		}
 		var ud = u.GetDirectionInPlane(null).Eval().normalized;
 		var vd = v.GetDirectionInPlane(null).Eval();
 		var nd = Vector3.Cross(ud, vd).normalized;
@@ -226,6 +229,7 @@ public class SketchFeature : Feature, IPlane {
 
 		if(sketch.IsEntitiesChanged()) {
 			canvas.ClearStyle("entities");
+			canvas.ClearStyle("points");
 			canvas.SetStyle("entities");
 			foreach(var e in sketch.entityList) {
 				e.Draw(canvas);
@@ -246,6 +250,10 @@ public class SketchFeature : Feature, IPlane {
 	protected override ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
 		var resTf = GetTransform() * tf;
 		return sketch.Hover(mouse, camera, resTf, ref objDist);
+	}
+	
+	protected override void OnDraw(Matrix4x4 tf) {
+		canvas.DrawToGraphics(GetTransform() * tf);
 	}
 
 	protected override void OnUpdate() {

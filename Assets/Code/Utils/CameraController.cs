@@ -112,6 +112,6 @@ public class CameraController : MonoBehaviour {
 	}
 
 	private void OnDrawGizmos() {
-		Gizmos.DrawCube(Tool.WorldPlanePos, new Vector3(1, 1, 1));
+		//Gizmos.DrawCube(Tool.WorldPlanePos, new Vector3(1, 1, 1));
 	}
 }

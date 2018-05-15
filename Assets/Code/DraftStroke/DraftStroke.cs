@@ -34,6 +34,7 @@ public class DraftStroke : MonoBehaviour {
 		public List<Mesh> meshes = new List<Mesh>();
 		public bool dirty;
 		public StrokeStyle style;
+		public Material material;
 
 		public Lines(StrokeStyle s) {
 			style = s;
@@ -69,6 +70,7 @@ public class DraftStroke : MonoBehaviour {
 		go.transform.SetParent(parent != null ? parent.transform : gameObject.transform, false);
 		var mr = go.AddComponent<MeshRenderer>();
 		mr.material = material;
+		lines.material = mr.material;
 		var mf = go.AddComponent<MeshFilter>();
 		var mesh = new Mesh();
 		mesh.name = "lines";
@@ -141,9 +143,24 @@ public class DraftStroke : MonoBehaviour {
 
 	Dictionary<StrokeStyle, Lines> lines = new Dictionary<StrokeStyle, Lines>();
 
+	public void DrawToGraphics(Matrix4x4 tf) {
+		for(var li = lines.GetEnumerator(); li.MoveNext(); ) {
+			var material = li.Current.Value.material;
+			for(int i = 0; i < li.Current.Value.meshes.Count; i++) {
+				var mesh = li.Current.Value.meshes[i];
+				Graphics.DrawMesh(mesh, tf, material, 0);
+			}
+		}
+	}
+
+	public static double getPixelSize() {
+		return 1.0 / Camera.main.nonJitteredProjectionMatrix.GetColumn(0).magnitude / (double)Camera.main.pixelWidth * 2.0;
+	}
+
 	public void UpdateDirty() {
-		var pixel = (Camera.main.ScreenToWorldPoint(new Vector3(1f, 0f, 0f)) - Camera.main.ScreenToWorldPoint(Vector3.zero)).magnitude;
+		var pixel = getPixelSize();
 		Vector4 dir = Camera.main.transform.forward.normalized;
+		Vector4 right = Camera.main.transform.right.normalized;
 		foreach(var l in lines) {
 			var style = l.Key;
 			if(l.Value.dirty) {
@@ -152,8 +169,9 @@ public class DraftStroke : MonoBehaviour {
 			}
 			foreach(var m in l.Value.objects) {
 				var material = m.GetComponent<MeshRenderer>().material;
-				material.SetFloat("_Pixel", pixel);
+				material.SetFloat("_Pixel", (float)pixel);
 				material.SetVector("_CamDir", dir);
+				material.SetVector("_CamRight", right);
 				material.SetFloat("_Width", style.width);
 				material.SetColor("_Color", style.color);
 				material.renderQueue = style.queue;

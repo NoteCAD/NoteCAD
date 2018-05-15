@@ -135,6 +135,13 @@ public abstract class Feature : CADObject {
 		return null;
 	}
 
+	public void Draw(UnityEngine.Matrix4x4 tf) {
+		OnDraw(tf);
+	}
+
+	protected virtual void OnDraw(UnityEngine.Matrix4x4 tf) {
+
+	}
 
 	protected virtual void OnShow(bool state) {
 

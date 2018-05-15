@@ -170,7 +170,21 @@ public class Sketch : CADObject, ISketch  {
 	}
 
 	public Entity GetEntity(Id guid) {
-		return entities.Find(e => e.guid == guid);
+		for(int i = 0; i < entities.Count(); i++) {
+			if(entities[i].guid == guid) {
+				return entities[i];
+			}
+		}
+		return null;
+	}
+
+	public Constraint GetConstraint(Id guid) {
+		for(int i = 0; i < constraints.Count(); i++) {
+			if(constraints[i].guid == guid) {
+				return constraints[i];
+			}
+		}
+		return null;
 	}
 
 	public void AddConstraint(Constraint c) {
@@ -446,7 +460,7 @@ public class Sketch : CADObject, ISketch  {
 	public override ICADObject GetChild(Id guid) {
 		var e = GetEntity(guid);
 		if(e != null) return e;
-		return constraints.Find(c => c.guid == guid);
+		return GetConstraint(guid);
 	}
 
 	public Bounds calculateBounds() {

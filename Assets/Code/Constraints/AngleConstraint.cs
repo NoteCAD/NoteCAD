@@ -37,8 +37,12 @@ public class AngleConstraint : ValueConstraint {
 	}
 
 	Vector3[] GetPointsInPlane(IPlane plane) {
-		var points = new IEntity[] { l0p0, l0p1, l1p0, l1p1 };
-		return points.Select(pt => pt.PointExpInPlane(plane).Eval()).ToArray();
+		return new Vector3[] {
+			l0p0.PointExpInPlane(plane).Eval(),
+			l0p1.PointExpInPlane(plane).Eval(),
+			l1p0.PointExpInPlane(plane).Eval(),
+			l1p1.PointExpInPlane(plane).Eval()
+		};
 	}
 
 	Vector3[] GetPoints() {

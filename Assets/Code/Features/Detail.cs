@@ -17,7 +17,12 @@ public class Detail : Feature {
 	}
 
 	public override ICADObject GetChild(Id guid) {
-		return features.Find(f => f.guid == guid);
+		for(int i = 0; i < features.Count; i++) {
+			if(features[i].guid == guid) {
+				return features[i];
+			}
+		}
+		return null;
 	}
 
 	protected override void OnUpdate() {
@@ -110,6 +115,16 @@ public class Detail : Feature {
 
 	protected override ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
 		return HoverUntil(mouse, camera, tf, ref objDist, features.Last());
+	}
+
+	protected override void OnDraw(Matrix4x4 tf) {
+		foreach(var f in features) {
+			if(!f.visible) continue;
+			if(!f.ShouldHoverWhenInactive() && !f.active) {
+				continue;
+			}
+			f.Draw(tf);
+		}
 	}
 
 	public Feature GetFeature(Id guid) {

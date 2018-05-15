@@ -224,6 +224,7 @@ public class DetailEditor : MonoBehaviour {
 	}
 
 	private void LateUpdate() {
+		detail.Draw(UnityEngine.Matrix4x4.identity);
 		GC.Collect();
 	}
 

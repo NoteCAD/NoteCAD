@@ -68,4 +68,9 @@ MonoBehaviour:
     color: {r: 0.7647059, g: 0, b: 0, a: 1}
     width: 2
     queue: 2005
+  - name: points
+    color: {r: 0.7607844, g: 0.7607844, b: 0.7607844, a: 1}
+    width: 5
+    queue: 2003
+  parent: {fileID: 0}
   material: {fileID: 2100000, guid: da145fe11ec87bc43978f5f5da2ec79d, type: 2}

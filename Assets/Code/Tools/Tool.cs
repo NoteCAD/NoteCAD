@@ -8,6 +8,8 @@ public class Tool : MonoBehaviour {
 
 	[HideInInspector] public ToolBar toolbar;
 	public KeyCode[] hotkeys;
+	public string text;
+	public Sprite icon;
 
 	public bool shouldStop { get; private set; }
 
@@ -158,6 +160,17 @@ public class Tool : MonoBehaviour {
 
 	protected virtual string OnGetTooltip() {
 		return "";
+	}
+
+	public string GetRichText() {
+		if(hotkeys.Length == 0) return text;
+		var hk = hotkeys[0].ToString();
+		if(hk.Length != 1) return text;
+		var index = text.IndexOf(hk, System.StringComparison.OrdinalIgnoreCase);
+		var openColor = "<color=\"#6ECEEFFF\">";
+		var closeColor = "</color>";
+		if(index < 0) return text + "[" + openColor + hk + closeColor + "]";
+		return text.Substring(0, index) + openColor + text[index] + closeColor + text.Substring(index + 1, text.Length - index - 1);
 	}
 
 }

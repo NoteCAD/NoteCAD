@@ -1,5 +1,4 @@
-﻿using Csg;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,17 +61,14 @@ public class LinearArrayFeature : SketchFeature {
 	public Param dx = new Param("dx", 5.0);
 	public Param dy = new Param("dy", 5.0);
 	public int repeatCount = 5;
-	GameObject go;
+
+	public LinearArrayFeature() {
+		shouldHoverWhenInactive = true;
+	}
 
 	public Sketch sketch {
 		get {
 			return (source as SketchFeature).GetSketch();
-		}
-	}
-
-	public override GameObject gameObject {
-		get {
-			return go;
 		}
 	}
 
@@ -89,30 +85,20 @@ public class LinearArrayFeature : SketchFeature {
 		dy.changed = false;
 	}
 
-	protected override void OnUpdateDirty() {
-		base.OnUpdateDirty();
-		GameObject.Destroy(go);
-		go = new GameObject("LinearArrayFeature");
-		var sk = (source as SketchFeature).GetSketch();
+	protected override void OnDraw(Matrix4x4 tf) {
 		
+		var sk = source as SketchFeature;		
+		var dir = new Vector3((float)dx.value, (float)dy.value, 0f);
+		var dtf = Matrix4x4.Translate(dir);
+
 		for(int i = 0; i < repeatCount; i++) {
-			var mesh = GameObject.Instantiate(source.gameObject, go.transform);
-			mesh.SetActive(true);
-			var dir = shiftDir.Eval() * i;
-			mesh.transform.position += dir;
-			go.SetActive(visible);
+			sk.Draw(tf);
+			tf *= dtf;
 		}
+		//var bounds = sk.bounds.Transformed(tf);
+		//Draw(GeometryUtility.CalculateFrustumPlanes(Camera.main), bounds, tf, 0, repeatCount - 1);
 	}
 
-	protected override void OnShow(bool state) {
-		if(go != null) {
-			go.SetActive(state);
-		}
-	}
-
-	protected override void OnClear() {
-		GameObject.Destroy(go);
-	}
 	/*
 	protected override void OnWriteMeshFeature(XmlTextWriter xml) {
 		xml.WriteAttributeString("length", extrude.value.ToStr());
@@ -144,47 +130,70 @@ public class LinearArrayFeature : SketchFeature {
 
 	public static bool drawGizmos = false;
 
+	void DrawGizmoBounds(Bounds bb, Color color) {
+		if(!drawGizmos) return;
+			if(drawGizmos) {
+				Gizmos.color = color;
+				Gizmos.DrawWireCube(bb.center, bb.size);
+			}
+	}
+	/*
+	void Draw(Plane[] planes, Bounds bounds, Matrix4x4 tf, int left, int right) {
+		int lmid = (int)Mathf.Floor((left + right) / 2.0f);
+		int rmid = (int)Mathf.Ceil((left + right) / 2.0f);
+		float expand = (float)Sketch.hoverRadius * Constraint.getPixelSize() * 2;
+
+		for(int i = 0; i < 2; i++) {
+			var l = left;
+			var r = lmid;
+			if(i == 1) {
+				l = rmid;
+				r = right;
+			}
+			var bb = TwoBounds(bounds, l, r);
+			bb.Expand(expand);
+			if(GeometryUtility.TestPlanesAABB(planes, bb)) {
+				DrawGizmoBounds(bb, Color.red);
+				if(l == r) {
+					var sk = source as SketchFeature;
+					var dir = new Vector3((float)dx.value, (float)dy.value, 0f);
+					sk.Draw(tf * Matrix4x4.Translate(dir * l));
+
+					DrawGizmoBounds(bb, Color.green);
+				} else {
+					Draw(planes, bounds, tf, l, r);
+				}
+			}
+		}
+	}
+	*/
 	void FindHits(Ray ray, Bounds bounds, int left, int right, ref HashSet<int> hits) {
 		int lmid = (int)Mathf.Floor((left + right) / 2.0f);
 		int rmid = (int)Mathf.Ceil((left + right) / 2.0f);
-		float expand = (float)Sketch.hoverRadius * Constraint.getPixelSize();
-		var bb = TwoBounds(bounds, left, lmid);
-		bb.Expand(expand);
-		if(bb.IntersectRay(ray)) {
-			if(drawGizmos) {
-				Gizmos.color = Color.red;
-				Gizmos.DrawWireCube(bb.center, bb.size);
+		float expand = (float)Sketch.hoverRadius * Constraint.getPixelSize() * 2;
+
+		for(int i = 0; i < 2; i++) {
+			var l = left;
+			var r = lmid;
+			if(i == 1) {
+				l = rmid;
+				r = right;
 			}
-			if(left == lmid) {
-				hits.Add(lmid);
-				if(drawGizmos) {
-					Gizmos.color = Color.green;
-					Gizmos.DrawWireCube(bb.center, bb.size);
+			var bb = TwoBounds(bounds, l, r);
+			bb.Expand(expand);
+			if(bb.IntersectRay(ray)) {
+				DrawGizmoBounds(bb, Color.red);
+				if(l == r) {
+					hits.Add(r);
+					DrawGizmoBounds(bb, Color.green);
+				} else {
+					FindHits(ray, bounds, l, r, ref hits);
 				}
-			} else {
-				FindHits(ray, bounds, left, lmid, ref hits);
-			}
-		}
-		bb = TwoBounds(bounds, rmid, right);
-		bb.Expand(expand);
-		if(bb.IntersectRay(ray)) {
-			if(drawGizmos) {
-				Gizmos.color = Color.red;
-				Gizmos.DrawWireCube(bb.center, bb.size);
-			}
-			if(rmid == right) {
-				hits.Add(rmid);
-				if(drawGizmos) {
-					Gizmos.color = Color.green;
-					Gizmos.DrawWireCube(bb.center, bb.size);
-				}
-			} else {
-				FindHits(ray, bounds, rmid, right, ref hits);
 			}
 		}
 	}
 
-	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double dist) {
 		var sk = source as SketchFeature;
 		var bounds = sk.bounds.Transformed(tf);
 		var ray = camera.ScreenPointToRay(mouse);
@@ -193,7 +202,7 @@ public class LinearArrayFeature : SketchFeature {
 		FindHits(ray, bounds, 0, repeatCount - 1, ref hits);
 
 		foreach(var hit in hits) {
-			UnityEngine.Matrix4x4 move = UnityEngine.Matrix4x4.Translate(shiftDir.Eval() * hit);
+			Matrix4x4 move = Matrix4x4.Translate(shiftDir.Eval() * hit);
 			double d1 = -1;
 			var r1 = sk.Hover(mouse, camera, tf * move, ref d1);
 
@@ -225,7 +234,7 @@ public class LinearArrayFeature : SketchFeature {
 		drawGizmos = true;
 		//FindHits(ray, 0, repeatCount - 1, ref hits);
 		double dist = 0;
-		OnHover(mouse, camera, UnityEngine.Matrix4x4.identity, ref dist);
+		OnHover(mouse, camera, Matrix4x4.identity, ref dist);
 		drawGizmos = false;
 	}
 
