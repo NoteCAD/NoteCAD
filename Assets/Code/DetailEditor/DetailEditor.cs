@@ -26,7 +26,7 @@ public class DetailEditor : MonoBehaviour {
 	public FeatureUI featureUIPrefab;
 	public List<FeatureUI> featuresUI;
 	public Color pressedColor;
-	Mesh mesh;
+	public Mesh mesh;
 
 	bool meshDirty = true;
 	bool justSwitchedToSketch = true;

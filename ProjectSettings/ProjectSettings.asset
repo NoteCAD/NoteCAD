@@ -565,7 +565,8 @@ PlayerSettings:
   webGLUseWasm: 1
   webGLCompressionFormat: 0
   scriptingDefineSymbols:
-    1: 
+    1: G3_USING_UNITY
+    13: G3_USING_UNITY
   platformArchitecture: {}
   scriptingBackend: {}
   incrementalIl2cppBuild: {}

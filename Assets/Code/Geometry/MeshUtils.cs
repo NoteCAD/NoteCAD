@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using Csg;
+using g3;
 
 public static class MeshUtils {
 
@@ -166,6 +167,26 @@ public static class MeshUtils {
 			polygons.Add(new Polygon(vertices));
 		}
 		return Solid.FromPolygons(polygons);
+	}
+
+	public static DMesh3 ToDMesh3(this Mesh mesh) {
+		DMesh3 result = new DMesh3();
+
+		var indices = mesh.GetIndices(0);
+		var verts = mesh.vertices;
+
+		for(int i = 0; i < verts.Length; i++) {
+			result.AppendVertex(verts[i]);
+		}
+
+		for(int i = 0; i < indices.Length / 3; i++) {
+			result.AppendTriangle(
+				indices[i * 3 + 0],
+				indices[i * 3 + 1],
+				indices[i * 3 + 2]
+			);
+		}
+		return result;
 	}
 
 }

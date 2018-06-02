@@ -7,27 +7,25 @@ using System;
 public class NoteCADJS : MonoBehaviour {
 
 #if UNITY_EDITOR
+
 	public static void SaveData(string data, string filename) {
-		var path = UnityEditor.EditorUtility.SaveFilePanel("Save NoteCAD file", "", filename, "xml");
+		var path = UnityEditor.EditorUtility.SaveFilePanel("Save NoteCAD file", "", filename, "");
 		System.IO.File.WriteAllText(path, data);
 	}
-#elif UNITY_WEBGL
-	[DllImport("__Internal")]
-	public static extern void SaveData(string data, string filename);
-#else
-	public static void SaveData(string data, string filename) {
-		
-	}
-#endif
 
-#if UNITY_EDITOR
 	public static void LoadData(Action<string> callback) {
-		var path = UnityEditor.EditorUtility.OpenFilePanel("Load NoteCAD file", "", "xml");
+		var path = UnityEditor.EditorUtility.OpenFilePanel("Load NoteCAD file", "", "");
 		callback(System.IO.File.ReadAllText(path));
 	}
+
 #elif UNITY_WEBGL
+	
+	[DllImport("__Internal")]
+	public static extern void SaveData(string data, string filename);
+
 	[DllImport("__Internal")]
 	private static extern string LoadDataInternal();
+
 	private static Action<string> loadCallback;
 	public static void LoadData(Action<string> callback) {
 		loadCallback = callback;
@@ -39,9 +37,12 @@ public class NoteCADJS : MonoBehaviour {
 			loadCallback = null;
 		}
 	}
+
 #else
-	public static void LoadData(Action<string> callback) {
-	}
+	
+	public static void SaveData(string data, string filename) {}
+	public static void LoadData(Action<string> callback) {}
+
 #endif
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -52,6 +53,5 @@ public class NoteCADJS : MonoBehaviour {
 		return "";
 	}
 #endif
-
 
 }

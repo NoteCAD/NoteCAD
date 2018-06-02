@@ -5,6 +5,9 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
-    path: Assets/Scenes/Test.unity
+  - enabled: 0
+    path: Assets/Scenes/NoteCAD.unity
     guid: 13a73b934e9cc9d42891e9caa62f3acc
+  - enabled: 1
+    path: Assets/Scenes/NoteCAM.unity
+    guid: 5ee3f0b58ee150d4f85e1105fdc467cb

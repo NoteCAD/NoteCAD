@@ -29,6 +29,13 @@ public static class GeomUtils {
 		return (pp - p).magnitude;
 	}
 
+	public static float DistancePointSegment3D(Vector3 p, Vector3 p0, Vector3 p1) {
+		var dir = p1 - p0;
+		var t = Mathf.Clamp01(Vector3.Dot(dir, p - p0) / Vector3.Dot(dir, dir));
+		var pp = p0 + dir * t;
+		return (pp - p).magnitude;
+	}
+
 	public static Vector3 projectToPlane(Vector3 pos, Vector3 normal, Vector3 point) {
 		Plane p = new Plane(normal, point);
 		return pos - p.GetDistanceToPoint(pos) * normal;
