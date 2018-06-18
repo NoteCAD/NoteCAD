@@ -71,6 +71,26 @@ mergeInto(LibraryManager.library, {
     var buffer = _malloc(bufferSize);
     stringToUTF8(result, buffer, bufferSize);
     return buffer;
+  },
+  LoadBinaryDataInternal: function() {
+    if (!document.getElementById('BinaryFileInput')) {
+      var fileInput = document.createElement('input');
+      fileInput.setAttribute('type', 'file');
+      fileInput.setAttribute('id', 'BinaryFileInput');
+      fileInput.style.visibility = 'hidden';
+      fileInput.onclick = function (event) {
+        this.value = null;
+      };
+      fileInput.onchange = function (event) {
+        SendMessage('JSUtils', 'BinaryFileSelected', URL.createObjectURL(event.target.files[0]));
+      }
+      document.body.appendChild(fileInput);
+    }
+    var OpenFileDialog = function() {
+      document.getElementById('BinaryFileInput').click();
+      document.getElementById('gameContainer').removeEventListener('click', OpenFileDialog);
+    };
+    document.getElementById('gameContainer').addEventListener('click', OpenFileDialog, false);
   }
 });
 

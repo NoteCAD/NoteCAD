@@ -119,6 +119,14 @@ public static class MeshUtils {
 		return new Vector3((float)v.X, (float)v.Y, (float)v.Z);
 	}
 
+	public static Vector3d ToVector3d(this Vector3 v) {
+		return new Vector3d(v.x, v.y, v.z);
+	}
+
+	public static Vector3 ToVector3(this Vector3d v) {
+		return new Vector3((float)v.x, (float)v.y, (float)v.z);
+	}
+
 	public static Solid ToSolid(this Mesh mesh, UnityEngine.Matrix4x4 tf) {
 		var indices = mesh.GetIndices(0);
 		var polygons = new List<Polygon>();

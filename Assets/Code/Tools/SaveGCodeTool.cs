@@ -20,11 +20,19 @@ public class SaveGCodeTool : Tool {
 			message = "SliceFeature should be activated!";
 			return;
 		}
-		message = "";
-		StopTool();
 		var feature = DetailEditor.instance.activeFeature as SliceFeature;
 
-		var data = feature.GenerateGCode();
-		NoteCADJS.SaveData(data, "NoteCAMFile.gcode");
+		message = "Generating GCode...";
+		StartCoroutine(feature.GenerateGCode(
+			progress => {
+				message = progress.stage + " " + progress.current + "/" + progress.total + "(" + Mathf.Floor((float)progress.current / progress.total * 100f) + "%)";
+				//Debug.Log(message);
+			},
+			data => {
+				NoteCADJS.SaveData(data, "NoteCAMFile.gcode");
+				message = "";
+				StopTool();
+			}
+		));
 	}
 }

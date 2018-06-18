@@ -71,6 +71,7 @@ public class ToolBar : MonoBehaviour {
 
 		if(activeTool != null) {
 			activeTool.DoUpdate();
+			description.text = activeTool.GetDescription();
 		}
 
 		if(activeTool.shouldStop) {

@@ -127,6 +127,26 @@ public abstract class Feature : CADObject {
 		OnClear();
 	}
 
+	static public bool HoverPoint(Vector3 mouse, Camera camera, ref double min, Vector3 p) {
+		var p0 = camera.WorldToScreenPoint(p);
+		p0.z = 0f;
+		double d = (p0 - mouse).magnitude;
+		if(d > Sketch.hoverRadius) return false;
+		if(min >= 0.0 && d > min) return false;
+		min = d;
+		return true;
+	}
+
+	static public bool HoverSegment(Vector3 mouse, Camera camera, ref double min, Vector3 v0, Vector3 v1) {
+		var p0 = camera.WorldToScreenPoint(v0);
+		var p1 = camera.WorldToScreenPoint(v1);
+		double d = GeomUtils.DistancePointSegment2D(mouse, p0, p1);
+		if(d > Sketch.hoverRadius) return false;
+		if(min >= 0.0 && d > min) return false;
+		min = d;
+		return true;
+	}
+
 	public ICADObject Hover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
 		return OnHover(mouse, camera, tf, ref dist);
 	}
