@@ -1,0 +1,42 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+obj/
+bin/
+*.suo
+gsSlicer.csproj.user
+packages/
+
+thirdparty/clipper_library/bin
+thirdparty/clipper_library/obj
+*.userprefs
+
+
+# unity meta files
+*.meta
