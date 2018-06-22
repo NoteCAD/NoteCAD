@@ -40,15 +40,15 @@ class MeshEdgeEntity : IEntity {
 
 	public IEnumerable<ExpVector> points {
 		get {
-			yield return feature.hitMesh.Mesh.GetVertex(v0).ToVector3() + feature.pos;
-			yield return feature.hitMesh.Mesh.GetVertex(v1).ToVector3() + feature.pos;
+			yield return feature.basis.TransformPosition(feature.hitMesh.Mesh.GetVertex(v0).ToVector3());
+			yield return feature.basis.TransformPosition(feature.hitMesh.Mesh.GetVertex(v1).ToVector3());
 		}
 	}
 
 	public IEnumerable<Vector3> segments {
 		get {
-			yield return feature.hitMesh.Mesh.GetVertex(v0).ToVector3();
-			yield return feature.hitMesh.Mesh.GetVertex(v1).ToVector3();
+			yield return feature.transform.MultiplyPoint3x4(feature.hitMesh.Mesh.GetVertex(v0).ToVector3());
+			yield return feature.transform.MultiplyPoint3x4(feature.hitMesh.Mesh.GetVertex(v1).ToVector3());
 		}
 	}
 
@@ -57,13 +57,13 @@ class MeshEdgeEntity : IEntity {
 	}
 }
 
-class MeshPointEntity : IEntity {
+class MeshVertexEntity : IEntity {
 	MeshImportFeature feature;
 	int v0;
 
 	IEntityType IEntity.type { get { return IEntityType.Point; } }
 
-	public MeshPointEntity(MeshImportFeature f, int v0) {
+	public MeshVertexEntity(MeshImportFeature f, int v0) {
 		feature = f;
 		this.v0 = v0;
 	}
@@ -84,13 +84,13 @@ class MeshPointEntity : IEntity {
 
 	public IEnumerable<ExpVector> points {
 		get {
-			yield return feature.hitMesh.Mesh.GetVertex(v0).ToVector3();
+			yield return feature.basis.TransformPosition(feature.hitMesh.Mesh.GetVertex(v0).ToVector3());
 		}
 	}
 
 	public IEnumerable<Vector3> segments {
 		get {
-			yield return feature.hitMesh.Mesh.GetVertex(v0).ToVector3();
+			yield return feature.transform.MultiplyPoint3x4(feature.hitMesh.Mesh.GetVertex(v0).ToVector3());
 		}
 	}
 
@@ -104,23 +104,16 @@ public class MeshImportFeature : MeshFeature {
 	public MeshCheck meshCheck = new MeshCheck();
 	public DMeshAABBTree3 hitMesh;
 	GameObject go;
-	List<Pair<Vector3, Vector3>> edges = new List<Pair<Vector3, Vector3>>();
+	List<Pair<Vector3, Vector3>> edges;
 
-	public Param x { get; private set; }
-	public Param y { get; private set; }
-	public Param z { get; private set; }
-	public ExpVector pos { get; private set; }
+	public ExpBasis basis { get; private set; }
 
 	public MeshImportFeature(byte[] data) {
 		MemoryStream ms = new MemoryStream(data);
-		meshCheck.setMesh(Parabox.STL.pb_Stl_Importer.Import(ms)[0]);
-		mesh = meshCheck.ToUnityWatertightMesh();
-		hitMesh = new DMeshAABBTree3(mesh.ToDMesh3(), true);
-		edges = meshCheck.GenerateEdges();
-		x = new Param("x");
-		y = new Param("y");
-		z = new Param("z");
-		pos = new ExpVector(x, y, z);
+		mesh = Parabox.STL.pb_Stl_Importer.Import(ms)[0];
+		meshCheck.setMesh(mesh);
+		//mesh = meshCheck.ToUnityWatertightMesh();
+		basis = new ExpBasis();
 	}
 
 	public override GameObject gameObject {
@@ -130,21 +123,19 @@ public class MeshImportFeature : MeshFeature {
 	}
 
 	public override ICADObject GetChild(Id guid) {
-		if(guid.second == -1) return new MeshPointEntity(this, (int)guid.value);
+		if(guid.second == -1) return new MeshVertexEntity(this, (int)guid.value);
 		return new MeshEdgeEntity(this, (int)guid.value, (int)guid.second);
 	}
 
 	protected override void OnUpdate() {
-		if(x.changed || y.changed || z.changed) {
+		if(basis.changed) {
 			MarkDirty();
+			basis.markUnchanged();
 		}
-		x.changed = false;
-		y.changed = false;
-		z.changed = false;
 	}
 
 	protected override Solid OnGenerateMesh() {
-		var solid = mesh.ToSolid(UnityEngine.Matrix4x4.Translate(pos.Eval()));
+		var solid = mesh.ToSolid(basis.matrix);
 		return solid;
 	}
 
@@ -165,67 +156,24 @@ public class MeshImportFeature : MeshFeature {
 	}
 
 	protected override void OnGenerateEquations(EquationSystem sys) {
-		sys.AddParameter(x);
-		sys.AddParameter(y);
-		sys.AddParameter(z);
+		basis.GenerateEquations(sys);
 		//sketch.GenerateEquations(sys);
 		//base.OnGenerateEquations(sys);
 	}
 
 
 	protected override void OnUpdateDirty() {
-		GameObject.Destroy(go);
-		go = new GameObject("ImportMeshFeature");
-		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas, go.transform);
-		canvas.SetStyle("entities");
-		foreach(var edge in edges) {
-			canvas.DrawLine(edge.a, edge.b);
-		}
-		meshCheck.drawErrors(canvas);
-
-		go.transform.position = pos.Eval();
-
-		/*
-
-		var vertices = mesh.vertices;
-		var triangles = mesh.GetTriangles(0);
-		var edges = new HashSet<KeyValuePair<Vector3, Vector3>>();
-		var antiEdges = new HashSet<KeyValuePair<Vector3, Vector3>>();
-		var tris = new Dictionary<KeyValuePair<Vector3, Vector3>, int>();
-		for(int i = 0; i < triangles.Length / 3; i++) {
-			for(int j = 0; j < 3; j++) {
-				var edge = new KeyValuePair<Vector3, Vector3>(
-					Snap(vertices[triangles[i * 3 + j]], vertices),
-					Snap(vertices[triangles[i * 3 + (j + 1) % 3]], vertices)
-				);
-				if(edge.Key == edge.Value) continue;
-				tris[edge] =  i * 3 + j;
-				if(edges.Contains(edge)) continue;
-				if(antiEdges.Contains(edge)) continue;
-				var antiEdge = new KeyValuePair<Vector3, Vector3>(edge.Value, edge.Key);
-				edges.Add(edge);
-				antiEdges.Add(antiEdge);
+		if(edges == null) {
+			go = new GameObject("ImportMeshFeature");
+			canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas, go.transform);
+			canvas.SetStyle("entities");
+			edges = meshCheck.GenerateEdges();
+			foreach(var edge in edges) {
+				canvas.DrawLine(edge.a, edge.b);
 			}
+			meshCheck.drawErrors(canvas);
 		}
-
-		foreach(var edge in edges) {
-			var anti = new KeyValuePair<Vector3, Vector3>(edge.Value, edge.Key);
-			if(tris.ContainsKey(edge) && tris.ContainsKey(anti)) {
-				var tri0 = tris[edge];
-				var edg0 = tri0 % 3;
-				tri0 -= edg0;
-				var n0 = CalculateNormal(tri0, edg0, vertices, triangles);
-
-				var tri1 = tris[anti];
-				var edg1 = tri1 % 3;
-				tri1 -= edg1;
-				var n1 = CalculateNormal(tri1, edg1, vertices, triangles);
-
-				if((n0 - n1).magnitude < 1e-4) continue;
-			} else continue;
-			canvas.DrawLine(edge.Key, edge.Value);
-		}
-		*/
+		go.transform.SetMatrix(basis.matrix);
 		go.SetActive(visible);
 	}
 
@@ -245,9 +193,26 @@ public class MeshImportFeature : MeshFeature {
 	protected override void OnReadMeshFeature(XmlNode xml) {
 	}
 
+	public UnityEngine.Matrix4x4 transform {
+		get {
+			return basis.matrix;
+		}
+	}
+	bool initialized = false;
 	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
-		var ray = camera.ScreenPointToRay(mouse);
 		var tris = new List<int>();
+		var fullTf = tf * transform;
+		var invFullTf = fullTf.inverse;
+		var ray = camera.ScreenPointToRay(mouse);
+		ray.origin = invFullTf.MultiplyPoint3x4(ray.origin);
+		ray.direction = invFullTf.MultiplyVector(ray.direction);
+		if(hitMesh == null) {
+			if(!initialized) {
+				initialized = true;
+				return null;
+			}
+			hitMesh = new DMeshAABBTree3(mesh.ToDMesh3(), true);
+		}
 		hitMesh.FindAllHitTriangles(new Ray3d(ray.origin.ToVector3d(), ray.direction.ToVector3d().Normalized), tris);
 
 		double min = -1.0;
@@ -257,7 +222,7 @@ public class MeshImportFeature : MeshFeature {
 		foreach(var ti in tris) {
 			var t = hitMesh.Mesh.GetTriangle(ti);
 			for(int i = 0; i < 3; i++) {
-				var v0 = hitMesh.Mesh.GetVertex(t[i]).ToVector3();
+				var v0 = fullTf.MultiplyPoint3x4(hitMesh.Mesh.GetVertex(t[i]).ToVector3());
 				if(!HoverPoint(mouse, camera, ref min, v0)) continue;
 				hoverV0 = t[i];
 				hoverV1 = -1;
@@ -266,7 +231,7 @@ public class MeshImportFeature : MeshFeature {
 
 		if(hoverV0 != -1) {
 			dist = min;
-			return new MeshPointEntity(this, hoverV0);
+			return new MeshVertexEntity(this, hoverV0);
 		}
 
 		foreach(var ti in tris) {
@@ -275,7 +240,7 @@ public class MeshImportFeature : MeshFeature {
 				var v0 = hitMesh.Mesh.GetVertex(t[i]).ToVector3();
 				var v1 = hitMesh.Mesh.GetVertex(t[(i + 1) % 3]).ToVector3();
 				if(!meshCheck.IsEdgeSharp(v0, v1)) continue;
-				if(!HoverSegment(mouse, camera, ref min, v0, v1)) continue;
+				if(!HoverSegment(mouse, camera, ref min, fullTf.MultiplyPoint3x4(v0), fullTf.MultiplyPoint3x4(v1))) continue;
 				hoverV0 = t[i];
 				hoverV1 = t[(i + 1) % 3];
 			}
@@ -286,51 +251,6 @@ public class MeshImportFeature : MeshFeature {
 			return new MeshEdgeEntity(this, hoverV0, hoverV1);
 		}
 
-		/*
-		var sk = source as SketchFeature;
-		k
-		double d0 = -1;
-		var r0 = sk.Hover(mouse, camera, tf, ref d0);
-		if(!(r0 is Entity)) r0 = null;
-
-		UnityEngine.Matrix4x4 move = UnityEngine.Matrix4x4.Translate(Vector3.forward * (float)extrude.value);
-		double d1 = -1;
-		var r1 = sk.Hover(mouse, camera, tf * move, ref d1);
-		if(!(r1 is Entity)) r1 = null;
-
-		if(r1 != null && (r0 == null || d1 < d0)) {
-			r0 = new ExtrudedEntity(r1 as Entity, this, 1);
-			d0 = d1;
-		} else if(r0 != null) {
-			r0 = new ExtrudedEntity(r0 as Entity, this, 0);
-		}
-
-		var points = sk.GetSketch().entityList.OfType<PointEntity>();
-		var dir = extrusionDir.Eval();
-		double min = -1.0;
-		PointEntity hover = null;
-		var sktf = tf * sk.GetTransform();
-		foreach(var p in points) {
-			Vector3 pp = sktf.MultiplyPoint(p.pos);
-			var p0 = camera.WorldToScreenPoint(pp);
-			var p1 = camera.WorldToScreenPoint(pp + dir);
-			double d = GeomUtils.DistancePointSegment2D(mouse, p0, p1);
-			if(d > Sketch.hoverRadius) continue;
-			if(min >= 0.0 && d > min) continue;
-			min = d;
-			hover = p;
-		}
-
-		if(hover != null && (r0 == null || d0 > min)) {
-			dist = min;
-			return new ExtrudedPointEntity(hover, this);
-		}
-
-		if(r0 != null) {
-			dist = d0;
-			return r0;
-		}
-		*/
 		return null;
 	}
 

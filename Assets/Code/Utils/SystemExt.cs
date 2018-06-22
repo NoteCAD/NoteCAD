@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using UnityEngine;
 
 public static class SystemExt {
 	static NumberFormatInfo nfi = new NumberFormatInfo();
@@ -33,5 +32,11 @@ public static class SystemExt {
 
 	public static T ToEnum<T>(this string str) {
 		return (T)Enum.Parse(typeof(T), str);
+	}
+
+	public static void ForEach<T>(this IEnumerable<T> e, Action<T> action) {
+		foreach(var i in e) {
+			action(i);
+		}
 	}
 }

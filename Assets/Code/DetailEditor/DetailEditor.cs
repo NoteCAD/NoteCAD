@@ -133,13 +133,18 @@ public class DetailEditor : MonoBehaviour {
 		activeFeature.GenerateEquations(sys);
 	}
 	string dofText;
+
+	public bool suppressCombine = false;
+
 	private void Update() {
 		if(activeFeature != null) {
 			if(currentSketch != null && currentSketch.IsTopologyChanged()) {
 				UpdateSystem();
 			}
 			var res = sys.Solve();
-			string result = res.ToString() + "\n";
+			string result = "";
+			result += (GC.GetTotalMemory(false) / 1024 / 1024.0).ToString("0.##") + " mb\n";
+			result += res.ToString() + "\n";
 			if(sys.dofChanged) {
 				if(res == EquationSystem.SolveResult.OKAY && !sys.HasDragged()) {
 					int dof;
@@ -164,7 +169,7 @@ public class DetailEditor : MonoBehaviour {
 		meshDirty = meshDirty | detail.features.OfType<MeshFeature>().Any(f => f.dirty);
 		detail.MarkDirty();
 		detail.UpdateDirtyUntil(activeFeature);
-		if(meshDirty) {
+		if(meshDirty && !suppressCombine) {
 			meshDirty = false;
 			mesh.Clear();
 			Solid result = null;

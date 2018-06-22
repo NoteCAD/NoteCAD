@@ -1,0 +1,3 @@
+[submodule "Assets/Code/External/Csg"]
+	path = Assets/Code/External/Csg
+	url = https://github.com/Evil-Spirit/Csg.git

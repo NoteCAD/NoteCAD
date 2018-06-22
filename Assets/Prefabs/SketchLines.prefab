@@ -62,7 +62,7 @@ MonoBehaviour:
     queue: 2002
   - name: hovered
     color: {r: 0.83823526, g: 0.8151115, b: 0, a: 1}
-    width: 2
+    width: 3
     queue: 2004
   - name: error
     color: {r: 0.7647059, g: 0, b: 0, a: 1}

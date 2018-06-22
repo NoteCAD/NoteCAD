@@ -36,6 +36,13 @@ public class EquationSystem  {
 		isDirty = true;
 	}
 
+	public void AddEquation(ExpVector v) {
+		sourceEquations.Add(v.x);
+		sourceEquations.Add(v.y);
+		sourceEquations.Add(v.z);
+		isDirty = true;
+	}
+
 	public void AddEquations(IEnumerable<Exp> eq) {
 		sourceEquations.AddRange(eq);
 		isDirty = true;

@@ -31,7 +31,7 @@ public class MeshCheck {
 		public void removeTriangle(Triangle triangle) {
 			int i = triangles.IndexOf(triangle);
 			if(i < 0) {
-				Debug.Log("dont remove triangle from edge\n");
+				//Debug.Log("dont remove triangle from edge\n");
 				return;
 			}
 			triangles.RemoveAt(i);
@@ -161,10 +161,12 @@ public class MeshCheck {
 			
 	void splitEdges() {
 		Edge split = null;
-		foreach(var vertex in vertices) {
+		for(int j = 0; j < vertices.Count; j++) {
+			var vertex = vertices[j];
 			do {
 				split = null;
-				foreach(Edge edge in edges.Values) {
+				for(var it = edges.Values.GetEnumerator(); it.MoveNext();) {
+					var edge = it.Current;
 					if(GeomUtils.DistancePointSegment3D(vertex.pos, edge.a.pos, edge.b.pos) > EPSILON) continue;
 					if(edge.a == vertex) continue;
 					if(edge.b == vertex) continue;
@@ -175,7 +177,7 @@ public class MeshCheck {
 				if(split != null) {
 					removeEdge(split);
 					while(split.triangles.Count > 0) {
-						Debug.Log("split triangels " + split.triangles.Count);
+						//Debug.Log("split triangels " + split.triangles.Count);
 						Triangle triangle = split.triangles[0];
 						//foreach(Edge edge in triangle.edges) {
 						//	if(edge == split) continue;
@@ -193,7 +195,7 @@ public class MeshCheck {
 						}
 						removeTriangle(triangle);
 						if(split.triangles.Count > 0 && split.triangles[0] == triangle) {
-							Debug.Log("split triangele not died!!!!!\n");
+							//Debug.Log("split triangele not died!!!!!\n");
 							split.removeTriangle(triangle);
 						}
 					}
@@ -204,7 +206,8 @@ public class MeshCheck {
 	}
 			
 	Vertex getVertex(Vector3 v) {
-		foreach(Vertex vx in vertices) {
+		for(int i = 0; i < vertices.Count; i++) {
+			var vx = vertices[i];
 			if((vx.pos - v).sqrMagnitude > EPSILON * EPSILON) continue;
 			//if(vx.pos.x != v.x || vx.pos.y != v.y || vx.pos.z != v.z) continue;
 			return vx;
@@ -225,11 +228,11 @@ public class MeshCheck {
 	void removeTriangle(Triangle triangle) {
 		int i = triangles.IndexOf(triangle);
 		if(i < 0) {
-			Debug.Log("dont removeTriangle\n");
+			//Debug.Log("dont removeTriangle\n");
 			return;
 		}
-		foreach(Edge edge in triangle.edges) {
-			edge.removeTriangle(triangle);
+		for(int j = 0; j < triangle.edges.Length; j++) {
+			triangle.edges[j].removeTriangle(triangle);
 		}
 		triangles.RemoveAt(i);
 	}
@@ -268,7 +271,7 @@ public class MeshCheck {
 			
 	void addTriangle(Vertex a, Vertex b, Vertex c) {
 		if(a == b || a == c || b == c) {
-			Debug.Log("bad triangle\n");
+			//Debug.Log("bad triangle\n");
 			return;
 		}
 				
@@ -287,12 +290,7 @@ public class MeshCheck {
 		}
 		triangles.Add(t);
 	}
-			
-	bool step_by_step = false;
-	int step_frames = 1000;
-	int cur_frame = 0;
-	int cur_triangle = 0;
-			
+	
 	/*
 	public void saveSTL(const char *path) {
 		FILE *f = fopen(path, "wb");
@@ -369,11 +367,6 @@ public class MeshCheck {
 			
 	public void setMesh(Mesh mesh) {
 		clear();
-		//this.mesh = mesh;
-		if(step_by_step) {
-			cur_triangle = 0;
-			return;
-		}
 				
 		Vector3[] vertices = mesh.vertices;
 		int[] triangles = mesh.GetTriangles(0);

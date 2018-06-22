@@ -306,13 +306,6 @@
     <Compile Include="Assets\Code\Constraints\PointOnLine.cs" />
     <Compile Include="Assets\Code\Constraints\PointsCoincident.cs" />
     <Compile Include="Assets\Code\Constraints\PointsDistance.cs" />
-    <Compile Include="Assets\Code\CSG\Formats.cs" />
-    <Compile Include="Assets\Code\CSG\Octree.cs" />
-    <Compile Include="Assets\Code\CSG\Polygon.cs" />
-    <Compile Include="Assets\Code\CSG\Solid.cs" />
-    <Compile Include="Assets\Code\CSG\Solids.cs" />
-    <Compile Include="Assets\Code\CSG\Tree.cs" />
-    <Compile Include="Assets\Code\CSG\Vector.cs" />
     <Compile Include="Assets\Code\DetailEditor\DetailEditor.cs" />
     <Compile Include="Assets\Code\DetailEditor\FeatureUI.cs" />
     <Compile Include="Assets\Code\DetailEditor\OptionsUI.cs" />
@@ -322,6 +315,13 @@
     <Compile Include="Assets\Code\Entities\Entity.cs" />
     <Compile Include="Assets\Code\Entities\LineEntity.cs" />
     <Compile Include="Assets\Code\Entities\PointEntity.cs" />
+    <Compile Include="Assets\Code\External\Csg\Csg\Formats.cs" />
+    <Compile Include="Assets\Code\External\Csg\Csg\Octree.cs" />
+    <Compile Include="Assets\Code\External\Csg\Csg\Polygon.cs" />
+    <Compile Include="Assets\Code\External\Csg\Csg\Solid.cs" />
+    <Compile Include="Assets\Code\External\Csg\Csg\Solids.cs" />
+    <Compile Include="Assets\Code\External\Csg\Csg\Tree.cs" />
+    <Compile Include="Assets\Code\External\Csg\Csg\Vector.cs" />
     <Compile Include="Assets\Code\External\geometry3Sharp\approximation\BiArcFit2.cs" />
     <Compile Include="Assets\Code\External\geometry3Sharp\approximation\GaussPointsFit3.cs" />
     <Compile Include="Assets\Code\External\geometry3Sharp\approximation\OrthogonalPlaneFit3.cs" />
@@ -695,6 +695,7 @@
     <Compile Include="Assets\Code\Sketch\Sketch.cs" />
     <Compile Include="Assets\Code\Sketch\SketchObject.cs" />
     <Compile Include="Assets\Code\Solver\EquationSystem.cs" />
+    <Compile Include="Assets\Code\Solver\ExpBasis.cs" />
     <Compile Include="Assets\Code\Solver\Expression.cs" />
     <Compile Include="Assets\Code\Solver\ExpVector.cs" />
     <Compile Include="Assets\Code\Solver\GaussianMethod.cs" />
@@ -729,6 +730,7 @@
     <Compile Include="Assets\Code\Utils\FullMesh.cs" />
     <Compile Include="Assets\Code\Utils\NoteCADJS.cs" />
     <Compile Include="Assets\Code\Utils\SystemExt.cs" />
+    <Compile Include="Assets\Code\Utils\UnityExt.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Code\DraftStroke\DraftLines.shader" />

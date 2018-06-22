@@ -51,6 +51,7 @@ public class MoveTool : Tool {
 			DetailEditor.instance.AddDrag(dragX);
 			DetailEditor.instance.AddDrag(dragY);
 			DetailEditor.instance.AddDrag(dragZ);
+			DetailEditor.instance.suppressCombine = true;
 		}
 	}
 
@@ -58,6 +59,7 @@ public class MoveTool : Tool {
 		current = null;
 		foreach(var d in drag) {
 			DetailEditor.instance.RemoveDrag(d);
+			DetailEditor.instance.suppressCombine = false;
 		}
 		drag.Clear();
 		//canMove = true;
