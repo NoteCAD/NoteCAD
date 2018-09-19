@@ -4,19 +4,18 @@ using UnityEngine;
 
 public class EqualTool : Tool {
 
-	LineEntity l0;
+	IEntity l0;
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
-		var entity = sko as Entity;
+		var entity = sko as IEntity;
 		if(entity == null) return;
 
-		if(!(entity is LineEntity)) return;
-		var l = entity as LineEntity;
+		if(entity.type != IEntityType.Line) return;
 		if(l0 != null) {
-			new EqualLineLine(entity.sketch, l0, l);
+			new EqualLineLine(DetailEditor.instance.currentSketch.GetSketch(), l0, entity);
 			l0 = null;
 		} else {
-			l0 = l;
+			l0 = entity;
 		}
 	}
 

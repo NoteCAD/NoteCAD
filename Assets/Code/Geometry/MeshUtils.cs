@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using Csg;
 using g3;
+using System;
 
 public static class MeshUtils {
 
@@ -106,6 +107,62 @@ public static class MeshUtils {
 		mesh.RecalculateNormals();
 		mesh.RecalculateTangents();
 	}
+
+	public static Solid CreateSolidExtrusion(List<List<Entity>> entitiyLoops, float extrude, UnityEngine.Matrix4x4 tf, IdPath feature) {
+		var ids = new List<List<Id>>();
+		var polygons = Sketch.GetPolygons(entitiyLoops, ref ids);
+		bool inversed = extrude < 0f;
+		
+		var polys = new List<Polygon>();
+
+		Func<Vector3, Vector3> TF = v => tf.MultiplyPoint(v);
+
+		for(int pi = 0; pi < polygons.Count; pi++) {
+			var p = polygons[pi];
+			var pid = ids[pi];
+			var pv = new List<Vector3>(p);
+			var triangles = Triangulation.Triangulate(pv);
+
+			IdPath polyId = feature.With(new Id(-1)); 
+			bool invComp = true;
+			var shift = Vector3.zero;
+			var extrudeVector = Vector3.forward * extrude;
+
+			for(int side = 0; side < 2; side++) {
+				for(int i = 0; i < triangles.Count / 3; i++) {
+					var polygonVertices = new List<Vertex>();
+					for(int j = 0; j < 3; j++) {
+						polygonVertices.Add(TF(triangles[i * 3 + j] + shift).ToVertex());
+					}
+					if(inversed == invComp) polygonVertices.Reverse();
+					polys.Add(new Polygon(polygonVertices, polyId));
+				}
+				polyId = feature.With(new Id(-2)); 
+				invComp = false;
+				shift = extrudeVector;
+			}
+
+			Dictionary<Id, IdPath> paths = new Dictionary<Id, IdPath>();
+			for(int i = 0; i < p.Count; i++) {
+				var polygonVertices = new List<Vertex>();
+				polygonVertices.Add(TF(p[i]).ToVertex());
+				polygonVertices.Add(TF(p[(i + 1) % p.Count]).ToVertex());
+				polygonVertices.Add(TF((p[(i + 1) % p.Count] + extrudeVector)).ToVertex());
+				polygonVertices.Add(TF((p[i] + extrudeVector)).ToVertex());
+				if(!inversed) polygonVertices.Reverse();
+				IdPath curPath = null;
+				if(!paths.ContainsKey(pid[i])) {
+					curPath = feature.With(pid[i]);
+					paths.Add(pid[i], curPath);
+				} else {
+					curPath = paths[pid[i]];
+				}
+				polys.Add(new Polygon(polygonVertices, curPath));
+			}
+		}
+		return Solid.FromPolygons(polys);
+	}
+
 	
 	public static Vector3D ToVector3D(this Vector3 v) {
 		return new Vector3D(v.x, v.y, v.z);
@@ -138,9 +195,147 @@ public static class MeshUtils {
 				v = tf.MultiplyPoint(v);
 				vertices.Add(v.ToVertex());
 			}
-			polygons.Add(new Polygon(vertices));
+			polygons.Add(new Polygon(vertices, -1));
 		}
 		return Solid.FromPolygons(polygons);
+	}
+
+	public static object Raytrace(this Solid solid, Ray ray) {
+		double min = -1;
+		Polygon res = null;
+		for(int i = 0; i < solid.Polygons.Count; i++) {
+			var polygon = solid.Polygons[i];
+			var a = polygon.Vertices[0].Pos;
+			for (var j = 0; j < polygon.Vertices.Count - 2; j++) {
+				var b = polygon.Vertices[j + 1].Pos;
+				var c = polygon.Vertices[j + 2].Pos;
+				double t = -1;
+				if(RaytraceTriangle(ray, a, b, c, ref t, true, false)) {
+					if(min < 0 || min > t) {
+						min = t;
+						res = polygon;
+					}
+				}
+			}
+		}
+		if(res != null) return res.userData;
+		return null;
+	}
+	/*
+	public static bool RaytraceTriangle(Ray ray, Vector3 vert0, Vector3 vert1, Vector3 vert2, ref float intsPoint, bool fs, bool fd) {
+
+		// Idea: Tomas Moeller and Ben Trumbore
+		// in Fast, Minimum Storage Ray/Triangle Intersection
+
+		// Find vectors for two edges sharing vert0
+		Vector3 rayDir = ray.direction;
+		Vector3 edge1 = vert1 - vert0;
+		Vector3 edge2 = vert2 - vert0;
+
+		// Begin calculating determinant - also used to calculate U parameter
+		Vector3 pvec = Vector3.Cross(rayDir, edge2);
+
+		// If determinant is near zero, ray lies in plane of triangle
+		float det = Vector3.Dot(edge1, pvec);
+
+		//
+		if(det < 1e-6) return false;
+		float inv_det = 1.0f / det;
+
+		// Calculate distance from vert0 to ray origin
+		Vector3 tvec = ray.origin - vert0;
+
+		// Calculate U parameter and test bounds
+		float u = Vector3.Dot(tvec, pvec) * inv_det;
+		if (u < 0.0f || u > 1.0f) return false;
+
+		// Prepare to test V parameter
+		Vector3 qvec = Vector3.Cross(tvec, edge1);
+
+		// Calculate V parameter and test bounds
+		float v = Vector3.Dot(rayDir, qvec) * inv_det;
+		if (v < 0.0f || u + v > 1.0f) return false;
+
+		// Calculate t, ray intersects triangle
+		float t = Vector3.Dot(edge2, qvec) * inv_det;
+
+		// Calculate intersection point and test ray length and direction
+		if ((fs && t < 0.0f) || (fd && t > 1.0f)) return false;
+
+		intsPoint = t;
+
+		return true;
+	}
+	*/
+
+	public static bool RaytraceTriangle(Ray ray, Vector3D vert0, Vector3D vert1, Vector3D vert2, ref double intsPoint, bool fs, bool fd) {
+
+		// Idea: Tomas Moeller and Ben Trumbore
+		// in Fast, Minimum Storage Ray/Triangle Intersection
+
+		// Find vectors for two edges sharing vert0
+		var rayDir = ray.direction.ToVector3D();
+		var edge1 = vert1 - vert0;
+		var edge2 = vert2 - vert0;
+
+		// Begin calculating determinant - also used to calculate U parameter
+		var pvec = rayDir.Cross(edge2);
+
+		// If determinant is near zero, ray lies in plane of triangle
+		var det = edge1.Dot(pvec);
+
+		//
+		if(det < 1e-6) return false;
+		var inv_det = 1.0f / det;
+
+		// Calculate distance from vert0 to ray origin
+		var tvec = ray.origin.ToVector3D() - vert0;
+
+		// Calculate U parameter and test bounds
+		var u = tvec.Dot(pvec) * inv_det;
+		if (u < 0.0f || u > 1.0f) return false;
+
+		// Prepare to test V parameter
+		var qvec = tvec.Cross(edge1);
+
+		// Calculate V parameter and test bounds
+		var v = rayDir.Dot(qvec) * inv_det;
+		if (v < 0.0f || u + v > 1.0f) return false;
+
+		// Calculate t, ray intersects triangle
+		var t = edge2.Dot(qvec) * inv_det;
+
+		// Calculate intersection point and test ray length and direction
+		if ((fs && t < 0.0f) || (fd && t > 1.0f)) return false;
+
+		intsPoint = t;
+
+		return true;
+	}
+
+	public static void FromSolid(this Mesh mesh, Solid solid, object selected) {
+		var vertices = new List<Vector3>();
+
+		foreach(var polygon in solid.Polygons) {
+			if(polygon.Vertices.Count < 3) continue;
+			if(polygon.userData != selected) continue;
+			var first = polygon.Vertices[0];
+			for (var i = 0; i < polygon.Vertices.Count - 2; i++) {
+				vertices.Add(first.Pos.ToVector3());
+				vertices.Add(polygon.Vertices[i + 1].Pos.ToVector3());
+				vertices.Add(polygon.Vertices[i + 2].Pos.ToVector3());
+			}
+		}
+		var indices = new int[vertices.Count];
+		for(int i = 0; i < indices.Length; i++) indices[i] = i;
+
+		mesh.Clear();
+		if(vertices.Count < 1) return;
+		mesh.SetVertices(vertices);
+		mesh.SetIndices(indices, MeshTopology.Triangles, 0);
+		mesh.RecalculateBounds();
+		mesh.RecalculateNormals();
+		mesh.RecalculateTangents();
 	}
 
 	public static void FromSolid(this Mesh mesh, Solid solid) {
@@ -172,7 +367,7 @@ public static class MeshUtils {
 			foreach(var v in p.Vertices) {
 				vertices.Add(new Vertex(v.Pos));
 			}
-			polygons.Add(new Polygon(vertices));
+			polygons.Add(new Polygon(vertices, p.userData));
 		}
 		return Solid.FromPolygons(polygons);
 	}

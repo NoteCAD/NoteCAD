@@ -399,11 +399,11 @@ public class MeshCheck {
 		return v;
 	}
 
-	bool IsNormalsSharp(Vector3 n0, Vector3 n1) {
-		return Vector3.Dot(n0, n1) < Mathf.Cos(25.0f * Mathf.PI / 180f);
+	bool IsNormalsSharp(Vector3 n0, Vector3 n1, float angle) {
+		return Vector3.Dot(n0, n1) <= Mathf.Cos(angle * Mathf.PI / 180f);
 	}
 
-	bool IsEdgeSharp(Edge edge) {
+	bool IsEdgeSharp(Edge edge, float angle) {
 		Vector3 prevNormal = Vector3.zero;
 		bool first = true;
 		foreach(var tri in edge.triangles) {
@@ -412,27 +412,27 @@ public class MeshCheck {
 				first = false;
 				continue;
 			}
-			if(IsNormalsSharp(tri.normal, prevNormal)) {
+			if(IsNormalsSharp(tri.normal, prevNormal, angle)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public bool IsEdgeSharp(Vector3 p0, Vector3 p1) {
+	public bool IsEdgeSharp(Vector3 p0, Vector3 p1, float angle) {
 		var v0 = getVertex(p0);
 		if(v0 == null) return false;
 		var v1 = getVertex(p1);
 		if(v1 == null) return false;
 		var edge = getEdge(v0, v1);
 		if(edge == null) return false;
-		return IsEdgeSharp(edge);
+		return IsEdgeSharp(edge, angle);
 	}
 
-	public List<Pair<Vector3, Vector3>> GenerateEdges() {
+	public List<Pair<Vector3, Vector3>> GenerateEdges(float angle) {
 		List<Pair<Vector3, Vector3>> result = new List<Pair<Vector3, Vector3>>();
 		foreach(var edge in edges.Values) {
-			if(!IsEdgeSharp(edge)) continue;
+			if(!IsEdgeSharp(edge, angle)) continue;
 			result.Add(new Pair<Vector3, Vector3>(edge.a.pos, edge.b.pos));
 		}
 		return result;

@@ -19,9 +19,8 @@ public class DistanceTool : Tool {
 		if(entity == null) return;
 
 		if(p0 == null) {
-			if(entity is LineEntity) {
-				var line = entity as LineEntity;
-				constraint = new PointsDistance(line.sketch, line.p0, line.p1);
+			if(entity.type == IEntityType.Line) {
+				constraint = new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), entity);
 				constraint.pos = WorldPlanePos;
 				click = WorldPlanePos;
 				return;

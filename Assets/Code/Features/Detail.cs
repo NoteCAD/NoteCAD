@@ -131,4 +131,16 @@ public class Detail : Feature {
 		return features.Find(f => f.guid == guid);
 	}
 
+	public void MarkDirtyAfter(Feature feature) {
+		bool mark = false;
+		foreach(var f in features) {
+			if(mark) {
+				f.MarkDirty(true);
+			}
+			if(f == feature) {
+				mark = true;
+			}
+		}
+	}
+
 }

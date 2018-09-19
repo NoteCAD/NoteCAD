@@ -101,7 +101,50 @@ class ExtrudedPointEntity : IEntity {
 		throw new NotImplementedException();
 	}
 }
+/*
+class ExtrudedPlane : IEntity, IPlane {
+	Entity entity;
+	ExtrusionFeature extrusion;
 
+	IEntityType IEntity.type { get { return entity.type; } }
+
+	public ExtrudedPlane(Entity e, ExtrusionFeature ex) {
+		entity = e;
+		extrusion = ex;
+	}
+
+	public IdPath id {
+		get {
+			var eid = extrusion.id;
+			eid.path.Insert(0, entity.guid.WithSecond(3));
+			return eid;
+		}
+	}
+
+	public IPlane plane {
+		get {
+			return null;
+		}
+	}
+
+	public IEnumerable<ExpVector> points {
+		get {
+			yield break;
+		}
+	}
+
+	public IEnumerable<Vector3> segments {
+		get {
+			yield break;
+		}
+	}
+
+	public ExpVector PointOn(Exp t) {
+		throw new NotImplementedException();
+	}
+}
+*/
+[Serializable]
 public class ExtrusionFeature : MeshFeature {
 	public Param extrude = new Param("e", 5.0);
 	Mesh mesh = new Mesh();
@@ -120,6 +163,9 @@ public class ExtrusionFeature : MeshFeature {
 	}
 
 	public override ICADObject GetChild(Id guid) {
+		var result = base.GetChild(guid);
+		if(result != null) return result;
+
 		var entity = sketch.GetEntity(guid.WithoutSecond());
 		if(guid.second == 2) return new ExtrudedPointEntity(entity as PointEntity, this);
 		return new ExtrudedEntity(entity, this, guid.second);
@@ -133,17 +179,16 @@ public class ExtrusionFeature : MeshFeature {
 	}
 
 	protected override Solid OnGenerateMesh() {
-		MeshUtils.CreateMeshExtrusion(Sketch.GetPolygons((source as SketchFeature).GetLoops()), (float)extrude.value, ref mesh);
-		var solid = mesh.ToSolid((source as SketchFeature).GetTransform());
-		return solid;
+		return MeshUtils.CreateSolidExtrusion((source as SketchFeature).GetLoops(), (float)extrude.value, (source as SketchFeature).GetTransform(), id);
 	}
-	LineCanvas canvas;
+
 	protected override void OnUpdateDirty() {
 		GameObject.Destroy(go);
 		go = new GameObject("ExtrusionFeature");
-		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas, go.transform);
+		//canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas, go.transform);
 		canvas.SetStyle("entities");
 		var sk = (source as SketchFeature).GetSketch();
+
 		foreach(var e in sk.entityList.OfType<PointEntity>()) {
 			var ext = new ExtrudedPointEntity(e, this);
 			canvas.DrawSegments(ext.segments);
@@ -165,6 +210,9 @@ public class ExtrusionFeature : MeshFeature {
 		if(go != null) {
 			go.SetActive(state);
 		}
+	}
+
+	protected override void OnDraw(UnityEngine.Matrix4x4 tf) {
 	}
 
 	protected override void OnClear() {

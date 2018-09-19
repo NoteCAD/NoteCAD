@@ -17,15 +17,12 @@ public abstract partial class Entity {
 public class Constraint : SketchObject {
 
 	public bool changed;
-	//List<Entity> entities = new List<Entity>();
 	List<IdPath> ids = new List<IdPath>();
 	protected Vector3[] ref_points = new Vector3[2];
 
 	protected void AddEntity<T>(T e) where T : IEntity {
 		if(e is Entity) (e as Entity).AddConstraint(this);
-		//ientities.Add(e);
 		ids.Add(e.id);
-		//return e;
 	}
 
 	public Constraint(Sketch sk) : base(sk) {
@@ -71,6 +68,30 @@ public class Constraint : SketchObject {
 
 	public IEntity GetEntity(int i) {
 		return sketch.feature.GetObjectById(ids[i]) as IEntity;
+	}
+
+	public int GetEntitiesCount() {
+		return ids.Count;
+	}
+
+	public bool HasEntitiesOfType(IEntityType type, int required) {
+		int count = 0;
+		for(int i = 0; i < GetEntitiesCount(); i++) {
+			var e = GetEntity(i);
+			if(e.type == type) count++;
+		}
+		return count == required;
+	}
+
+	public IEntity GetEntityOfType(IEntityType type, int index) {
+		int curIndex = 0;
+		for(int i = 0; i < GetEntitiesCount(); i++) {
+			var e = GetEntity(i);
+			if(e.type != type) continue;
+			if(curIndex == index) return e;
+			curIndex++;
+		}
+		return null;
 	}
 
 	protected void SetEntity(int i, IEntity e) {
@@ -121,17 +142,6 @@ public class Constraint : SketchObject {
 
 	public static float getPixelSize() {
 		return (float)DraftStroke.getPixelSize();
-	}
-
-	protected Matrix4x4 makeBasis(Vector3 x, Vector3 y, Vector3 z, Vector3 p) {
-		Matrix4x4 result = Matrix4x4.identity;
-		result.SetColumn(0, x);
-		result.SetColumn(1, y);
-		result.SetColumn(2, z);
-		Vector4 pp = p;
-		pp.w = 1;
-		result.SetColumn(3, pp);
-		return result;
 	}
 	
 	public void DrawReferenceLink(LineCanvas renderer, Camera camera) {
@@ -274,7 +284,7 @@ public class Constraint : SketchObject {
 		return false;
 	}
 	
-	protected bool drawLineExtendInPlane(IPlane plane, LineCanvas renderer, Vector3 p0, Vector3 p1, Vector3 to, float step, float salient, bool from_to) {
+	protected bool drawLineExtendInPlane(IPlane plane, LineCanvas renderer, Vector3 p0, Vector3 p1, Vector3 to, float step, float salient = 0f, bool from_to = false) {
 		Vector3 dir = p1 - p0;
 		if(plane != null) {
 			dir = plane.projectVectorInto(p1) - plane.projectVectorInto(p0);
@@ -363,7 +373,7 @@ public class Constraint : SketchObject {
 		Vector3 y = lid;
 		Vector3 z = normalize(Vector3.Cross(x, y));
 		Vector3 p = (ap + bp) * 0.5f;
-		return makeBasis(x, y, z, p);
+		return UnityExt.Basis(x, y, z, p);
 	}
 	
 	protected Matrix4x4 getPointsDistanceBasis(Vector3 app, Vector3 bpp, IPlane plane) {
@@ -374,7 +384,7 @@ public class Constraint : SketchObject {
 		Vector3 x = normalize(bp - ap);
 		Vector3 y = normalize(Vector3.Cross(x, z));
 		Vector3 p = (ap + bp) * 0.5f;
-		return makeBasis(x, y, z, p);
+		return UnityExt.Basis(x, y, z, p);
 	}
 	
 	protected Vector3 projectPointLine(Vector3 p, Vector3 p0, Vector3 p1) {
@@ -434,6 +444,9 @@ public class ValueConstraint : Constraint {
 			var newPos = GetBasis().inverse.MultiplyPoint(value);
 			if(position_ == newPos) return;
 			position_ = newPos;
+			if(!sketch.is3d) {
+				position_.z = 0;
+			}
 			changed = true;
 			//behaviour.Update();
 		}
@@ -639,7 +652,7 @@ public class ValueConstraint : Constraint {
 			if(length(y) < EPSILON) y = Vector3.Cross(camera.transform.forward, x);
 			y = normalize(y);
 			Vector3 z = Vector3.Cross(x, y);
-			basis = makeBasis(x, y, z, (p0 + p1) * 0.5f);
+			basis = UnityExt.Basis(x, y, z, (p0 + p1) * 0.5f);
 		} else {
 			basis = getPointsDistanceBasis(p0, p1, getPlane());
 		}

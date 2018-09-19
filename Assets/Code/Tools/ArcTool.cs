@@ -16,7 +16,7 @@ public class ArcTool : Tool {
 			current.p0.isSelectable = true;
 			current.c.isSelectable = true;
 			current.isSelectable = true;
-			if(AutoConstrainCoincident(current.p1, sko as Entity)) {
+			if(AutoConstrainCoincident(current.p1, sko as IEntity)) {
 				current = null;
 				StopTool();
 				return;
@@ -28,7 +28,7 @@ public class ArcTool : Tool {
 		newEntity.p1.pos = pos;
 		newEntity.c.pos = pos;
 		if(current == null) {
-			AutoConstrainCoincident(newEntity.p0, sko as Entity);
+			AutoConstrainCoincident(newEntity.p0, sko as IEntity);
 		} else {
 			new PointsCoincident(current.sketch, current.p1, newEntity.p0);
 		}

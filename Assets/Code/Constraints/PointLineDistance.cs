@@ -29,9 +29,12 @@ public class PointLineDistance : ValueConstraint {
 			var p = pointExp;
 			var p0 = lineP0Exp;
 			var p1 = lineP1Exp;
-			yield return ((p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y + p0.x * p1.y - p1.x * p0.y) / Exp.Sqrt(Exp.Sqr(p1.x - p0.x) + Exp.Sqr(p1.y - p0.y)) - value;
-			//var d = lineP0Exp - lineP1Exp;
-			//yield return ExpVector.Cross(d, lineP0Exp - pointExp).Magnitude() / d.Magnitude();
+			if(sketch.is3d) {
+				var d = lineP0Exp - lineP1Exp;
+				yield return ExpVector.Cross(d, lineP0Exp - pointExp).Magnitude() / d.Magnitude() - value;
+			} else {
+				yield return ((p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y + p0.x * p1.y - p1.x * p0.y) / Exp.Sqrt(Exp.Sqr(p1.x - p0.x) + Exp.Sqr(p1.y - p0.y)) - value;
+			}
 		}
 	}
 

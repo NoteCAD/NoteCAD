@@ -20,7 +20,7 @@ public class CircleTool : Tool {
 		if(DetailEditor.instance.currentSketch == null) return;
 		current = new CircleEntity(DetailEditor.instance.currentSketch.GetSketch());
 		current.center.pos = pos;
-		AutoConstrainCoincident(current.center, sko as Entity);
+		AutoConstrainCoincident(current.center, sko as IEntity);
 
 		current.isSelectable = false;
 		current.c.isSelectable = false;

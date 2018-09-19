@@ -4,9 +4,17 @@ using UnityEngine;
 
 public class AngleTool : Tool {
 
-	LineEntity l0;
+	IEntity l0;
 	AngleConstraint constraint;
 	Vector3 click;
+
+	IEntity[] GetPoints(LineEntity l0, LineEntity l1) {
+		if(l0.p0.IsCoincidentWith(l1.p0)) return new IEntity[4] { l0.p1, l0.p0, l1.p0, l1.p1 };
+		if(l0.p0.IsCoincidentWith(l1.p1)) return new IEntity[4] { l0.p1, l0.p0, l1.p1, l1.p0 };
+		if(l0.p1.IsCoincidentWith(l1.p0)) return new IEntity[4] { l0.p0, l0.p1, l1.p0, l1.p1 };
+		if(l0.p1.IsCoincidentWith(l1.p1)) return new IEntity[4] { l0.p0, l0.p1, l1.p1, l1.p0 };
+		return new IEntity[4] { l0.p0, l0.p1, l1.p0, l1.p1 };
+	}
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		click = WorldPlanePos;
@@ -15,18 +23,26 @@ public class AngleTool : Tool {
 			constraint = null;
 			return;
 		}
-		var entity = sko as Entity;
+		var entity = sko as IEntity;
 		if(entity == null) return;
-	
 
-		if(!(entity is LineEntity)) return;
-		var l = entity as LineEntity;
+		if(l0 == null && entity.type == IEntityType.Arc) {
+			constraint = new AngleConstraint(DetailEditor.instance.currentSketch.GetSketch(), entity);
+			constraint.pos = WorldPlanePos;
+		}
+
+		if(entity.type != IEntityType.Line) return;
 		if(l0 != null) {
-			constraint = new AngleConstraint(entity.sketch, l0, l);
+			if(l0 is LineEntity && entity is LineEntity) {
+				var pts = GetPoints(l0 as LineEntity, entity as LineEntity);
+				constraint = new AngleConstraint(DetailEditor.instance.currentSketch.GetSketch(), pts);
+			} else {
+				constraint = new AngleConstraint(DetailEditor.instance.currentSketch.GetSketch(), l0, entity);
+			}
 			constraint.pos = WorldPlanePos;
 			l0 = null;
 		} else {
-			l0 = l;
+			l0 = entity;
 		}
 	}
 

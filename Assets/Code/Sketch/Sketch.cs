@@ -26,13 +26,8 @@ public static class IPlaneUtils {
 	}
 
 	public static Matrix4x4 GetTransform(this IPlane plane) {
-		var result = Matrix4x4.identity;
-		result.SetColumn(0, plane.u);
-		result.SetColumn(1, plane.v);
-		result.SetColumn(2, plane.n);
-		Vector4 pos = new Vector4(plane.o.x, plane.o.y, plane.o.z, 1);
-		result.SetColumn(3, pos);
-		return result;
+		if(plane == null) return Matrix4x4.identity;
+		return UnityExt.Basis(plane.u, plane.v, plane.n, plane.o);
 	}
 
 	public static ExpVector FromPlane(this IPlane plane, ExpVector pt) {
@@ -125,11 +120,14 @@ public class Sketch : CADObject, ISketch  {
 		set {
 			feature_ = value;
 			if(feature_ != null && guid_ == Id.Null) {
-				guid_ = feature.idGenerator.New();
+				//guid_ = feature.idGenerator.New();
+				guid_ = new Id(-1);
 			}
 		}
 	}
 	public IPlane plane;
+
+	public bool is3d = false;
 
 	IEnumerable<IEntity> ISketch.entities {
 		get {
@@ -285,8 +283,8 @@ public class Sketch : CADObject, ISketch  {
 			foreach(var point in points) {
 				var connected = point.constraints
 					.OfType<PointsCoincident>()
-					.Select(p => p.GetOtherPoint(point))
-					.Where(p => p != prevPoint)
+					.Select(p => p.GetOtherPoint(point) as PointEntity)
+					.Where(p => p != null && p != prevPoint)
 					.Where(p => p.parent != null && p.parent.IsEnding(p))
 					.Select(p => p.parent)
 					.OfType<ISegmentaryEntity>();
@@ -311,59 +309,78 @@ public class Sketch : CADObject, ISketch  {
 		return loops;
 	}
 
-	public static List<List<Vector3>> GetPolygons(List<List<Entity>> loops) {
+	public static List<List<Vector3>> GetPolygons(List<List<Entity>> loops, ref List<List<Id>> ids) {
+		if(ids != null) ids.Clear();
 		var result = new List<List<Vector3>>();
 		if(loops == null) return result;
+
 		foreach(var loop in loops) {
 			var polygon = new List<Vector3>();
+			List<Id> idPolygon = null;
+			if(ids != null) idPolygon = new List<Id>();
+
+			Action<IEnumerable<Vector3>, Entity> AddToPolygon = (points, entity) => {
+				polygon.AddRange(points);
+				if(idPolygon != null) {
+					idPolygon.AddRange(Enumerable.Repeat(entity.guid, points.Count()));
+				}
+			};
+
 			for(int i = 0; i < loop.Count; i++) {
 				if(loop[i] is ISegmentaryEntity) {
 					var cur = loop[i] as ISegmentaryEntity;
 					var next = loop[(i + 1) % loop.Count] as ISegmentaryEntity;
 					if(!next.begin.IsCoincidentWith(cur.begin) && !next.end.IsCoincidentWith(cur.begin)) {
-						polygon.AddRange(cur.segmentPoints);
+						AddToPolygon(cur.segmentPoints, loop[i]);
 					} else 
 					if(!next.begin.IsCoincidentWith(cur.end) && !next.end.IsCoincidentWith(cur.end)) {
-						polygon.AddRange(cur.segmentPoints.Reverse());
+						AddToPolygon(cur.segmentPoints.Reverse(), loop[i]);
 					} else if(next.begin.IsCoincidentWith(cur.end)) {
-						polygon.AddRange(cur.segmentPoints);
+						AddToPolygon(cur.segmentPoints, loop[i]);
 					} else
 					if(i % 2 == 0) {
-						polygon.AddRange(cur.segmentPoints);
+						AddToPolygon(cur.segmentPoints, loop[i]);
 					} else {
-						polygon.AddRange(cur.segmentPoints.Reverse());
+						AddToPolygon(cur.segmentPoints.Reverse(), loop[i]);
 					}
 				} else
 				if(loop[i] is ILoopEntity) {
 					var cur = loop[i] as ILoopEntity;
-					polygon.AddRange(cur.loopPoints);
+					AddToPolygon(cur.loopPoints, loop[i]);
 				} else {
 					continue;
 				}
 				polygon.RemoveAt(polygon.Count - 1);
+				if(idPolygon != null) idPolygon.RemoveAt(idPolygon.Count - 1);
 			}
 			if(polygon.Count < 3) continue;
 			if(!Triangulation.IsClockwise(polygon)) {
 				polygon.Reverse();
+				if(idPolygon != null) idPolygon.Reverse();
 			}
 			result.Add(polygon);
+			if(ids != null) ids.Add(idPolygon);
 		}
 		return result;
 	}
 
 	public void Write(XmlTextWriter xml) {
-		xml.WriteStartElement("entities");
-		foreach(var e in entities) {
-			if(e.parent != null) continue;
-			e.Write(xml);
+		if(entities.Count > 0) {
+			xml.WriteStartElement("entities");
+			foreach(var e in entities) {
+				if(e.parent != null) continue;
+				e.Write(xml);
+			}
+			xml.WriteEndElement();
 		}
-		xml.WriteEndElement();
 
-		xml.WriteStartElement("constraints");
-		foreach(var c in constraints) {
-			c.Write(xml);
+		if(constraints.Count > 0) {
+			xml.WriteStartElement("constraints");
+			foreach(var c in constraints) {
+				c.Write(xml);
+			}
+			xml.WriteEndElement();
 		}
-		xml.WriteEndElement();
 	}
 
 	public void Read(XmlNode xml) {
@@ -422,8 +439,8 @@ public class Sketch : CADObject, ISketch  {
 		while(entities.Count > 0) {
 			entities[0].Destroy();
 		}
-		foreach(var c in constraints) {
-			c.Destroy();
+		for(int i = 0; i < constraints.Count; i++) {
+			constraints[i].Destroy();
 		}
 		MarkDirtySketch(topo:true, entities:true, constraints:true, loops:true);
 	}

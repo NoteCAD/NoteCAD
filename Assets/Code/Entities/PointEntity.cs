@@ -9,10 +9,14 @@ public class PointEntity : Entity {
 	public Param y = new Param("y");
 	public Param z = new Param("z");
 
-	public bool is3d;
+	public bool is3d {
+		get {
+			return sketch.is3d;
+		}
+	}
 
 	public PointEntity(Sketch sk) : base(sk) {
-		is3d = false;
+		
 	}
 
 	public override IEntityType type { get { return IEntityType.Point; } }
@@ -83,8 +87,8 @@ public class PointEntity : Entity {
 		for(int i = 0; i < usedInConstraints.Count; i++) {
 			var c = usedInConstraints[i] as PointsCoincident;
 			if(c == null) continue;
-			var p = c.GetOtherPoint(this);
-			if(p == point || p != exclude && p.IsCoincidentWith(point, this)) {
+			var p = c.GetOtherPoint(this) as PointEntity;
+			if(p == point || p != exclude && p != null && p.IsCoincidentWith(point, this)) {
 				return true;
 			}
 		}

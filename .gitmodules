@@ -1,3 +1,6 @@
 [submodule "Assets/Code/External/Csg"]
 	path = Assets/Code/External/Csg
-	url = https://github.com/Evil-Spirit/Csg.git
+	url = https://github.com/NoteCAD/Csg.git
+[submodule "Assets/Code/External/UnityRuntimeInspector"]
+	path = Assets/Code/External/UnityRuntimeInspector
+	url = https://github.com/NoteCAD/UnityRuntimeInspector.git

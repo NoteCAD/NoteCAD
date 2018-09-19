@@ -99,12 +99,31 @@ class MeshVertexEntity : IEntity {
 	}
 }
 
+[Serializable]
 public class MeshImportFeature : MeshFeature {
+	[NonSerialized]
 	public Mesh mesh = new Mesh();
+
+	[NonSerialized]
 	public MeshCheck meshCheck = new MeshCheck();
+
+	[NonSerialized]
 	public DMeshAABBTree3 hitMesh;
+
 	GameObject go;
 	List<Pair<Vector3, Vector3>> edges;
+	float thresholdAngle_ = 25f;
+
+	public float thresholdAngle {
+		get {
+			return thresholdAngle_;
+		}
+		set {
+			thresholdAngle_ = value;
+			MarkDirty();
+			edges = null;
+		}
+	}
 
 	public ExpBasis basis { get; private set; }
 
@@ -139,7 +158,7 @@ public class MeshImportFeature : MeshFeature {
 		return solid;
 	}
 
-	LineCanvas canvas;
+	new LineCanvas canvas;
 
 	Vector3 CalculateNormal(int tri, int e, Vector3[] vert, int[] tris) {
 		var v0 = vert[tris[tri + e]];
@@ -164,10 +183,14 @@ public class MeshImportFeature : MeshFeature {
 
 	protected override void OnUpdateDirty() {
 		if(edges == null) {
-			go = new GameObject("ImportMeshFeature");
-			canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas, go.transform);
+			if(canvas == null) {
+				go = new GameObject("MeshImportFeature");
+				canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas, go.transform);
+			} else {
+				canvas.Clear();
+			}
 			canvas.SetStyle("entities");
-			edges = meshCheck.GenerateEdges();
+			edges = meshCheck.GenerateEdges(thresholdAngle);
 			foreach(var edge in edges) {
 				canvas.DrawLine(edge.a, edge.b);
 			}
@@ -239,7 +262,7 @@ public class MeshImportFeature : MeshFeature {
 			for(int i = 0; i < 3; i++) {
 				var v0 = hitMesh.Mesh.GetVertex(t[i]).ToVector3();
 				var v1 = hitMesh.Mesh.GetVertex(t[(i + 1) % 3]).ToVector3();
-				if(!meshCheck.IsEdgeSharp(v0, v1)) continue;
+				if(!meshCheck.IsEdgeSharp(v0, v1, thresholdAngle)) continue;
 				if(!HoverSegment(mouse, camera, ref min, fullTf.MultiplyPoint3x4(v0), fullTf.MultiplyPoint3x4(v1))) continue;
 				hoverV0 = t[i];
 				hoverV1 = t[(i + 1) % 3];

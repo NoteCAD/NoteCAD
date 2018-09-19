@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
 using Csg;
+using RuntimeInspectorNamespace;
 
 public class DetailEditor : MonoBehaviour {
 
@@ -27,6 +28,9 @@ public class DetailEditor : MonoBehaviour {
 	public List<FeatureUI> featuresUI;
 	public Color pressedColor;
 	public Mesh mesh;
+	public Mesh selectedMesh;
+	public Solid solid;
+	public RuntimeInspector inspector;
 
 	bool meshDirty = true;
 	bool justSwitchedToSketch = true;
@@ -58,7 +62,16 @@ public class DetailEditor : MonoBehaviour {
 		}
 	}
 
-	public SketchFeature currentSketch {
+	public SketchFeatureBase currentSketch {
+		get {
+			return activeFeature as SketchFeatureBase;
+		}
+		set {
+			ActivateFeature(value);
+		}
+	}
+
+	public SketchFeature currentWorkplane {
 		get {
 			return activeFeature as SketchFeature;
 		}
@@ -89,15 +102,22 @@ public class DetailEditor : MonoBehaviour {
 		return fi == mi;
 	}
 
-	private void Start() {
-		instance_ = this;
-		var go = new GameObject("DetailMesh");
+	GameObject CreateMeshObject(string name, Mesh mesh, Material material) {
+		var go = new GameObject(name);
 		var mf = go.AddComponent<MeshFilter>();
 		var mr = go.AddComponent<MeshRenderer>();
-		mesh = new Mesh();
-		mesh.name = "detail";
+		mesh.name = name;
 		mf.mesh = mesh;
-		mr.material = EntityConfig.instance.meshMaterial;
+		mr.material = material;
+		return go;
+	}
+
+	private void Start() {
+		instance_ = this;
+		mesh = new Mesh();
+		selectedMesh = new Mesh();
+		CreateMeshObject("DetailMesh", mesh, EntityConfig.instance.meshMaterial);
+		CreateMeshObject("DetailMeshSelection", selectedMesh, EntityConfig.instance.loopMaterial);
 		New();
 		if(NoteCADJS.GetParam("filename") != "") {
 			var uri = new Uri(Application.absoluteURL);
@@ -199,6 +219,7 @@ public class DetailEditor : MonoBehaviour {
 				if(f == activeFeature) break;
 			}
 			Debug.Log("combined " + combinedCount + " meshes");
+			solid = result;
 			if(result != null) {
 				mesh.FromSolid(result);
 			}
@@ -206,6 +227,13 @@ public class DetailEditor : MonoBehaviour {
 
 		double dist = -1.0;
 		hovered = detail.HoverUntil(Input.mousePosition, Camera.main, UnityEngine.Matrix4x4.identity, ref dist, activeFeature);
+		if(hovered == null && solid != null) {
+			var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+			var id = solid.Raytrace(ray);
+			selectedMesh.FromSolid(solid, id);
+		} else {
+			selectedMesh.Clear();
+		}
 
 		canvas.ClearStyle("hovered");
 		if(hovered != null) {
@@ -218,8 +246,8 @@ public class DetailEditor : MonoBehaviour {
 			}
 		}
 
-		if(activeFeature is SketchFeature) {
-			var sk = activeFeature as SketchFeature;
+		if(activeFeature is SketchFeatureBase) {
+			var sk = activeFeature as SketchFeatureBase;
 			if(sk.ShouldRedrawConstraints() || justSwitchedToSketch) {
 				sk.DrawConstraints(canvas);
 			}
@@ -236,8 +264,8 @@ public class DetailEditor : MonoBehaviour {
 	private void OnGUI() {
 		GUIStyle style = new GUIStyle();
 		style.alignment = TextAnchor.MiddleCenter;
-		if(activeFeature is SketchFeature) {
-			var sk = activeFeature as SketchFeature;
+		if(activeFeature is SketchFeatureBase) {
+			var sk = activeFeature as SketchFeatureBase;
 			foreach(var c in sk.GetSketch().constraintList) {
 				if(!(c is ValueConstraint)) continue;
 				if(hovered == c) {
@@ -306,7 +334,8 @@ public class DetailEditor : MonoBehaviour {
 			cb.normalColor = pressedColor;
 			btn.colors = cb;
 			if(!skipActive) activeFeature_.active = true;
-			justSwitchedToSketch = activeFeature_ is SketchFeature;
+			justSwitchedToSketch = activeFeature_ is SketchFeatureBase;
+			inspector.Inspect(activeFeature_);
 			UpdateSystem();
 		}
 		meshDirty = true;

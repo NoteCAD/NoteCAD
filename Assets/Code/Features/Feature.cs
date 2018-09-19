@@ -68,7 +68,7 @@ public abstract class Feature : CADObject {
 
 	public void MarkDirty(bool srcChanged = false) {
 		dirty_ = true;
-		sourceChanged = srcChanged;
+		sourceChanged = sourceChanged || srcChanged;
 		foreach(var c in children) {
 			Debug.Log("MarkDirty srcChanged!");
 			c.MarkDirty(true);
@@ -77,7 +77,7 @@ public abstract class Feature : CADObject {
 
 	protected virtual void OnUpdate() { }
 
-	public void Update() {
+	public virtual void Update() {
 		OnUpdate();
 	}
 
@@ -90,7 +90,7 @@ public abstract class Feature : CADObject {
 		sourceChanged = false;
 	}
 
-	public virtual void Write(XmlTextWriter xml) {
+	public void Write(XmlTextWriter xml) {
 		xml.WriteStartElement("feature");
 		xml.WriteAttributeString("type", this.GetType().Name);
 		xml.WriteAttributeString("id", guid.ToString());
@@ -105,7 +105,7 @@ public abstract class Feature : CADObject {
 
 	}
 
-	public virtual void Read(XmlNode xml) {
+	public void Read(XmlNode xml) {
 		guid_ = detail.idGenerator.Create(xml.Attributes["id"].Value);
 		if(xml.Attributes.GetNamedItem("source") != null) {
 			var srcGuid = detail.idGenerator.Create(xml.Attributes["source"].Value);
@@ -123,7 +123,7 @@ public abstract class Feature : CADObject {
 
 	}
 
-	public void Clear() {
+	public virtual void Clear() {
 		OnClear();
 	}
 
@@ -147,7 +147,7 @@ public abstract class Feature : CADObject {
 		return true;
 	}
 
-	public ICADObject Hover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
+	public virtual ICADObject Hover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
 		return OnHover(mouse, camera, tf, ref dist);
 	}
 
@@ -155,7 +155,7 @@ public abstract class Feature : CADObject {
 		return null;
 	}
 
-	public void Draw(UnityEngine.Matrix4x4 tf) {
+	public virtual void Draw(UnityEngine.Matrix4x4 tf) {
 		OnDraw(tf);
 	}
 
@@ -163,16 +163,22 @@ public abstract class Feature : CADObject {
 
 	}
 
+	public virtual void Show(bool state) {
+		OnShow(state);
+	}
+
 	protected virtual void OnShow(bool state) {
 
 	}
 
 	bool visible_ = true;
+
+	[HideInInspector]
 	public bool visible {
 		set {
 			if(visible_ == value) return;
 			visible_ = value;
-			OnShow(visible_);
+			Show(visible_);
 		}
 
 		get {
@@ -180,16 +186,21 @@ public abstract class Feature : CADObject {
 		}
 	}
 
+	public virtual void Activate(bool state) {
+		OnActivate(state);
+	}
+
 	protected virtual void OnActivate(bool state) {
 
 	}
 
 	bool active_ = false;
+	[HideInInspector]
 	public bool active {
 		set {
 			if(active_ == value) return;
 			active_ = value;
-			OnActivate(active_);
+			Activate(active_);
 		}
 
 		get {
@@ -201,7 +212,7 @@ public abstract class Feature : CADObject {
 		return true;
 	}
 
-	public void GenerateEquations(EquationSystem sys) {
+	public virtual void GenerateEquations(EquationSystem sys) {
 		OnGenerateEquations(sys);
 	}
 
@@ -216,7 +227,7 @@ public enum CombineOp {
 	Intersection
 }
 
-public abstract class MeshFeature : Feature {
+public abstract class MeshFeature : SketchFeatureBase {
 
 	Solid solid_ = new Solid();
 	public Solid combined;
@@ -259,12 +270,12 @@ public abstract class MeshFeature : Feature {
 
 	}
 
-	protected sealed override void OnWrite(XmlTextWriter xml) {
+	protected sealed override void OnWriteSketchFeatureBase(XmlTextWriter xml) {
 		xml.WriteAttributeString("op", operation.ToString());
 		OnWriteMeshFeature(xml);
 	}
 
-	protected sealed override void OnRead(XmlNode xml) {
+	protected sealed override void OnReadSketchFeatureBase(XmlNode xml) {
 		xml.Attributes["op"].Value.ToEnum(ref operation_);
 		OnReadMeshFeature(xml);
 	}

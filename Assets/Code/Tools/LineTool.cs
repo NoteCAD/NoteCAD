@@ -10,12 +10,12 @@ public class LineTool : Tool {
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
 		if(current != null) {
-			if(!canCreate) return;
+			//if(!canCreate) return;
 			current.p1.SetPosition(pos);
 			current.p1.isSelectable = true;
 			current.p0.isSelectable = true;
 			current.isSelectable = true;
-			if(AutoConstrainCoincident(current.p1, sko as Entity)) {
+			if(AutoConstrainCoincident(current.p1, sko as IEntity)) {
 				current = null;
 				StopTool();
 				return;
@@ -27,7 +27,7 @@ public class LineTool : Tool {
 		newLine.p0.SetPosition(pos);
 		newLine.p1.SetPosition(pos);
 		if(current == null) {
-			AutoConstrainCoincident(newLine.p0, sko as Entity);
+			AutoConstrainCoincident(newLine.p0, sko as IEntity);
 		} else {
 			new PointsCoincident(current.sketch, current.p1, newLine.p0);
 		}

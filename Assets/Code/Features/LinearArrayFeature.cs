@@ -66,14 +66,14 @@ public class LinearArrayFeature : SketchFeature {
 		shouldHoverWhenInactive = true;
 	}
 
-	public Sketch sketch {
+	public Sketch sourceSketch {
 		get {
 			return (source as SketchFeature).GetSketch();
 		}
 	}
 
 	public override ICADObject GetChild(Id guid) {
-		var entity = sketch.GetEntity(guid.WithoutSecond());
+		var entity = sourceSketch.GetEntity(guid.WithoutSecond());
 		return new ArrayEntity(entity, this, guid.second);
 	}
 

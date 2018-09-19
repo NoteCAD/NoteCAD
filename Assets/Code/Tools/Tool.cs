@@ -64,7 +64,7 @@ public class Tool : MonoBehaviour {
 
 	public static Vector3 MousePos {
 		get {
-			var sk = DetailEditor.instance.currentSketch;
+			var sk = DetailEditor.instance.currentWorkplane;
 			var pos = WorldPlanePos;
 			if(sk != null) {
 				pos = sk.WorldToLocal(pos);
@@ -94,7 +94,7 @@ public class Tool : MonoBehaviour {
 			if(Input.touches.Length > 0) mousePos = Input.touches[0].position;
 #endif
 			var plane = new Plane(Camera.main.transform.forward, Vector3.zero);
-			var sk = DetailEditor.instance.currentSketch;
+			var sk = DetailEditor.instance.currentWorkplane;
 			if(sk != null) {
 				plane = new Plane(sk.GetNormal(), sk.GetPosition());
 			}
@@ -120,14 +120,14 @@ public class Tool : MonoBehaviour {
 		shouldStop = true;
 	}
 
-	protected bool AutoConstrainCoincident(PointEntity point, Entity with) {
-		if(with is PointEntity) {
-			var p1 = with as PointEntity;
-			new PointsCoincident(point.sketch, point, p1);
-			point.SetPosition(p1.GetPosition());
+	protected bool AutoConstrainCoincident(PointEntity point, IEntity with) {
+		if(with == null) return false;
+		if(with.type == IEntityType.Point) {
+			new PointsCoincident(point.sketch, point, with);
+			point.SetPosition(with.GetPointAtInPlane(0, point.sketch.plane).Eval());
 			return true;
 		}
-		if(with is LineEntity) {
+		if(with.type == IEntityType.Line) {
 			new PointOnLine(point.sketch, point, with);
 			return true;
 		}

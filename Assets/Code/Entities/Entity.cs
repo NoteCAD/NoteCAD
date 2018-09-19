@@ -9,6 +9,7 @@ public enum IEntityType {
 	Line,
 	Arc,
 	Circle,
+	Plane,
 }
 
 public interface IEntity : ICADObject {
@@ -57,6 +58,13 @@ public static class IEntityUtils {
 		points.MoveNext();
 		var p1 = plane.ToFrom(points.Current, entity.plane);
 		return p1 - p0;
+	}
+
+	public static ExpVector GetPointAtInPlane(this IEntity entity, int index, IPlane plane) {
+		var points = entity.points.GetEnumerator();
+		int curIndex = -1;
+		while(curIndex++ < index && points.MoveNext());
+		return plane.ToFrom(points.Current, entity.plane);
 	}
 
 	public static ExpVector GetLineP0(this IEntity entity, IPlane plane) {

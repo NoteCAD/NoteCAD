@@ -40,14 +40,7 @@ public class ExpBasis {
 
 	public Matrix4x4 matrix {
 		get {
-			var result = Matrix4x4.identity;
-			result.SetColumn(0, u.Eval());
-			result.SetColumn(1, v.Eval());
-			result.SetColumn(2, n.Eval());
-			Vector4 pp = p.Eval();
-			pp.w = 1.0f;
-			result.SetColumn(3, pp);
-			return result;
+			return UnityExt.Basis(u.Eval(), v.Eval(), n.Eval(), p.Eval());
 		}
 	}
 
