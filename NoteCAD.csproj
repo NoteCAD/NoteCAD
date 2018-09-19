@@ -676,6 +676,9 @@
     <Compile Include="Assets\Code\External\gsSlicer\utility\PathOverlapRepair.cs" />
     <Compile Include="Assets\Code\External\gsSlicer\utility\TemporalPathHash.cs" />
     <Compile Include="Assets\Code\External\gsSlicer\utility\TopoOffset2d.cs" />
+    <Compile Include="Assets\Code\External\pb_Stl\pb_Stl.cs" />
+    <Compile Include="Assets\Code\External\pb_Stl\pb_Stl_Exporter.cs" />
+    <Compile Include="Assets\Code\External\pb_Stl\pb_Stl_Importer.cs" />
     <Compile Include="Assets\Code\External\UnityRuntimeInspector\Plugins\RuntimeInspector\ExternalResources\ColorWheel\ColorWheelControl.cs" />
     <Compile Include="Assets\Code\External\UnityRuntimeInspector\Plugins\RuntimeInspector\Scripts\RuntimeHierarchy.cs" />
     <Compile Include="Assets\Code\External\UnityRuntimeInspector\Plugins\RuntimeInspector\Scripts\RuntimeHierarchy\Helpers\HierarchyDragDropListener.cs" />
@@ -740,9 +743,6 @@
     <Compile Include="Assets\Code\Geometry\MeshUtils.cs" />
     <Compile Include="Assets\Code\Geometry\STLExport.cs" />
     <Compile Include="Assets\Code\Geometry\Triangulation.cs" />
-    <Compile Include="Assets\Code\pb_Stl\pb_Stl.cs" />
-    <Compile Include="Assets\Code\pb_Stl\pb_Stl_Exporter.cs" />
-    <Compile Include="Assets\Code\pb_Stl\pb_Stl_Importer.cs" />
     <Compile Include="Assets\Code\Sketch\IdPath.cs" />
     <Compile Include="Assets\Code\Sketch\Sketch.cs" />
     <Compile Include="Assets\Code\Sketch\SketchObject.cs" />
