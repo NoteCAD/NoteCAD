@@ -125,13 +125,10 @@ public class Tool : MonoBehaviour {
 		if(with.type == IEntityType.Point) {
 			new PointsCoincident(point.sketch, point, with);
 			point.SetPosition(with.GetPointAtInPlane(0, point.sketch.plane).Eval());
-			return true;
+		} else {
+			new PointOn(point.sketch, point, with);
 		}
-		if(with.type == IEntityType.Line) {
-			new PointOnLine(point.sketch, point, with);
-			return true;
-		}
-		return false;
+		return true;
 	}
 
 	public string GetDescription() {

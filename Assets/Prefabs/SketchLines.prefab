@@ -53,24 +53,45 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   styles:
   - name: constraints
-    color: {r: 0, g: 0.83823526, b: 0.31795132, a: 1}
+    color: {r: 0.217998, g: 0.5907346, b: 0.734, a: 1}
     width: 1
     queue: 2003
+    depthTest: 1
   - name: entities
     color: {r: 0.7352941, g: 0.7352941, b: 0.7352941, a: 1}
     width: 2
     queue: 2002
+    depthTest: 1
   - name: hovered
     color: {r: 0.83823526, g: 0.8151115, b: 0, a: 1}
     width: 3
-    queue: 2004
+    queue: 3004
+    depthTest: 0
   - name: error
     color: {r: 0.7647059, g: 0, b: 0, a: 1}
     width: 2
-    queue: 2005
-  - name: points
-    color: {r: 0.7607844, g: 0.7607844, b: 0.7607844, a: 1}
+    queue: 3006
+    depthTest: 1
+  - name: hoveredPoints
+    color: {r: 0.8392157, g: 0.8156863, b: 0, a: 1}
     width: 5
+    queue: 3005
+    depthTest: 0
+  - name: points
+    color: {r: 0.217998, g: 0.5907346, b: 0.734, a: 1}
+    width: 4
     queue: 2003
+    depthTest: 1
+  - name: selectedPoints
+    color: {r: 1, g: 0.45699304, b: 0.29699993, a: 1}
+    width: 5
+    queue: 3006
+    depthTest: 0
+  - name: selected
+    color: {r: 1, g: 0.45699304, b: 0.29699993, a: 1}
+    width: 3
+    queue: 3006
+    depthTest: 0
   parent: {fileID: 0}
   material: {fileID: 2100000, guid: da145fe11ec87bc43978f5f5da2ec79d, type: 2}
+  materialDepthOff: {fileID: 2100000, guid: 2e2c90670b051dd4495d0fa035cf3426, type: 2}

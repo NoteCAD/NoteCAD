@@ -20,6 +20,7 @@ public static class GeomUtils {
 	}
 
 	public static float DistancePointSegment2D(Vector3 p, Vector3 p0, Vector3 p1) {
+		if(p0.x == p1.x && p0.y == p1.y) return (p - p0).magnitude;
 		p0.z = 0;
 		p1.z = 0;
 		p.z = 0;

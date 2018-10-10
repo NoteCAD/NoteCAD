@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class EqualLineLine : Constraint {
 
 	public EqualLineLine(Sketch sk) : base(sk) { }

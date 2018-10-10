@@ -12,9 +12,8 @@ public class PointsCoincidentTool : Tool {
 		if(p0 != null) {
 			if(entity.type == IEntityType.Point) {
 				new PointsCoincident(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
-			} else 
-			if(entity.type == IEntityType.Line) {
-				new PointOnLine(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
+			} else {
+				new PointOn(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
 			}
 			p0 = null;
 		} else if(entity.type == IEntityType.Point) {

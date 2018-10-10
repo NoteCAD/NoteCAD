@@ -115,9 +115,7 @@ public abstract partial class Entity : SketchObject, IEntity {
 		}
 	}
 
-	public virtual /*abstract*/ ExpVector PointOn(Exp t) {
-		return new ExpVector(0, 0, 0);
-	}
+	public abstract ExpVector PointOn(Exp t);
 
 	protected T AddChild<T>(T e) where T : Entity {
 		children.Add(e);

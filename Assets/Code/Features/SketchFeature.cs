@@ -5,6 +5,7 @@ using System.Linq;
 using System.Xml;
 using UnityEngine;
 
+[Serializable]
 public class SketchFeature : SketchFeatureBase, IPlane {
 	List<List<Entity>> loops = new List<List<Entity>>();
 	Mesh mainMesh;

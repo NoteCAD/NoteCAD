@@ -32,6 +32,14 @@ public class ToolBar : MonoBehaviour {
 	}
 
 
+	private bool IsPointerOverUIObject() {
+		PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
+		eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+		List<RaycastResult> results = new List<RaycastResult>();
+		EventSystem.current.RaycastAll(eventDataCurrentPosition, results);
+		return results.Count > 0;
+	}
+
 	float doubleClickTime;
 	void Update() {
 		doubleClickTime += Time.deltaTime;
@@ -43,8 +51,9 @@ public class ToolBar : MonoBehaviour {
 				}
 			}
 		}
-
-		bool mouseDown = Input.GetKeyDown(KeyCode.Mouse0) || Input.GetMouseButtonDown(0);
+		bool overUI = IsPointerOverUIObject();
+		Debug.Log(overUI);
+		bool mouseDown = (Input.GetKeyDown(KeyCode.Mouse0) || Input.GetMouseButtonDown(0)) && !overUI;
 #if UNITY_WEBGL
 		//mouseDown = mouseDown || Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Began;
 #endif

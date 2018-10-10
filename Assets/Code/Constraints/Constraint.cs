@@ -2,6 +2,7 @@
 using System.Xml;
 using System;
 using UnityEngine;
+using System.Xml.Serialization;
 
 public abstract partial class Entity {
 
@@ -15,8 +16,8 @@ public abstract partial class Entity {
 }
 
 public class Constraint : SketchObject {
-
-	public bool changed;
+	
+	[NonSerialized] public bool changed;
 	List<IdPath> ids = new List<IdPath>();
 	protected Vector3[] ref_points = new Vector3[2];
 
@@ -67,7 +68,7 @@ public class Constraint : SketchObject {
 	}
 
 	public IEntity GetEntity(int i) {
-		return sketch.feature.GetObjectById(ids[i]) as IEntity;
+		return sketch.feature.detail.GetObjectById(ids[i]) as IEntity;
 	}
 
 	public int GetEntitiesCount() {
@@ -414,8 +415,8 @@ public class Constraint : SketchObject {
 			var pp = camera.WorldToScreenPoint(tf.MultiplyPoint(ref_points[i]));
 			pp.z = 0f;
 			mouse.z = 0f;
-			var dist = (pp - mouse).magnitude - 5;
-			if(dist < 0f) dist = 0f;
+			var dist = (pp - mouse).magnitude - 7;
+			if(dist < 0f) return 0f;
 			if(result > 0.0 && dist > result) continue;
 			result = dist;
 		}
@@ -424,10 +425,20 @@ public class Constraint : SketchObject {
 
 }
 
+[Serializable]
 public class ValueConstraint : Constraint {
 
 	protected Param value = new Param("value");
-	public bool reference;
+	bool reference_;
+	public bool reference {
+		get {
+			return reference_;
+		}
+		set {
+			reference_ = value;
+			sketch.MarkDirtySketch(topo:true);
+		}
+	}
 	Vector3 position_;
 
 	public Vector3 localPos {
@@ -436,6 +447,8 @@ public class ValueConstraint : Constraint {
 		}
 	}
 
+	public virtual bool valueVisible { get { return true; } }
+	
 	public Vector3 pos {
 		get {
 			return GetBasis().MultiplyPoint(position_);
@@ -454,7 +467,6 @@ public class ValueConstraint : Constraint {
 
 	public ValueConstraint(Sketch sk) : base(sk) {}
 
-
 	public override IEnumerable<Param> parameters {
 		get {
 			if(!reference) yield break;
@@ -463,6 +475,7 @@ public class ValueConstraint : Constraint {
 	}
 
 	protected override void OnDrag(Vector3 delta) {
+		if(!valueVisible) return;
 		if(delta == Vector3.zero) return;
 		pos += delta;
 	}
@@ -479,9 +492,17 @@ public class ValueConstraint : Constraint {
 		return ValueToLabel(value.value);
 	}
 
+	public string GetLabel() {
+		var v = Math.Abs(GetValue()).ToString("0.##");
+		if(reference) v = "<" + v + ">";
+		return v;
+	}
+
 	public void SetValue(double v) {
 		value.value = LabelToValue(v);
 	}
+
+	public double dimension { get { return GetValue(); } set { SetValue(value); } }
 
 	public virtual double ValueToLabel(double value) {
 		return value;
@@ -493,13 +514,18 @@ public class ValueConstraint : Constraint {
 
 	protected virtual bool OnSatisfy() {
 		EquationSystem sys = new EquationSystem();
+		sys.revertWhenNotConverged = false;
 		sys.AddParameter(value);
 		sys.AddEquations(equations);
 		return sys.Solve() == EquationSystem.SolveResult.OKAY;
 	}
 
 	public bool Satisfy() {
-		return OnSatisfy();
+		var result = OnSatisfy();
+		if(!result) {
+			Debug.LogWarning(GetType() + " satisfy failed!");
+		}
+		return result;
 	}
 
 	protected void setRefPoint(Vector3 pos) {
@@ -527,7 +553,7 @@ public class ValueConstraint : Constraint {
 		var pp = camera.WorldToScreenPoint(pos);
 		pp.z = 0f;
 		mouse.z = 0f;
-		var dist = (pp - mouse).magnitude - 5;
+		var dist = (pp - mouse).magnitude - 10;
 		if(dist < 0f) return 0f;
 		return dist;
 	}

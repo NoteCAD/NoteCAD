@@ -218,6 +218,22 @@ public class Sketch : CADObject, ISketch  {
 		double min = -1.0;
 		SketchObject hoveredObject = null;
 		foreach(var e in entities) {
+			if(e.type != IEntityType.Point) continue;
+			if(!e.isSelectable) continue;
+			var dist = e.Select(Input.mousePosition, camera, tf);
+			if(dist < 0.0) continue;
+			if(dist > hoverRadius) continue;
+			if(min >= 0.0 && dist > min) continue;
+			min = dist;
+			hoveredObject = e;
+		}
+
+		if(hoveredObject != null) {
+			objDist = min;
+			return hoveredObject;
+		}
+		foreach(var e in entities) {
+			if(e.type == IEntityType.Point) continue;
 			if(!e.isSelectable) continue;
 			var dist = e.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
@@ -230,7 +246,7 @@ public class Sketch : CADObject, ISketch  {
 			if(!c.isSelectable) continue;
 			var dist = c.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
-			if(dist > Sketch.hoverRadius) continue;
+			if(dist > hoverRadius) continue;
 			if(min >= 0.0 && dist > min) continue;
 			min = dist;
 			hoveredObject = c;

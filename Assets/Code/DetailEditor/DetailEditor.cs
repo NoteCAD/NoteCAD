@@ -10,6 +10,7 @@ using RuntimeInspectorNamespace;
 public class DetailEditor : MonoBehaviour {
 
 	static DetailEditor instance_;
+
 	public static DetailEditor instance {
 		get {
 			if(instance_ == null) {
@@ -33,10 +34,10 @@ public class DetailEditor : MonoBehaviour {
 	public RuntimeInspector inspector;
 
 	bool meshDirty = true;
-	bool justSwitchedToSketch = true;
 
 	LineCanvas canvas;
 	EquationSystem sys = new EquationSystem();
+	public List<IdPath> selection = new List<IdPath>();
 
 	ICADObject hovered_;
 	public ICADObject hovered {
@@ -53,7 +54,9 @@ public class DetailEditor : MonoBehaviour {
 			hovered_ = value;
 			if(hovered_ != null) {
 				var id = hovered_.id;
+				//Debug.Log(id.ToString());
 				//var hh = detail.GetObjectById(id);
+				//Debug.Log(id.ToString());
 				//Debug.Log(id.ToString() + " " + hh.GetType().Name);
 				if(hovered_ is SketchObject) {
 					(hovered_ as SketchObject).isHovered = true;
@@ -155,6 +158,7 @@ public class DetailEditor : MonoBehaviour {
 	string dofText;
 
 	public bool suppressCombine = false;
+	public bool suppressHovering = false;
 
 	private void Update() {
 		if(activeFeature != null) {
@@ -224,36 +228,69 @@ public class DetailEditor : MonoBehaviour {
 				mesh.FromSolid(result);
 			}
 		}
-
-		double dist = -1.0;
-		hovered = detail.HoverUntil(Input.mousePosition, Camera.main, UnityEngine.Matrix4x4.identity, ref dist, activeFeature);
-		if(hovered == null && solid != null) {
-			var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-			var id = solid.Raytrace(ray);
-			selectedMesh.FromSolid(solid, id);
-		} else {
-			selectedMesh.Clear();
+		
+		
+		if(!CameraController.instance.IsMoving && !suppressHovering) {
+			double dist = -1.0;
+			hovered = detail.HoverUntil(Input.mousePosition, Camera.main, UnityEngine.Matrix4x4.identity, ref dist, activeFeature);
+			/*
+			if(hovered == null && solid != null) {
+				var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+				var id = solid.Raytrace(ray);
+				selectedMesh.FromSolid(solid, id);
+			} else {
+				selectedMesh.Clear();
+			}*/
 		}
 
 		canvas.ClearStyle("hovered");
+		canvas.ClearStyle("hoveredPoints");
 		if(hovered != null) {
-			canvas.SetStyle("hovered");
-			if(hovered is IEntity) {
-				canvas.DrawSegments((hovered as IEntity).SegmentsInPlane(null));
-			} else
-			if(hovered is SketchObject) {
-				(hovered as SketchObject).Draw(canvas);
-			}
+			DrawCadObject(hovered, "hovered");
+		}
+
+		canvas.ClearStyle("selected");
+		canvas.ClearStyle("selectedPoints");
+		foreach(var idp in selection) {
+			var obj = detail.GetObjectById(idp);
+			if(obj == null) continue;
+			DrawCadObject(obj, "selected");
+		}
+
+		if(selection.Count == 1) {
+			var obj = detail.GetObjectById(selection[0]);
+			inspector.Inspect(obj);
+		} else {
+			inspector.Inspect(activeFeature);
 		}
 
 		if(activeFeature is SketchFeatureBase) {
 			var sk = activeFeature as SketchFeatureBase;
-			if(sk.ShouldRedrawConstraints() || justSwitchedToSketch) {
-				sk.DrawConstraints(canvas);
-			}
+			sk.DrawConstraints(canvas);
 		} else {
 			canvas.ClearStyle("constraints");
 		}
+	}
+
+	void DrawCadObject(ICADObject obj, string style) {
+		var he = obj as IEntity;
+		canvas.SetStyle((he != null && he.type == IEntityType.Point) ? style + "Points" : style);
+		if(he != null) {
+			canvas.DrawSegments((obj as IEntity).SegmentsInPlane(null));
+		} else
+		if(obj is SketchObject) {
+			(obj as SketchObject).Draw(canvas);
+		}
+	}
+
+	public bool RemoveById(IdPath idp) {
+		var obj = detail.GetObjectById(idp);
+		if(obj is SketchObject) {
+			var sko = obj as SketchObject;
+			sko.Destroy();
+			return true;
+		}
+		return false;
 	}
 
 	private void LateUpdate() {
@@ -268,15 +305,16 @@ public class DetailEditor : MonoBehaviour {
 			var sk = activeFeature as SketchFeatureBase;
 			foreach(var c in sk.GetSketch().constraintList) {
 				if(!(c is ValueConstraint)) continue;
+				var constraint = c as ValueConstraint;
+				if(!constraint.valueVisible) continue;
 				if(hovered == c) {
 					style.normal.textColor = canvas.GetStyle("hovered").color;
 				} else {
 					style.normal.textColor = Color.white;
 				}
-				var constraint = c as ValueConstraint;
 				var pos = constraint.pos;
 				pos = Camera.main.WorldToScreenPoint(pos);
-				var txt = Math.Abs(constraint.GetValue()).ToString("0.##");
+				var txt = constraint.GetLabel();
 				GUI.Label(new Rect(pos.x, Camera.main.pixelHeight - pos.y, 0, 0), txt, style);
 			}
 		}
@@ -334,7 +372,6 @@ public class DetailEditor : MonoBehaviour {
 			cb.normalColor = pressedColor;
 			btn.colors = cb;
 			if(!skipActive) activeFeature_.active = true;
-			justSwitchedToSketch = activeFeature_ is SketchFeatureBase;
 			inspector.Inspect(activeFeature_);
 			UpdateSystem();
 		}
@@ -371,5 +408,6 @@ public class DetailEditor : MonoBehaviour {
 				Gizmos.DrawWireCube(bounds.center, bounds.size);
 			}
 		}
+
 	}
 }

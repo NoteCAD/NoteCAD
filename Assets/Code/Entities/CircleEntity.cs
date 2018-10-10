@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
@@ -55,5 +56,9 @@ public class CircleEntity : Entity, ILoopEntity {
 
 	protected override void OnRead(XmlNode xml) {
 		radius.value = xml.Attributes["r"].Value.ToDouble();
+	}
+
+	public override ExpVector PointOn(Exp t) {
+		return c.exp + new ExpVector(Exp.Cos(t), Exp.Sin(t), 0.0) * radius;
 	}
 }

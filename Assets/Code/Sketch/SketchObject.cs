@@ -24,34 +24,18 @@ public abstract class CADObject : ICADObject {
 		while(p != null) {
 			if(p == from) return result;
 			if(p.guid == Id.Null) return result;
-			result.path.Add(p.guid);
+			result.path.Insert(0, p.guid);
 			p = p.parentObject;
 		}
 		return result;
 	}
 
-	public ICADObject GetObjectById(IdPath id) {
-		var i = -1;
-		var p = this;
-		while(true) {
-			if(p.guid == Id.Null) {
-				i = id.path.Count;
-				break;
-			}
-			//i = id.path.FindLastIndex(g => g == p.guid);
-			//if(i != -1) break;
-			p = p.parentObject;
-			if(p == null) return null; 
-		}
-		ICADObject r = p;
-		while(i > 0) {
-			i--;
-			var co = r as CADObject;
-			if(co == null) return null;
-			r = co.GetChild(id.path[i]);
-			if(p == null) return null;
-		}
-		return r;
+	public virtual ICADObject GetObjectById(IdPath id, int index = 0) {
+		if(id.path.Count == 0) return null;
+		var r = GetChild(id.path[index]);
+		var co = r as CADObject;
+		if(co == null || index + 1 >= id.path.Count) return r;
+		return co.GetObjectById(id, index + 1);
 	}
 }
 

@@ -22,7 +22,7 @@ class ExtrudedEntity : IEntity {
 	public IdPath id {
 		get {
 			var eid = extrusion.id;
-			eid.path.Insert(0, entity.guid.WithSecond(index));
+			eid.path.Add(entity.guid.WithSecond(index));
 			return eid;
 		}
 	}
@@ -52,7 +52,8 @@ class ExtrudedEntity : IEntity {
 	}
 
 	public ExpVector PointOn(Exp t) {
-		throw new NotImplementedException();
+		var shift = extrusion.extrusionDir * index;
+		return entity.plane.FromPlane(entity.PointOn(t)) + shift;
 	}
 }
 
@@ -70,7 +71,7 @@ class ExtrudedPointEntity : IEntity {
 	public IdPath id {
 		get {
 			var eid = extrusion.id;
-			eid.path.Insert(0, entity.guid.WithSecond(2));
+			eid.path.Add(entity.guid.WithSecond(2));
 			return eid;
 		}
 	}
@@ -98,7 +99,10 @@ class ExtrudedPointEntity : IEntity {
 	}
 
 	public ExpVector PointOn(Exp t) {
-		throw new NotImplementedException();
+		var exp = entity.plane.FromPlane(entity.exp);
+		var p0 = exp;
+		var p1 = exp + extrusion.extrusionDir;
+		return p0 + (p1 - p0) * t;
 	}
 }
 /*

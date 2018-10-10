@@ -5,10 +5,23 @@ using System.Linq;
 using System.Xml;
 using UnityEngine;
 
+[Serializable]
 public class SketchFeatureBase : Feature {
 	protected LineCanvas canvas;
 	protected Sketch sketch;
 	GameObject go;
+
+	bool solveParent_ = false;
+	public bool solveParent {
+		get {
+			return solveParent_;
+		}
+		set {
+			solveParent_ = value;
+			MarkTopologyChanged();
+		}
+	}
+
 	public virtual Matrix4x4 transform {
 		get {
 			return Matrix4x4.identity;
@@ -54,10 +67,17 @@ public class SketchFeatureBase : Feature {
 	public override void GenerateEquations(EquationSystem sys) {
 		base.GenerateEquations(sys);
 		sketch.GenerateEquations(sys);
+		if(solveParent && source != null) {
+			source.GenerateEquations(sys);
+		}
 	}
 
 	public bool IsTopologyChanged() {
 		return sketch.topologyChanged || sketch.constraintsTopologyChanged;
+	}
+
+	public void MarkTopologyChanged() {
+		sketch.topologyChanged = true;
 	}
 
 	public EquationSystem.SolveResult Solve() {
@@ -126,8 +146,9 @@ public class SketchFeatureBase : Feature {
 	public override ICADObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
 		double dist = -1;
 		var resTf = GetTransform() * tf;
-		var result = base.Hover(mouse, camera, resTf, ref dist);
 		var result1 = sketch.Hover(mouse, camera, resTf, ref objDist);
+		if(result1 is IEntity && (result1 as IEntity).type == IEntityType.Point) return result1;
+		var result = base.Hover(mouse, camera, resTf, ref dist);
 		if(result != null && result1 != null) {
 			if(dist < objDist) {
 				objDist = dist;

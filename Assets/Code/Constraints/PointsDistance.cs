@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 
+[Serializable]
 public class PointsDistance : ValueConstraint {
-
 
 	public ExpVector p0exp { get { return GetPointInPlane(0, sketch.plane); } }
 	public ExpVector p1exp { get { return GetPointInPlane(1, sketch.plane); } }

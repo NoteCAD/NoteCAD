@@ -21,9 +21,8 @@ class ArrayEntity : IEntity {
 	public IdPath id {
 		get {
 			var eid = feature.id;
-			if(entity is Entity) {
-				eid.path.Insert(0, (entity as Entity).guid.WithSecond(index));
-			}
+			eid.path.Add(new Id(index));
+			eid.path.AddRange(entity.id.path);
 			return eid;
 		}
 	}
@@ -53,17 +52,19 @@ class ArrayEntity : IEntity {
 	}
 
 	public ExpVector PointOn(Exp t) {
-		throw new NotImplementedException();
+		var shift = feature.shiftDir * index;
+		return entity.PointOn(t) + shift;
 	}
 }
 
+[Serializable]
 public class LinearArrayFeature : SketchFeature {
 	public Param dx = new Param("dx", 5.0);
 	public Param dy = new Param("dy", 5.0);
 	public int repeatCount = 5;
 
 	public LinearArrayFeature() {
-		shouldHoverWhenInactive = true;
+		shouldHoverWhenInactive = false;
 	}
 
 	public Sketch sourceSketch {
@@ -72,9 +73,15 @@ public class LinearArrayFeature : SketchFeature {
 		}
 	}
 
-	public override ICADObject GetChild(Id guid) {
-		var entity = sourceSketch.GetEntity(guid.WithoutSecond());
-		return new ArrayEntity(entity, this, guid.second);
+	public override ICADObject GetObjectById(IdPath id, int index) {
+		if(id.path[index].value == -1) {
+			return base.GetObjectById(id, index);
+		}
+
+		var arrayIndex = id.path[index].value;
+		var entity = detail.GetObjectById(id, index + 1) as IEntity;
+		if(entity == null) return null;
+		return new ArrayEntity(entity, this, arrayIndex);
 	}
 
 	protected override void OnUpdate() {

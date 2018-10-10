@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -44,4 +45,15 @@ public class LineEntity : Entity, ISegmentaryEntity {
 		return part;
 	}
 
+	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
+		var ap = camera.WorldToScreenPoint(tf.MultiplyPoint(p0.GetPosition()));
+		var bp = camera.WorldToScreenPoint(tf.MultiplyPoint(p1.GetPosition()));
+		return GeomUtils.DistancePointSegment2D(mouse, ap, bp);
+	}
+
+	public override ExpVector PointOn(Exp t) {
+		var pt0 = p0.exp;
+		var pt1 = p1.exp;
+		return pt0 + (pt1 - pt0) * t;
+	}
 }

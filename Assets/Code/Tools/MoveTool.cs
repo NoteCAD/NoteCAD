@@ -26,8 +26,10 @@ public class MoveTool : Tool {
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		ClearDrag();
+		if(!Input.GetKey(KeyCode.LeftShift)) DetailEditor.instance.selection.Clear();
 		if(valueConstraint != null) return;
 		if(sko == null) return;
+		DetailEditor.instance.selection.Add(sko.id);
 		var entity = sko as IEntity;
 		current = sko;
 		click = pos;
@@ -52,6 +54,7 @@ public class MoveTool : Tool {
 			DetailEditor.instance.AddDrag(dragY);
 			DetailEditor.instance.AddDrag(dragZ);
 			DetailEditor.instance.suppressCombine = true;
+			DetailEditor.instance.suppressHovering = true;
 		}
 	}
 
@@ -60,6 +63,7 @@ public class MoveTool : Tool {
 		foreach(var d in drag) {
 			DetailEditor.instance.RemoveDrag(d);
 			DetailEditor.instance.suppressCombine = false;
+			DetailEditor.instance.suppressHovering = false;
 		}
 		drag.Clear();
 		//canMove = true;
@@ -117,6 +121,7 @@ public class MoveTool : Tool {
 	void OnEndEdit(string value) {
 		if(valueConstraint == null) return;
 		var sign = Math.Sign(valueConstraint.GetValue());
+		if(sign == 0) sign = 1;
 		valueConstraint.SetValue(sign * value.ToDouble());
 		valueConstraint = null;
 		input.gameObject.SetActive(false);

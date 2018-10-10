@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
+using System;
 
+[Serializable]
 public class PointsCoincident : Constraint {
 
 	public IEntity p0 { get { return GetEntity(0); } set { SetEntity(0, value); } }

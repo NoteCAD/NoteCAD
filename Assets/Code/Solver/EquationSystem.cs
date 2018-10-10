@@ -14,6 +14,7 @@ public class EquationSystem  {
 	bool isDirty = true;
 	public int maxSteps = 20;
 	public int dragSteps = 3;
+	public bool revertWhenNotConverged = true;
 
 	Exp[,] J;
 	double[,] A;
@@ -277,8 +278,10 @@ public class EquationSystem  {
 				currentParams[i].value -= X[i];
 			}
 		} while(steps++ <= maxSteps);
-		RevertParams();
-		dofChanged = false;
+		if(revertWhenNotConverged) {
+			RevertParams();
+			dofChanged = false;
+		}
 		return SolveResult.DIDNT_CONVEGE;
 	}
 }

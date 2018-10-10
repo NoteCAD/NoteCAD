@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -65,6 +66,12 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		}
 	}
 
+	public Exp radiusExp {
+		get {
+			return (p0.exp - c.exp).Magnitude();
+		}
+	}
+
 	public override BBox bbox { get { return new BBox(center.pos, (float)radius); } }
 
 	protected override Entity OnSplit(Vector3 position) {
@@ -76,11 +83,13 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		return part;
 	}
 
+	/*
 	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
 		float angle = GetAngle() * Mathf.Rad2Deg;
+		Debug.Log(angle);
 		var cp = c.pos;
 		var rv = p0.pos - cp;
-		int subdiv = 8;
+		int subdiv = (int)Math.Ceiling(angle / 30);
 		var vz = Vector3.forward;
 		var rot = Quaternion.AngleAxis(angle / (subdiv - 1), vz);
 		var prev = Vector3.zero;
@@ -88,7 +97,7 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		for(int i = 0; i < subdiv; i++) {
 			var pos =  camera.WorldToScreenPoint(tf.MultiplyPoint(rv + cp));
 			if(i > 0) {
-				var dist = Mathf.Abs(GeomUtils.DistancePointSegment2D(mouse, prev, pos));
+				var dist = GeomUtils.DistancePointSegment2D(mouse, prev, pos);
 				if(min > 0 && dist > min) continue;
 				min = dist;
 			}
@@ -97,5 +106,9 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		}
 		return min;
 	}
+	*/
 
+	public override ExpVector PointOn(Exp t) {
+		return c.exp + new ExpVector(Exp.Cos(t), Exp.Sin(t), 0.0) * radiusExp;
+	}
 }

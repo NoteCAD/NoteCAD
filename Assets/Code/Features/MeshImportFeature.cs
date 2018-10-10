@@ -27,7 +27,7 @@ class MeshEdgeEntity : IEntity {
 	public IdPath id {
 		get {
 			var eid = feature.id;
-			eid.path.Insert(0, new Id(v0, v1));
+			eid.path.Add(new Id(v0, v1));
 			return eid;
 		}
 	}
@@ -53,7 +53,9 @@ class MeshEdgeEntity : IEntity {
 	}
 
 	public ExpVector PointOn(Exp t) {
-		throw new NotImplementedException();
+		var p0 = this.GetLineP0(null);
+		var p1 = this.GetLineP1(null);
+		return p0 + (p1 - p0) * t;
 	}
 }
 
@@ -71,7 +73,7 @@ class MeshVertexEntity : IEntity {
 	public IdPath id {
 		get {
 			var eid = feature.id;
-			eid.path.Insert(0, new Id(v0, -1));
+			eid.path.Add(new Id(v0, -1));
 			return eid;
 		}
 	}
@@ -95,7 +97,7 @@ class MeshVertexEntity : IEntity {
 	}
 
 	public ExpVector PointOn(Exp t) {
-		throw new NotImplementedException();
+		return this.GetLineP0(null);
 	}
 }
 
@@ -142,6 +144,7 @@ public class MeshImportFeature : MeshFeature {
 	}
 
 	public override ICADObject GetChild(Id guid) {
+		if(guid.value == -1) return sketch;
 		if(guid.second == -1) return new MeshVertexEntity(this, (int)guid.value);
 		return new MeshEdgeEntity(this, (int)guid.value, (int)guid.second);
 	}
@@ -271,6 +274,7 @@ public class MeshImportFeature : MeshFeature {
 
 		if(hoverV0 != -1) {
 			dist = min;
+			Debug.Log("v0" + hoverV0 + "v1" + hoverV1);
 			return new MeshEdgeEntity(this, hoverV0, hoverV1);
 		}
 

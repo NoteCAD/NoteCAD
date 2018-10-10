@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using System;
 
+[Serializable]
 public class PointLineDistance : ValueConstraint {
 
 	public IEntity point { get { return GetEntity(0); } set { SetEntity(0, value); } }

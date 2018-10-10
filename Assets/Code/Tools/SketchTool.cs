@@ -9,29 +9,36 @@ public class SketchTool : Tool {
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		if(sko == null) return;
+		var entity = sko as IEntity;
 		if(p == null) {
-			p = sko as IEntity;
-		} else if(u == null) {
-			u = sko as IEntity;
-		} else if(v == null) {
-			v = sko as IEntity;
-			StopTool();
-			var feature = new SketchFeature();
-			DetailEditor.instance.AddFeature(feature); 
-			feature.u = u;
-			feature.v = v;
-			feature.p = p;
-			feature.source = DetailEditor.instance.activeFeature;
-
-			IPlane plane = feature as IPlane;
-
-			if(Vector3.Dot(plane.n, Camera.main.transform.forward) < 0f) {
-				feature.u = v;
-				feature.v = u;
+			if(entity.type == IEntityType.Point) {
+				p = entity;
 			}
+		} else if(u == null) {
+			if(entity.type == IEntityType.Line) {
+				u = entity;
+			}
+		} else if(v == null) {
+			if(entity.type == IEntityType.Line && entity != u) {
+				v = entity;
+				StopTool();
+				var feature = new SketchFeature();
+				DetailEditor.instance.AddFeature(feature); 
+				feature.u = u;
+				feature.v = v;
+				feature.p = p;
+				feature.source = DetailEditor.instance.activeFeature;
 
-			DetailEditor.instance.ActivateFeature(feature);
-			CameraController.instance.AnimateToPlane(feature);
+				IPlane plane = feature as IPlane;
+
+				if(Vector3.Dot(plane.n, Camera.main.transform.forward) < 0f) {
+					feature.u = v;
+					feature.v = u;
+				}
+
+				DetailEditor.instance.ActivateFeature(feature);
+				CameraController.instance.AnimateToPlane(feature);
+			}
 		}
 	}
 

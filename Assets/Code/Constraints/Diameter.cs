@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
+using System;
 
+[Serializable]
 public class Diameter : ValueConstraint {
 
 	public CircleEntity circle { get { return GetEntity(0) as CircleEntity; } set { SetEntity(0, value); } }

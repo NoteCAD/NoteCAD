@@ -8,6 +8,9 @@ public class CameraController : MonoBehaviour {
 	new Camera camera;
 	bool shift;
 	bool rotate;
+
+	public bool IsMoving { get { return shift || rotate; } }
+
 	Vector3 click;
 	Vector3 rotPoint;
 	Vector3 screenClick;

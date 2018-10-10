@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
+[Serializable]
 public class AngleConstraint : ValueConstraint {
 
 	public AngleConstraint(Sketch sk) : base(sk) { }

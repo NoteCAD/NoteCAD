@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Linq;
 using System.Xml;
+using System;
 
 public class PointEntity : Entity {
 
@@ -131,4 +132,7 @@ public class PointEntity : Entity {
 		canvas.DrawPoint(pos);
 	}
 
+	public override ExpVector PointOn(Exp t) {
+		return exp;
+	}
 }

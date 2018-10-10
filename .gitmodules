@@ -13,3 +13,6 @@
 [submodule "Assets/Code/External/gsSlicer"]
 	path = Assets/Code/External/gsSlicer
 	url = https://github.com/NoteCAD/gsSlicer.git
+[submodule "Assets/Code/External/netDxf"]
+	path = Assets/Code/External/netDxf
+	url = https://github.com/NoteCAD/netDxf.git

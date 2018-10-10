@@ -9,6 +9,7 @@ public enum HVOrientation {
 	OZ
 }
 
+[Serializable]
 public class HVConstraint : Constraint {
 
 	public IEntity p0 { get { return GetEntity(0); } set { SetEntity(0, value); } }
@@ -36,11 +37,19 @@ public class HVConstraint : Constraint {
 		}
 	}
 
-	void DrawStroke(LineCanvas canvas, LineEntity line) {
-		Vector3 dir = (line.p1.GetPosition() - line.p0.GetPosition()).normalized;
-		Vector3 perp = Vector3.Cross(dir, Vector3.forward);
-		Vector3 pos = (line.p1.GetPosition() + line.p0.GetPosition()) / 2f;
-		canvas.DrawLine(pos + perp, pos - perp);
+	void DrawStroke(LineCanvas canvas, IEntity pt0, IEntity pt1, int rpt) {
+		var p0 = pt0.GetPointAtInPlane(0, null).Eval();
+		var p1 = pt1.GetPointAtInPlane(0, null).Eval();
+		float len = (p1 - p0).magnitude;
+		float size = Mathf.Min(len, 20f * getPixelSize());
+		Vector3 dir = (p1 - p0).normalized * size / 2f;
+		Vector3 pos = (p1 + p0) / 2f;
+		ref_points[rpt] = pos;
+		canvas.DrawLine(pos + dir, pos - dir);
+	}
+
+	protected override void OnDraw(LineCanvas canvas) {
+		DrawStroke(canvas, p0, p1, 0);
 	}
 
 	/*protected override void OnDraw(LineCanvas canvas) {

@@ -15,7 +15,7 @@
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
     <CompilerResponseFile>Assets\smcs.rsp</CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
-    <UnityBuildTarget>StandaloneWindows64:19</UnityBuildTarget>
+    <UnityBuildTarget>WebGL:20</UnityBuildTarget>
     <UnityVersion>2017.3.0f3</UnityVersion>
     <RootNamespace></RootNamespace>
     <LangVersion Condition=" '$(VisualStudioVersion)' != '10.0' ">4</LangVersion>
@@ -27,7 +27,7 @@
     <IntermediateOutputPath>Temp\UnityVS_obj\Debug\</IntermediateOutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DefineConstants>DEBUG;TRACE;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_3_0;UNITY_2017_3;UNITY_2017;PLATFORM_ARCH_64;UNITY_64;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_DUCK_TYPING;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_RAKNET;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;ENABLE_LOCALIZATION;PLATFORM_STANDALONE_WIN;PLATFORM_STANDALONE;UNITY_STANDALONE_WIN;UNITY_STANDALONE;ENABLE_SUBSTANCE;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_EVENT_QUEUE;ENABLE_CLUSTERINPUT;ENABLE_VR;ENABLE_AR;ENABLE_WEBSOCKET_HOST;ENABLE_MONO;NET_2_0_SUBSET;ENABLE_PROFILER;DEBUG;TRACE;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_NATIVE_ARRAY_CHECKS;UNITY_TEAM_LICENSE;ENABLE_VSTU;G3_USING_UNITY;</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_3_0;UNITY_2017_3;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;ENABLE_LOCALIZATION;PLATFORM_WEBGL;UNITY_WEBGL;UNITY_WEBGL_API;UNITY_DISABLE_WEB_VERIFICATION;UNITY_GFX_USE_PLATFORM_VSYNC;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_VR;ENABLE_SPATIALTRACKING;ENABLE_IL2CPP;NET_2_0_SUBSET;ENABLE_PROFILER;DEBUG;TRACE;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_NATIVE_ARRAY_CHECKS;UNITY_TEAM_LICENSE;ENABLE_VSTU;G3_USING_UNITY;</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -37,7 +37,7 @@
     <IntermediateOutputPath>Temp\UnityVS_obj\Release\</IntermediateOutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DefineConstants>TRACE;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_3_0;UNITY_2017_3;UNITY_2017;PLATFORM_ARCH_64;UNITY_64;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_DUCK_TYPING;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MICROPHONE;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_RAKNET;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_LZMA;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;PLATFORM_SUPPORTS_MONO;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;ENABLE_LOCALIZATION;PLATFORM_STANDALONE_WIN;PLATFORM_STANDALONE;UNITY_STANDALONE_WIN;UNITY_STANDALONE;ENABLE_SUBSTANCE;ENABLE_RUNTIME_GI;ENABLE_MOVIES;ENABLE_NETWORK;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_EVENT_QUEUE;ENABLE_CLUSTERINPUT;ENABLE_VR;ENABLE_AR;ENABLE_WEBSOCKET_HOST;ENABLE_MONO;NET_2_0_SUBSET;ENABLE_PROFILER;DEBUG;TRACE;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_NATIVE_ARRAY_CHECKS;UNITY_TEAM_LICENSE;ENABLE_VSTU;G3_USING_UNITY;</DefineConstants>
+    <DefineConstants>TRACE;UNITY_5_3_OR_NEWER;UNITY_5_4_OR_NEWER;UNITY_5_5_OR_NEWER;UNITY_5_6_OR_NEWER;UNITY_2017_1_OR_NEWER;UNITY_2017_2_OR_NEWER;UNITY_2017_3_OR_NEWER;UNITY_2017_3_0;UNITY_2017_3;UNITY_2017;ENABLE_AUDIO;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GENERICS;ENABLE_PVR_GI;ENABLE_MULTIPLE_DISPLAYS;ENABLE_PHYSICS;ENABLE_SPRITERENDERER_FLIPPING;ENABLE_SPRITES;ENABLE_GRID;ENABLE_TILEMAP;ENABLE_TERRAIN;ENABLE_DIRECTOR;ENABLE_UNET;ENABLE_UNITYEVENTS;ENABLE_WEBCAM;ENABLE_WWW;ENABLE_CLOUD_SERVICES_COLLAB;ENABLE_CLOUD_SERVICES_COLLAB_SOFTLOCKS;ENABLE_CLOUD_HUB;ENABLE_CLOUD_PROJECT_ID;ENABLE_CLOUD_SERVICES_USE_WEBREQUEST;ENABLE_CLOUD_SERVICES_UNET;ENABLE_CLOUD_SERVICES_BUILD;ENABLE_CLOUD_LICENSE;ENABLE_EDITOR_HUB;ENABLE_EDITOR_HUB_LICENSE;ENABLE_WEBSOCKET_CLIENT;ENABLE_DIRECTOR_AUDIO;ENABLE_DIRECTOR_TEXTURE;ENABLE_TIMELINE;ENABLE_EDITOR_METRICS;ENABLE_EDITOR_METRICS_CACHING;ENABLE_NATIVE_ARRAY;ENABLE_SPRITE_MASKING;INCLUDE_DYNAMIC_GI;INCLUDE_GI;ENABLE_MONO_BDWGC;RENDER_SOFTWARE_CURSOR;INCLUDE_PUBNUB;ENABLE_PLAYMODE_TESTS_RUNNER;ENABLE_VIDEO;ENABLE_RMGUI;ENABLE_PACKMAN;ENABLE_CUSTOM_RENDER_TEXTURE;ENABLE_STYLE_SHEETS;ENABLE_LOCALIZATION;PLATFORM_WEBGL;UNITY_WEBGL;UNITY_WEBGL_API;UNITY_DISABLE_WEB_VERIFICATION;UNITY_GFX_USE_PLATFORM_VSYNC;ENABLE_CRUNCH_TEXTURE_COMPRESSION;ENABLE_UNITYWEBREQUEST;ENABLE_CLOUD_SERVICES;ENABLE_CLOUD_SERVICES_ADS;ENABLE_CLOUD_SERVICES_ANALYTICS;ENABLE_CLOUD_SERVICES_PURCHASING;ENABLE_CLOUD_SERVICES_CRASH_REPORTING;ENABLE_VR;ENABLE_SPATIALTRACKING;ENABLE_IL2CPP;NET_2_0_SUBSET;ENABLE_PROFILER;DEBUG;TRACE;UNITY_ASSERTIONS;UNITY_EDITOR;UNITY_EDITOR_64;UNITY_EDITOR_WIN;ENABLE_NATIVE_ARRAY_CHECKS;UNITY_TEAM_LICENSE;ENABLE_VSTU;G3_USING_UNITY;</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
@@ -303,7 +303,7 @@
     <Compile Include="Assets\Code\Constraints\EqualLineLine.cs" />
     <Compile Include="Assets\Code\Constraints\HVConstraint.cs" />
     <Compile Include="Assets\Code\Constraints\PointLineDistance.cs" />
-    <Compile Include="Assets\Code\Constraints\PointOnLine.cs" />
+    <Compile Include="Assets\Code\Constraints\PointOn.cs" />
     <Compile Include="Assets\Code\Constraints\PointsCoincident.cs" />
     <Compile Include="Assets\Code\Constraints\PointsDistance.cs" />
     <Compile Include="Assets\Code\DetailEditor\DetailEditor.cs" />
@@ -676,6 +676,240 @@
     <Compile Include="Assets\Code\External\gsSlicer\utility\PathOverlapRepair.cs" />
     <Compile Include="Assets\Code\External\gsSlicer\utility\TemporalPathHash.cs" />
     <Compile Include="Assets\Code\External\gsSlicer\utility\TopoOffset2d.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\AciColor.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Blocks\Block.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Blocks\BlockAttributeDefinitionChangeEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Blocks\BlockEntityChangeEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Blocks\BlockRecord.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Blocks\BlockTypeFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Blocks\EndBlock.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\BoundingRectangle.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\ClippingBoundary.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\ClippingBoundaryType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\ApplicationRegistries.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\AttributeCollection.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\AttributeDefinitionDictionary.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\AttributeDefinitionDictionaryEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\BlockRecords.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\DimensionStyleOverrideDictionary.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\DimensionStyleOverrideDictionaryEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\DimensionStyles.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\EntityCollection.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\EntityCollectionEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\Groups.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\ImageDefinitions.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\Layers.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\Layouts.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\Linetypes.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\MLineStyles.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\ObservableCollection.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\ObservableCollectionEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\ObservableDictionary.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\ObservableDictionaryEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\ShapeStyles.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\SupportFolders.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\TableObjects.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\TextStyles.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\UCSs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\UnderlayDgnDefinitions.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\UnderlayDwfDefinitions.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\UnderlayPdfDefinitions.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\Views.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\VPorts.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Collections\XDataDictionary.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\CoordinateSystem.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\DxfDocument.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\DxfObject.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\DxfObjectCode.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\AlignedDimension.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Angular2LineDimension.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Angular3PointDimension.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Arc.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Attribute.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\AttributeChangeEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\AttributeDefinition.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\AttributeFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Circle.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\DatumReferenceValue.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\DiametricDimension.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Dimension.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\DimensionArrowhead.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\DimensionBlock.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\DimensionType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\DimensionTypeFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Ellipse.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\EndSequence.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\EntityObject.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\EntityType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Face3d.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Face3dEdgeFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Hatch.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\HatchBoundaryPath.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\HatchBoundaryPathTypeFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\HatchFillType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\HatchGradientPattern.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\HatchGradientPatternType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\HatchPattern.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\HatchPatternLineDefinition.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\HatchStyle.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\HatchType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Image.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\ImageDisplayFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Insert.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Leader.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\LeaderPathType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Line.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\LinearDimension.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\LwPolyline.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\LwPolylineVertex.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Mesh.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\MeshEdge.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\MLine.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\MLineFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\MLineJustification.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\MLineVertex.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\MText.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\MTextAttachmentPoint.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\MTextDrawingDirection.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\MTextFormattingOptions.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\MTextLineSpacingStyle.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\OrdinateDimension.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\OrdinateDimensionAxis.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Point.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\PolyfaceMesh.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\PolyfaceMeshFace.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\PolyfaceMeshVertex.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Polyline.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\PolylineSmoothType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\PolylineTypeFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\PolylineVertex.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\RadialDimension.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Ray.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Shape.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Solid.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Spline.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\SplineCreationMethod.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\SplineKnotParameterization.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\SplineTypeFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\SplineVertex.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Text.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\TextAligment.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Tolerance.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\ToleranceEntry.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\ToleranceGeometricSymbol.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\ToleranceMaterialCondition.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\ToleranceValue.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Trace.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Underlay.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\UnderlayDisplayFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Vertex.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\VertexTypeFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Viewport.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\ViewportStatusFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Wipeout.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\XLine.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Header\AttMode.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Header\DxfVersion.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Header\HeaderVariable.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Header\HeaderVariableCode.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Header\HeaderVariables.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Header\PointShape.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\IHasXData.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\IO\BinaryCodeValueReader.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\IO\BinaryCodeValueWriter.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\IO\DxfReader.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\IO\DxfVersionNotSupportedException.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\IO\DxfWriter.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\IO\EncodingType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\IO\ICodeValueReader.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\IO\ICodeValueWriter.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\IO\TextCodeValueReader.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\IO\TextCodeValueWriter.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Lineweight.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\MathHelper.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Matrix3.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\DictionaryCloningFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\DictionaryObject.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\Group.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\GroupEntityChangeEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\ImageDefinition.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\ImageDefinitionReactor.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\ImageDisplayQuality.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\Layout.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\MLineStyle.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\MLineStyleElement.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\MLineStyleElementChangeEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\MLineStyleFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\PaperMargin.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\PlotFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\PlotPaperUnits.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\PlotRotation.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\PlotSettings.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\PlotType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\RasterVariables.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\ShadePlotMode.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\ShadePlotResolutionMode.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\SupportedImageFormats.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\UnderlayDefinition.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\UnderlayDgnDefinition.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\UnderlayDwfDefinition.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\UnderlayPdfDefinition.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\UnderlayType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Properties\AssemblyInfo.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\StringEnum.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\SubclassMarker.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Symbols.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\ApplicationRegistry.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyle.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleAlternateUnits.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleFitOptions.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleFitTextMove.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleOverride.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleOverrideChangeEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleOverrideType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleTextDirection.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleTextHorizontalPlacement.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleTextVerticalPlacement.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleTolerances.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleTolerancesDisplayMethod.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\DimensionStyleTolerancesVerticalPlacement.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\FontStyle.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\Layer.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\LayerFlags.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\Linetype.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\LinetypeSegment.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\LinetypeSegmentChangeEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\LinetypeSegmentRotationType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\LinetypeSegmentType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\LinetypeShapeSegment.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\LinetypeSimpleSegment.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\LinetypeTextSegment.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\ShapeStyle.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\TableObject.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\TableObjectChangedEventArgs.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\TextStyle.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\UCS.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\View.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\ViewMode.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\VPort.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Transparency.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\AngleDirection.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\AngleUnitFormat.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\AngleUnitType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\DrawingTime.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\DrawingUnits.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\FractionFormatType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\ImageResolutionUnits.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\ImageUnits.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\LinearUnitFormat.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\LinearUnitType.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\UnitHelper.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Units\UnitStyleFormat.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Vector2.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\Vector3.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\XData.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\XDataCode.cs" />
+    <Compile Include="Assets\Code\External\netDxf\netDxf\XDataRecord.cs" />
     <Compile Include="Assets\Code\External\pb_Stl\pb_Stl.cs" />
     <Compile Include="Assets\Code\External\pb_Stl\pb_Stl_Exporter.cs" />
     <Compile Include="Assets\Code\External\pb_Stl\pb_Stl_Importer.cs" />
@@ -762,12 +996,14 @@
     <Compile Include="Assets\Code\Tools\FullscreenTool.cs" />
     <Compile Include="Assets\Code\Tools\HelpTool.cs" />
     <Compile Include="Assets\Code\Tools\HVTool.cs" />
+    <Compile Include="Assets\Code\Tools\ImportDXFTool.cs" />
     <Compile Include="Assets\Code\Tools\ImportSTLTool.cs" />
     <Compile Include="Assets\Code\Tools\LinearArrayTool.cs" />
     <Compile Include="Assets\Code\Tools\LineTool.cs" />
     <Compile Include="Assets\Code\Tools\LoadTool.cs" />
     <Compile Include="Assets\Code\Tools\MoveTool.cs" />
     <Compile Include="Assets\Code\Tools\NewTool.cs" />
+    <Compile Include="Assets\Code\Tools\ObjectsListTool.cs" />
     <Compile Include="Assets\Code\Tools\PointsCoincidentTool.cs" />
     <Compile Include="Assets\Code\Tools\PointTool.cs" />
     <Compile Include="Assets\Code\Tools\RemoveTool.cs" />
@@ -786,10 +1022,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Code\DraftStroke\DraftLines.shader" />
+    <None Include="Assets\Code\DraftStroke\DraftLinesDepthOff.shader" />
     <None Include="Assets\Code\External\UnityRuntimeInspector\Plugins\RuntimeInspector\ExternalResources\ColorWheel\LICENSE.txt" />
     <None Include="Assets\Code\External\UnityRuntimeInspector\Plugins\RuntimeInspector\ExternalResources\ColorWheel\Visuals\ColorWheelShader.shader" />
     <None Include="Assets\Code\External\UnityRuntimeInspector\Plugins\RuntimeInspector\Shaders\ColorPickerAlphaShader.shader" />
     <None Include="Assets\Code\External\gsSlicer\thirdparty\clipper_library\License.txt" />
+    <None Include="Assets\Code\External\netDxf\doc\Changelog.txt" />
     <None Include="Assets\Materials\LoopShader.shader" />
     <None Include="Assets\TestFiles\sketch_00.xml" />
   </ItemGroup>

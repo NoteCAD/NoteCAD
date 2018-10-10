@@ -16,6 +16,7 @@ public class DraftStroke : MonoBehaviour {
 		public Color color = Color.white;
 		public float width = 1f;
 		public int queue = -1;
+		public bool depthTest = true;
 		//float stippleWidth;
 		//bool pixel;
 	}
@@ -64,12 +65,13 @@ public class DraftStroke : MonoBehaviour {
 	}
 	
 	public Material material;
+	public Material materialDepthOff;
 
-	Mesh CreateMesh(Lines lines) {
+	Mesh CreateMesh(Lines lines, StrokeStyle ss) {
 		var go = new GameObject(lines.style.name);
 		go.transform.SetParent(parent != null ? parent.transform : gameObject.transform, false);
 		var mr = go.AddComponent<MeshRenderer>();
-		mr.material = material;
+		mr.material = ss.depthTest ? material : materialDepthOff;
 		lines.material = mr.material;
 		var mf = go.AddComponent<MeshFilter>();
 		var mesh = new Mesh();
@@ -131,7 +133,7 @@ public class DraftStroke : MonoBehaviour {
 				indices[i * 6 + 4] = i * 4 + 2;
 				indices[i * 6 + 5] = i * 4 + 1;
 			}
-			var mesh = CreateMesh(li);
+			var mesh = CreateMesh(li, li.style);
 			mesh.vertices = vertices;
 			mesh.tangents = tangents;
 			mesh.normals = normals;
