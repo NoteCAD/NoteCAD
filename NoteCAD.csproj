@@ -302,6 +302,8 @@
     <Compile Include="Assets\Code\Constraints\Diameter.cs" />
     <Compile Include="Assets\Code\Constraints\EqualLineLine.cs" />
     <Compile Include="Assets\Code\Constraints\HVConstraint.cs" />
+    <Compile Include="Assets\Code\Constraints\Parallel.cs" />
+    <Compile Include="Assets\Code\Constraints\Perpendicular.cs" />
     <Compile Include="Assets\Code\Constraints\PointLineDistance.cs" />
     <Compile Include="Assets\Code\Constraints\PointOn.cs" />
     <Compile Include="Assets\Code\Constraints\PointsCoincident.cs" />
@@ -969,6 +971,7 @@
     <Compile Include="Assets\Code\Features\Feature.cs" />
     <Compile Include="Assets\Code\Features\LinearArrayFeature.cs" />
     <Compile Include="Assets\Code\Features\MeshImportFeature.cs" />
+    <Compile Include="Assets\Code\Features\RevolveFeature.cs" />
     <Compile Include="Assets\Code\Features\SketchFeature.cs" />
     <Compile Include="Assets\Code\Features\SketchFeatureBase.cs" />
     <Compile Include="Assets\Code\Features\SliceFeature.cs" />
@@ -1004,9 +1007,12 @@
     <Compile Include="Assets\Code\Tools\MoveTool.cs" />
     <Compile Include="Assets\Code\Tools\NewTool.cs" />
     <Compile Include="Assets\Code\Tools\ObjectsListTool.cs" />
+    <Compile Include="Assets\Code\Tools\ParallelTool.cs" />
+    <Compile Include="Assets\Code\Tools\PerpendicularTool.cs" />
     <Compile Include="Assets\Code\Tools\PointsCoincidentTool.cs" />
     <Compile Include="Assets\Code\Tools\PointTool.cs" />
     <Compile Include="Assets\Code\Tools\RemoveTool.cs" />
+    <Compile Include="Assets\Code\Tools\RevolveTool.cs" />
     <Compile Include="Assets\Code\Tools\SaveGCodeTool.cs" />
     <Compile Include="Assets\Code\Tools\SaveTool.cs" />
     <Compile Include="Assets\Code\Tools\SketchTool.cs" />

@@ -242,6 +242,7 @@ public class Sketch : CADObject, ISketch  {
 			min = dist;
 			hoveredObject = e;
 		}
+		Dictionary<Constraint, double> candidates = new Dictionary<Constraint, double>();
 		foreach(var c in constraints) {
 			if(!c.isSelectable) continue;
 			var dist = c.Select(Input.mousePosition, camera, tf);
@@ -250,7 +251,19 @@ public class Sketch : CADObject, ISketch  {
 			if(min >= 0.0 && dist > min) continue;
 			min = dist;
 			hoveredObject = c;
+			candidates.Add(c, dist);
 		}
+
+		if(candidates.Count > 0) {
+			for(int i = 0; i < candidates.Count; i++) {
+				var current = candidates.ElementAt(i).Key;
+				if(DetailEditor.instance.selection.All(id => id.ToString() != current.id.ToString())) continue;
+				var next = candidates.ElementAt((i + 1) % candidates.Count);
+				objDist = next.Value;
+				return next.Key;
+			}
+		}
+
 		objDist = min;
 		return hoveredObject;
 	}

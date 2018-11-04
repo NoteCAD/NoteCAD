@@ -161,7 +161,7 @@ public class Exp {
 			case Op.Div: {
 					var bv = b.Eval();
 					if(Math.Abs(bv) < 1e-10) {
-						Debug.Log("Division by zero");
+						//Debug.Log("Division by zero");
 						bv = 1.0;
 					}
 					return a.Eval() / bv;

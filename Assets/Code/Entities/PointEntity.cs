@@ -118,6 +118,15 @@ public class PointEntity : Entity {
 		if(is3d) z.value = xml.Attributes["z"].Value.ToDouble();
 	}
 
+	public static double IsSelected(Vector3 pos, Vector3 mouse, Camera camera, Matrix4x4 tf) {
+		var pp = camera.WorldToScreenPoint(tf.MultiplyPoint(pos));
+		pp.z = 0f;
+		mouse.z = 0f;
+		var dist = (pp - mouse).magnitude - 5;
+		if(dist < 0.0) return 0.0;
+		return dist;
+	}
+
 	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
 		var pp = camera.WorldToScreenPoint(tf.MultiplyPoint(pos));
 		pp.z = 0f;

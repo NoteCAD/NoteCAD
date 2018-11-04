@@ -37,6 +37,13 @@ public static class GeomUtils {
 		return (pp - p).magnitude;
 	}
 
+	public static float DistancePointLine3D(Vector3 p, Vector3 p0, Vector3 p1) {
+		var dir = p1 - p0;
+		var t = Vector3.Dot(dir, p - p0) / Vector3.Dot(dir, dir);
+		var pp = p0 + dir * t;
+		return (pp - p).magnitude;
+	}
+
 	public static Vector3 projectToPlane(Vector3 pos, Vector3 normal, Vector3 point) {
 		Plane p = new Plane(normal, point);
 		return pos - p.GetDistanceToPoint(pos) * normal;
@@ -163,25 +170,18 @@ public static class GeomUtils {
 		return Cross.INTERSECTION;
 	}
 
-	public static bool isLinesCrossed(Vector3 A1, Vector3 B1, Vector3 A2, Vector3 B2, ref Vector3 itr, float USEEPS) {
-		Vector3 L1 = B1 - A1;
-		Vector3 L2 = B2 - A2;
-	
-
-		Vector3 N1 = Vector3.Cross(L1, Vector3.forward).normalized;
-		Plane plane = new Plane(N1, A1);
-		Ray ray = new Ray(A2, L2);
-		float enter = 0.0f;
-		
-		if (!plane.Raycast(ray, out enter)) {
-			ray = new Ray(A2, -L2);
-			if (!plane.Raycast(ray, out enter)) {
-				return false;
-			}
-		}
-		
-		itr = ray.GetPoint(enter);
-		
+	public static bool isLinesCrossed(Vector3 a1, Vector3 b1, Vector3 a2, Vector3 b2, ref Vector3 itr, float USEEPS) {
+		var d1 = b1 - a1;
+		var d2 = b2 - a2;
+		var n1 = new Vector3(d1.y, -d1.x);
+		var n2 = new Vector3(d2.y, -d2.x);
+		n1.z = -Vector3.Dot(a1, n1);
+		n2.z = -Vector3.Dot(a2, n2);
+		itr = Vector3.Cross(n1, n2);
+		if(Mathf.Abs(itr.z) < USEEPS) return false;
+		itr.x /= itr.z;
+		itr.y /= itr.z;
+		itr.z = 0f;
 		return true;
 	}
 

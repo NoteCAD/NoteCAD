@@ -27,7 +27,7 @@ public static class SystemExt {
 	}
 
 	public static void ToEnum<T>(this string str, ref T e) {
-		e = (T)Enum.Parse(typeof(T), str);
+		e = (T)Enum.Parse(e.GetType(), str);
 	}
 
 	public static T ToEnum<T>(this string str) {

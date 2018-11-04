@@ -84,7 +84,7 @@ public class AngleConstraint : ValueConstraint {
 
 	protected override void OnDraw(LineCanvas renderer) {
 		
-		//drawBasis(renderer, camera);
+		//drawBasis(renderer);
 		var basis = GetBasis();
 		//Vector3 vy = basis.GetColumn(1);
 		Vector3 vz = basis.GetColumn(2);

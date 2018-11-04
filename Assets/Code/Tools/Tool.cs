@@ -15,12 +15,14 @@ public class Tool : MonoBehaviour {
 
 	void Start() {
 		GetComponent<Button>().onClick.AddListener(Click);
+		OnStart();
 	}
 
 	void Click() {
 		toolbar.ActiveTool = this;
 	}
 
+	protected virtual void OnStart() { }
 	protected virtual void OnActivate() { }
 	protected virtual void OnDeactivate() { }
 	protected virtual void OnUpdate() { }

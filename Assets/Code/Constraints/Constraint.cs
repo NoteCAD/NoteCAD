@@ -3,6 +3,7 @@ using System.Xml;
 using System;
 using UnityEngine;
 using System.Xml.Serialization;
+using System.Linq;
 
 public abstract partial class Entity {
 
@@ -20,6 +21,12 @@ public class Constraint : SketchObject {
 	[NonSerialized] public bool changed;
 	List<IdPath> ids = new List<IdPath>();
 	protected Vector3[] ref_points = new Vector3[2];
+
+	enum Option {
+		Default
+	}
+
+	protected virtual Enum optionInternal { get { return Option.Default; } set { } }
 
 	protected void AddEntity<T>(T e) where T : IEntity {
 		if(e is Entity) (e as Entity).AddConstraint(this);
@@ -43,10 +50,42 @@ public class Constraint : SketchObject {
 	protected override void OnDestroy() {
 
 	}
-	
+
+	public virtual void ChooseBestOption() {
+		OnChooseBestOption();
+	}
+
+	protected virtual void OnChooseBestOption() {
+		var type = optionInternal.GetType();
+		var names = Enum.GetNames(type);
+		if(names.Length < 2) return;
+		
+		double min_value = -1.0;
+		int best_option = 0;
+		
+		for(int i = 0; i < names.Length; i++) {
+			optionInternal = (Enum)Enum.Parse(type, names[i]);
+			List<Exp> exprs = equations.ToList();
+			
+			if(exprs.Count != 1) return;
+			Debug.Log("expr: \n" + exprs[0].ToString());
+			double cur_value = Math.Abs(exprs[0].Eval());
+			Debug.Log(String.Format("check option {0} (min: {1}, cur: {2})\n", optionInternal, min_value, cur_value));
+			if(min_value < 0.0 || cur_value < min_value) {
+				min_value = cur_value;
+				best_option = i;
+			}
+		}
+		optionInternal = (Enum)Enum.Parse(type, names[best_option]);
+		Debug.Log("best option = " + optionInternal.ToString());
+	}
+
 	public override void Write(XmlTextWriter xml) {
 		xml.WriteStartElement("constraint");
 		xml.WriteAttributeString("type", this.GetType().Name);
+		if(Enum.GetNames(optionInternal.GetType()).Length >= 2) {
+			xml.WriteAttributeString("chirality", optionInternal.ToString());
+		}
 		base.Write(xml);
 		foreach(var id in ids) {
 			xml.WriteStartElement("entity");
@@ -58,6 +97,11 @@ public class Constraint : SketchObject {
 
 	public override void Read(XmlNode xml) {
 		ids.Clear();
+		if(Enum.GetNames(optionInternal.GetType()).Length >= 2) {
+			Enum output = optionInternal;
+			xml.Attributes["chirality"].Value.ToEnum(ref output);
+			optionInternal = output;
+		}
 		foreach(XmlNode node in xml.ChildNodes) {
 			if(node.Name != "entity") continue;
 			var path = IdPath.From(node.Attributes["path"].Value);
@@ -404,7 +448,7 @@ public class Constraint : SketchObject {
 		return def;
 	}
 	
-	Vector3 getVisualPlaneDir(Vector3 def) {
+	protected Vector3 getVisualPlaneDir(Vector3 def) {
 		if(getPlane() != null) return getPlane().n;
 		return def;
 	}
@@ -436,7 +480,7 @@ public class ValueConstraint : Constraint {
 		}
 		set {
 			reference_ = value;
-			sketch.MarkDirtySketch(topo:true);
+			sketch.MarkDirtySketch(constraints:true);
 		}
 	}
 	Vector3 position_;

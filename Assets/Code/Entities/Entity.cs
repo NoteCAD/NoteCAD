@@ -9,6 +9,7 @@ public enum IEntityType {
 	Line,
 	Arc,
 	Circle,
+	Curve,
 	Plane,
 }
 
@@ -16,6 +17,7 @@ public interface IEntity : ICADObject {
 	IEnumerable<ExpVector> points { get; }			// enough for dragging
 	IEnumerable<Vector3> segments { get; }			// enough for drawing
 	ExpVector PointOn(Exp t);						// enough for constraining
+	//ExpVector TangentAt(Exp t);
 	IPlane plane { get; }
 	IEntityType type { get; }
 }
@@ -80,6 +82,37 @@ public static class IEntityUtils {
 		return plane.ToFrom(points.Current, entity.plane);
 
 	}
+
+	public static void ForEachSegment(this IEntity entity, Action<Vector3, Vector3> action) {
+		IEnumerable<Vector3> points = null;
+		if(entity is ISegmentaryEntity) points = (entity as ISegmentaryEntity).segmentPoints;
+		if(entity is ILoopEntity) points = (entity as ILoopEntity).loopPoints;
+		if(points == null) points = entity.segments;
+		Vector3 prev = Vector3.zero;
+		bool first = true;
+		foreach(var ep in points) {
+			if(!first) {
+				action(prev, ep);
+			}
+			first = false;
+			prev = ep;
+		}
+	}
+
+	public static double Hover(this IEntity entity, Vector3 mouse, Camera camera, Matrix4x4 tf) {
+		if(entity.type == IEntityType.Point) return PointEntity.IsSelected(entity.PointExpInPlane(null).Eval(), mouse, camera, tf);
+		double minDist = -1.0;
+		entity.ForEachSegment((a, b) => {
+			var ap = camera.WorldToScreenPoint(tf.MultiplyPoint(a));
+			var bp = camera.WorldToScreenPoint(tf.MultiplyPoint(b));
+			var dist = Mathf.Abs(GeomUtils.DistancePointSegment2D(mouse, ap, bp));
+			if(minDist < 0.0 || dist < minDist) {
+				minDist = dist;
+			}
+		});
+		return minDist;
+	}
+
 }
 
 public abstract partial class Entity : SketchObject, IEntity {

@@ -19,7 +19,7 @@ public class MoveTool : Tool {
 	public static MoveTool instance;
 	//bool canMove = true;
 
-	private void Start() {
+	protected override void OnStart() {
 		input.onEndEdit.AddListener(OnEndEdit);
 		instance = this;
 	}
@@ -128,7 +128,7 @@ public class MoveTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "hover some entity and move it holding left mouse button. To change dimension values just double click it. Please, press Help button for more information.";
+		return "hover over an entity, hold down left mouse button to move it. Double click on any dimension to edit. Click on Help icon for additional info.";
 	}
 
 }

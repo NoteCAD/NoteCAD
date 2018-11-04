@@ -65,7 +65,7 @@ MonoBehaviour:
   - name: hovered
     color: {r: 0.83823526, g: 0.8151115, b: 0, a: 1}
     width: 3
-    queue: 3004
+    queue: 3006
     depthTest: 0
   - name: error
     color: {r: 0.7647059, g: 0, b: 0, a: 1}
@@ -75,7 +75,7 @@ MonoBehaviour:
   - name: hoveredPoints
     color: {r: 0.8392157, g: 0.8156863, b: 0, a: 1}
     width: 5
-    queue: 3005
+    queue: 3006
     depthTest: 0
   - name: points
     color: {r: 0.217998, g: 0.5907346, b: 0.734, a: 1}
@@ -85,12 +85,12 @@ MonoBehaviour:
   - name: selectedPoints
     color: {r: 1, g: 0.45699304, b: 0.29699993, a: 1}
     width: 5
-    queue: 3006
+    queue: 3004
     depthTest: 0
   - name: selected
     color: {r: 1, g: 0.45699304, b: 0.29699993, a: 1}
     width: 3
-    queue: 3006
+    queue: 3004
     depthTest: 0
   parent: {fileID: 0}
   material: {fileID: 2100000, guid: da145fe11ec87bc43978f5f5da2ec79d, type: 2}

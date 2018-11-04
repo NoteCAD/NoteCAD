@@ -70,10 +70,16 @@ public abstract class Feature : CADObject {
 		dirty_ = true;
 		sourceChanged = sourceChanged || srcChanged;
 		foreach(var c in children) {
-			if(c is SketchFeatureBase && (c as SketchFeatureBase).solveParent) continue;
+			//if(c is SketchFeatureBase && (c as SketchFeatureBase).solveParent) continue;
 			Debug.Log("MarkDirty srcChanged!");
 			c.MarkDirty(true);
 		}
+		/*
+		var s = this;
+		while(s is SketchFeatureBase && (s as SketchFeatureBase).solveParent && s.source != null) {
+			s = s.source;
+			s.MarkDirty();
+		}*/
 	}
 
 	protected virtual void OnUpdate() { }

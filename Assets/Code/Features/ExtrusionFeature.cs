@@ -55,6 +55,7 @@ class ExtrudedEntity : IEntity {
 		var shift = extrusion.extrusionDir * index;
 		return entity.plane.FromPlane(entity.PointOn(t)) + shift;
 	}
+
 }
 
 class ExtrudedPointEntity : IEntity {

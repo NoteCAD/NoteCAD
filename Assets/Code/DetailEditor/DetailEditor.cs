@@ -325,6 +325,7 @@ public class DetailEditor : MonoBehaviour {
 		if(detail != null) {
 			detail.Clear();
 		}
+		selection.Clear();
 		activeFeature = null;
 		detail = new Detail();
 		var sk = new SketchFeature();

@@ -163,6 +163,92 @@ public static class MeshUtils {
 		return Solid.FromPolygons(polys);
 	}
 
+	public static Solid CreateSolidRevolve(List<List<Entity>> entitiyLoops, float angle, float helixStep, Vector3 axis, Vector3 origin,  float angleStep, UnityEngine.Matrix4x4 tf, IdPath feature) {
+		var ids = new List<List<Id>>();
+		var polygons = Sketch.GetPolygons(entitiyLoops, ref ids);
+		bool isHelix = (Math.Abs(helixStep) > 1e-6);
+		if(!isHelix && angle > 360f) angle = 360f;
+		bool inversed = angle < 0f;
+		int subdiv = (int)Mathf.Ceil(Math.Abs(angle) / angleStep);
+		var drot = UnityEngine.Matrix4x4.Translate(origin) * UnityEngine.Matrix4x4.Rotate(Quaternion.AngleAxis(angle / subdiv, axis)) * UnityEngine.Matrix4x4.Translate(-origin);
+
+		Func<float, Vector3, Vector3> PointOn = (float a, Vector3 point) => {
+			var ax = axis;
+			var axn = axis.normalized;
+			var t = a / 360.0f;
+			var o = origin;
+			var prj = ExpVector.ProjectPointToLine(point, o, o + ax);
+			var ra = Mathf.Atan2(helixStep / 2.0f, (point - prj).magnitude);
+			var res = ExpVector.RotateAround(point, point - prj, o, ra);
+			res = ExpVector.RotateAround(res, ax, o, a * Mathf.PI / 180.0f);
+			return res + axn * t * helixStep;
+		};
+
+		var polys = new List<Polygon>();
+		Func<Vector3, Vector3> TF = v => tf.MultiplyPoint(v);
+
+		for(int pi = 0; pi < polygons.Count ; pi++) {
+			var p = polygons[pi];
+			var pid = ids[pi];
+			var pv = new List<Vector3>(p);
+			var triangles = Triangulation.Triangulate(pv);
+
+			IdPath polyId = feature.With(new Id(-1)); 
+			bool invComp = true;
+
+			if(Math.Abs(Math.Abs(angle) - 360f) > 1e-6 || isHelix) {
+				float a = 0f;
+				for(int side = 0; side < 2; side++) {
+					for(int i = 0; i < triangles.Count / 3; i++) {
+						var polygonVertices = new List<Vertex>();
+						for(int j = 0; j < 3; j++) {
+							polygonVertices.Add(PointOn(a, TF(triangles[i * 3 + j])).ToVertex());
+						}
+						if(inversed == invComp) polygonVertices.Reverse();
+						polys.Add(new Polygon(polygonVertices, polyId));
+					}
+					polyId = feature.With(new Id(-2)); 
+					invComp = false;
+					a = angle;
+				}
+			}
+
+			Dictionary<Id, IdPath> paths = new Dictionary<Id, IdPath>();
+			for(int i = 0; i < p.Count; i++) {
+				float a = 0f;
+				float da = angle / subdiv;
+				for(int j = 0; j < subdiv; j++) {
+					var polygonVertices = new List<Vertex>();
+					polygonVertices.Add(PointOn(a, TF(p[(i + 1) % p.Count])).ToVertex());
+					polygonVertices.Add(PointOn(a + da, TF(p[(i + 1) % p.Count])).ToVertex());
+					polygonVertices.Add(PointOn(a + da, TF(p[i])).ToVertex());
+					polygonVertices.Add(PointOn(a, TF(p[i])).ToVertex());
+					a += da;
+					if(!inversed) polygonVertices.Reverse();
+					IdPath curPath = null;
+					if(!paths.ContainsKey(pid[i])) {
+						curPath = feature.With(pid[i]);
+						paths.Add(pid[i], curPath);
+					} else {
+						curPath = paths[pid[i]];
+					}
+
+					var verts = new List<Vertex>();
+					verts.Add(polygonVertices[0]);
+					verts.Add(polygonVertices[1]);
+					verts.Add(polygonVertices[2]);
+					polys.Add(new Polygon(verts, curPath));
+
+					verts = new List<Vertex>();
+					verts.Add(polygonVertices[0]);
+					verts.Add(polygonVertices[2]);
+					verts.Add(polygonVertices[3]);
+					polys.Add(new Polygon(verts, curPath));
+				}
+			}
+		}
+		return Solid.FromPolygons(polys);
+	}
 	
 	public static Vector3D ToVector3D(this Vector3 v) {
 		return new Vector3D(v.x, v.y, v.z);
