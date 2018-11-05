@@ -167,7 +167,7 @@ public static class MeshUtils {
 		var ids = new List<List<Id>>();
 		var polygons = Sketch.GetPolygons(entitiyLoops, ref ids);
 		bool isHelix = (Math.Abs(helixStep) > 1e-6);
-		if(!isHelix && angle > 360f) angle = 360f;
+		if(!isHelix && Mathf.Abs(angle) > 360f) angle = Mathf.Sign(angle) * 360f;
 		bool inversed = angle < 0f;
 		int subdiv = (int)Mathf.Ceil(Math.Abs(angle) / angleStep);
 		var drot = UnityEngine.Matrix4x4.Translate(origin) * UnityEngine.Matrix4x4.Rotate(Quaternion.AngleAxis(angle / subdiv, axis)) * UnityEngine.Matrix4x4.Translate(-origin);
@@ -233,17 +233,21 @@ public static class MeshUtils {
 						curPath = paths[pid[i]];
 					}
 
-					var verts = new List<Vertex>();
-					verts.Add(polygonVertices[0]);
-					verts.Add(polygonVertices[1]);
-					verts.Add(polygonVertices[2]);
-					polys.Add(new Polygon(verts, curPath));
+					if(isHelix) {
+						var verts = new List<Vertex>();
+						verts.Add(polygonVertices[0]);
+						verts.Add(polygonVertices[1]);
+						verts.Add(polygonVertices[2]);
+						polys.Add(new Polygon(verts, curPath));
 
-					verts = new List<Vertex>();
-					verts.Add(polygonVertices[0]);
-					verts.Add(polygonVertices[2]);
-					verts.Add(polygonVertices[3]);
-					polys.Add(new Polygon(verts, curPath));
+						verts = new List<Vertex>();
+						verts.Add(polygonVertices[0]);
+						verts.Add(polygonVertices[2]);
+						verts.Add(polygonVertices[3]);
+						polys.Add(new Polygon(verts, curPath));
+					} else {
+						polys.Add(new Polygon(polygonVertices, curPath));
+					}
 				}
 			}
 		}

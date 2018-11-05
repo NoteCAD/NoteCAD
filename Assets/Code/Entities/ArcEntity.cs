@@ -50,7 +50,7 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 			float angle = GetAngle() * Mathf.Rad2Deg;
 			var cp = c.pos;
 			var rv = p0.pos - cp;
-			int subdiv = 32;
+			int subdiv = (int)Mathf.Ceil(angle / 10f);
 			var vz = Vector3.forward;
 			var rot = Quaternion.AngleAxis(angle / (subdiv - 1), vz);
 			for(int i = 0; i < subdiv; i++) {
@@ -109,6 +109,14 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 	*/
 
 	public override ExpVector PointOn(Exp t) {
-		return c.exp + new ExpVector(Exp.Cos(t), Exp.Sin(t), 0.0) * radiusExp;
+		var cos = Exp.Cos(t);
+		var sin = Exp.Sin(t);
+		var rv = p0.exp - c.exp;
+
+		return c.exp + new ExpVector(
+			cos * rv.x - sin * rv.y, 
+			sin * rv.x + cos * rv.y, 
+			0.0
+		);
 	}
 }

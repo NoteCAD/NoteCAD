@@ -52,7 +52,6 @@ public class ToolBar : MonoBehaviour {
 			}
 		}
 		bool overUI = IsPointerOverUIObject();
-		Debug.Log(overUI);
 		bool mouseDown = (Input.GetKeyDown(KeyCode.Mouse0) || Input.GetMouseButtonDown(0)) && !overUI;
 #if UNITY_WEBGL
 		//mouseDown = mouseDown || Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Began;

@@ -11,9 +11,9 @@ public class MoveTool : Tool {
 	Vector3 click;
 	Vector3 worldClick;
 	List<Exp> drag = new List<Exp>();
-	Param dragXP = new Param("dragX");
-	Param dragYP = new Param("dragY");
-	Param dragZP = new Param("dragZ");
+	Param dragXP = new Param("dragX", reduceable: false);
+	Param dragYP = new Param("dragY", reduceable: false);
+	Param dragZP = new Param("dragZ", reduceable: false);
 	ValueConstraint valueConstraint;
 	public InputField input;
 	public static MoveTool instance;

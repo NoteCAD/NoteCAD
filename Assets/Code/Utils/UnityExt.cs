@@ -19,4 +19,27 @@ public static class UnityExt {
 		return result;
 	}
 
+	public static Vector3 ToVector3(this string str) {
+		var values = str.Split(' ');
+		var vec = new Vector3(values[0].ToFloat(), values[1].ToFloat(), values[2].ToFloat());
+		return vec;
+	}
+
+	public static Quaternion ToQuaternion(this string str) {
+		var values = str.Split(' ');
+		var q = Quaternion.identity;
+		q.x = values[0].ToFloat();
+		q.y = values[1].ToFloat();
+		q.z = values[2].ToFloat();
+		q.w = values[3].ToFloat();
+		return q;
+	}
+
+	public static string ToStr(this Vector3 v) {
+		return v.x.ToStr() + " " + v.y.ToStr() + " " + v.z.ToStr();
+	}
+
+	public static string ToStr(this Quaternion q) {
+		return q.x.ToStr() + " " + q.y.ToStr() + " " + q.z.ToStr() + " " + q.w.ToStr();
+	}
 }

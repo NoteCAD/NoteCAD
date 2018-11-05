@@ -50,15 +50,21 @@ public class PointOn : ValueConstraint {
 	}
 
 	public override double LabelToValue(double label) {
-		if(on.type == IEntityType.Arc || on.type == IEntityType.Circle) {
-			return label / 180.0 * Math.PI;
+		switch(on.type) {
+			case IEntityType.Arc:
+			case IEntityType.Circle:
+			case IEntityType.Helix:
+				return label / 180.0 * Math.PI;
 		}
 		return base.LabelToValue(label);
 	}
 
 	public override double ValueToLabel(double value) {
-		if(on.type == IEntityType.Arc || on.type == IEntityType.Circle) {
-			return value * 180.0 / Math.PI;
+		switch(on.type) {
+			case IEntityType.Arc:
+			case IEntityType.Circle:
+			case IEntityType.Helix:
+				return value * 180.0 / Math.PI;
 		}
 		return base.ValueToLabel(value);
 	}

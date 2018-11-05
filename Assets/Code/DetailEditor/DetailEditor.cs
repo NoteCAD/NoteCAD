@@ -159,13 +159,17 @@ public class DetailEditor : MonoBehaviour {
 
 	public bool suppressCombine = false;
 	public bool suppressHovering = false;
-
+	public bool suppressSolve = false;
 	private void Update() {
 		if(activeFeature != null) {
 			if(currentSketch != null && currentSketch.IsTopologyChanged()) {
 				UpdateSystem();
+				suppressSolve = false;
 			}
-			var res = sys.Solve();
+			var res = !suppressSolve ? sys.Solve() : EquationSystem.SolveResult.DIDNT_CONVEGE;
+			if(res == EquationSystem.SolveResult.DIDNT_CONVEGE) {
+				suppressSolve = true;
+			}
 			string result = "";
 			result += (GC.GetTotalMemory(false) / 1024 / 1024.0).ToString("0.##") + " mb\n";
 			result += res.ToString() + "\n";

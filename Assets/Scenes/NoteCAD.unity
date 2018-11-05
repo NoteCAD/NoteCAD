@@ -8378,7 +8378,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   toolbar: {fileID: 0}
-  hotkeys: 76000000
+  hotkeys: 65000000
   text: Revolve
   icon: {fileID: 21300000, guid: eedf0d4608714e148bad906b2a7acb55, type: 3}
 --- !u!1 &2041167859

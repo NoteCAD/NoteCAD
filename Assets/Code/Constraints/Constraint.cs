@@ -68,7 +68,6 @@ public class Constraint : SketchObject {
 			List<Exp> exprs = equations.ToList();
 			
 			if(exprs.Count != 1) return;
-			Debug.Log("expr: \n" + exprs[0].ToString());
 			double cur_value = Math.Abs(exprs[0].Eval());
 			Debug.Log(String.Format("check option {0} (min: {1}, cur: {2})\n", optionInternal, min_value, cur_value));
 			if(min_value < 0.0 || cur_value < min_value) {
@@ -581,6 +580,7 @@ public class ValueConstraint : Constraint {
 		xml.WriteAttributeString("y", pos.y.ToStr());
 		xml.WriteAttributeString("z", pos.z.ToStr());
 		xml.WriteAttributeString("value", GetValue().ToStr());
+		xml.WriteAttributeString("reference", reference.ToString());
 	}
 
 	public override void Read(XmlNode xml) {
@@ -591,6 +591,9 @@ public class ValueConstraint : Constraint {
 		pos.z = xml.Attributes["z"].Value.ToFloat();
 		this.pos = pos;
 		SetValue(xml.Attributes["value"].Value.ToDouble());
+		if(xml.Attributes["reference"] != null) {
+			reference = Convert.ToBoolean(xml.Attributes["reference"].Value);
+		}
 	}
 
 	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {

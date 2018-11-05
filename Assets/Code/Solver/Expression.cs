@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class Param {
 	public string name;
+	public bool reduceable = true;
 	private double v;
 	public bool changed;
 
@@ -17,8 +19,9 @@ public class Param {
 
 	public Exp exp { get; private set; }
 
-	public Param(string name) {
+	public Param(string name, bool reduceable = true) {
 		this.name = name;
+		this.reduceable = reduceable;
 		exp = new Exp(this);
 	}
 
@@ -335,6 +338,30 @@ public class Exp {
 			}
 		}
 		return result;
+	}
+	
+	public void ReduceParams(List<Param> pars) {
+		if(op == Op.Param) {
+			if(param.reduceable && !pars.Contains(param)) {
+				value = Eval();
+				op = Op.Const;
+				param = null;
+			}
+			return;
+		}
+
+		if(a != null) {
+			a.ReduceParams(pars);
+			if(b != null) b.ReduceParams(pars);
+			if(a.IsConst() && (b == null || b.IsConst())) {
+				value = Eval();
+				op = Op.Const;
+				a = null;
+				b = null;
+				param = null;
+			}
+		}
+
 	}
 
 }

@@ -9,7 +9,7 @@ public enum IEntityType {
 	Line,
 	Arc,
 	Circle,
-	Curve,
+	Helix,
 	Plane,
 }
 

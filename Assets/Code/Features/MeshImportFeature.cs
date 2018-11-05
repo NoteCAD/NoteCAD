@@ -129,12 +129,17 @@ public class MeshImportFeature : MeshFeature {
 
 	public ExpBasis basis { get; private set; }
 
+	public MeshImportFeature() {
+		basis = new ExpBasis();
+	}
+
 	public MeshImportFeature(byte[] data) {
 		MemoryStream ms = new MemoryStream(data);
 		mesh = Parabox.STL.pb_Stl_Importer.Import(ms)[0];
 		meshCheck.setMesh(mesh);
 		//mesh = meshCheck.ToUnityWatertightMesh();
 		basis = new ExpBasis();
+		hitMesh = new DMeshAABBTree3(mesh.ToDMesh3(), true);
 	}
 
 	public override GameObject gameObject {
@@ -214,9 +219,37 @@ public class MeshImportFeature : MeshFeature {
 	}
 
 	protected override void OnWriteMeshFeature(XmlTextWriter xml) {
+		StringBuilder sb = new StringBuilder();
+		var indices = mesh.GetIndices(0);
+		var verts = mesh.vertices;
+		for(int i = 0; i < indices.Length; i++) {
+			if(i != 0) sb.Append(" ");
+			sb.Append(verts[indices[i]].ToStr());
+		}
+		xml.WriteAttributeString("mesh", sb.ToString());
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {
+		var strVerts = xml.Attributes["mesh"].Value.Split(' ');
+		var verts = new Vector3[strVerts.Length / 3];
+		for(int i = 0; i < strVerts.Length / 3; i++) {
+			verts[i].x = strVerts[i * 3 + 0].ToFloat();
+			verts[i].y = strVerts[i * 3 + 1].ToFloat();
+			verts[i].z = strVerts[i * 3 + 2].ToFloat();
+		}
+		var indices = new int[verts.Length];
+		for(int i = 0; i < indices.Length; i++) {
+			indices[i] = i;
+		}
+		mesh.Clear();
+		mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+		mesh.vertices = verts;
+		mesh.SetIndices(indices, MeshTopology.Triangles, 0);
+		mesh.RecalculateBounds();
+		mesh.RecalculateNormals();
+		mesh.RecalculateTangents();
+		meshCheck.setMesh(mesh);
+		hitMesh = new DMeshAABBTree3(mesh.ToDMesh3(), true);
 	}
 
 	public UnityEngine.Matrix4x4 transform {
@@ -232,13 +265,6 @@ public class MeshImportFeature : MeshFeature {
 		var ray = camera.ScreenPointToRay(mouse);
 		ray.origin = invFullTf.MultiplyPoint3x4(ray.origin);
 		ray.direction = invFullTf.MultiplyVector(ray.direction);
-		if(hitMesh == null) {
-			if(!initialized) {
-				initialized = true;
-				return null;
-			}
-			hitMesh = new DMeshAABBTree3(mesh.ToDMesh3(), true);
-		}
 		hitMesh.FindAllHitTriangles(new Ray3d(ray.origin.ToVector3d(), ray.direction.ToVector3d().Normalized), tris);
 
 		double min = -1.0;

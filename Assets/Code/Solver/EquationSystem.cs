@@ -193,6 +193,10 @@ public class EquationSystem  {
 		if(isDirty) {
 			equations = sourceEquations.Select(e => e.DeepClone()).ToList();
 			currentParams = parameters.ToList();
+			/*
+			foreach(var e in equations) {
+				e.ReduceParams(currentParams);
+			}*/
 			//currentParams = parameters.Where(p => equations.Any(e => e.IsDependOn(p))).ToList();
 			subs = SolveBySubstitution();
 

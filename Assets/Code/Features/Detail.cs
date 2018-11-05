@@ -68,6 +68,16 @@ public class Detail : Feature {
 			guid_ = idGenerator.Create(0);
 		}
 
+		if(xml.DocumentElement.Attributes["viewPos"] != null) {
+			Camera.main.transform.position = xml.DocumentElement.Attributes["viewPos"].Value.ToVector3();
+		}
+		if(xml.DocumentElement.Attributes["viewRot"] != null) {
+			Camera.main.transform.rotation = xml.DocumentElement.Attributes["viewRot"].Value.ToQuaternion();
+		}
+		if(xml.DocumentElement.Attributes["viewSize"] != null) {
+			Camera.main.orthographicSize = xml.DocumentElement.Attributes["viewSize"].Value.ToFloat();
+		}
+
 		foreach(XmlNode node in xml.DocumentElement) {
 			if(node.Name != "feature") continue;
 			var type = node.Attributes["type"].Value;
@@ -86,6 +96,10 @@ public class Detail : Feature {
 		xml.WriteStartDocument();
 		xml.WriteStartElement("detail");
 		xml.WriteAttributeString("id", guid.ToString());
+		xml.WriteAttributeString("viewPos", Camera.main.transform.position.ToStr());
+		xml.WriteAttributeString("viewRot", Camera.main.transform.rotation.ToStr());
+		xml.WriteAttributeString("viewSize", Camera.main.orthographicSize.ToStr());
+
 		foreach(var f in features) {
 			f.Write(xml);
 		}

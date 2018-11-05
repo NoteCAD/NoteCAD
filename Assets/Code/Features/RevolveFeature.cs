@@ -59,7 +59,7 @@ class RevolvedPointEntity : IEntity {
 	PointEntity entity;
 	RevolveFeature feature;
 
-	IEntityType IEntity.type { get { return IEntityType.Curve; } }
+	IEntityType IEntity.type { get { return IEntityType.Helix; } }
 
 	public RevolvedPointEntity(PointEntity e, RevolveFeature f) {
 		entity = e;
@@ -98,14 +98,14 @@ class RevolvedPointEntity : IEntity {
 			var ax = feature.GetAxis().Eval();
 			var axn = ax.normalized;
 			var o = feature.GetOrigin().Eval();
+			var prj = ExpVector.ProjectPointToLine(point, o, o + ax);
+			var ra = Mathf.Atan2((float)feature.step.value / 2.0f, (point - prj).magnitude);
+			var rot = ExpVector.RotateAround(point, point - prj, o, ra);
 
 			for(int i = 0; i <= subdiv; i++) {
 				var a = i * da;
 				var t = a / (2.0f * Mathf.PI);
-				var prj = ExpVector.ProjectPointToLine(point, o, o + ax);
-				var ra = Mathf.Atan2((float)feature.step.value / 2.0f, (point - prj).magnitude);
-				var res = ExpVector.RotateAround(point, point - prj, o, ra);
-				res = ExpVector.RotateAround(res, ax, o, a);
+				var res = ExpVector.RotateAround(rot, ax, o, a);
 				yield return res + axn * t * (float)feature.step.value;
 			}
 		}
@@ -269,15 +269,23 @@ public class RevolveFeature : MeshFeature {
 	}
 	
 	public ExpVector PointOn(Exp a, ExpVector point) {
+		/*
 		var ax = GetAxis();
 		var axn = ax.Normalized();
-		var t = a / (2.0 * Mathf.PI);
 		var o = GetOrigin();
 		var prj = ExpVector.ProjectPointToLine(point, o, o + ax);
 		var ra = Exp.Atan2(new Exp(step) / 2.0, (point - prj).Magnitude());
+		*/
+		var ax = GetAxis().Eval();
+		var axn = ax.normalized;
+		var o = GetOrigin().Eval();
+		var prj = ExpVector.ProjectPointToLine(point.Eval(), o, o + ax);
+
+		var t = a / (2.0 * Mathf.PI);
+		var ra = Exp.Atan2(new Exp(step) / 2.0, (point.Eval() - prj).magnitude);
 		var res = ExpVector.RotateAround(point, point - prj, o, ra);
 		res = ExpVector.RotateAround(res, ax, o, a);
-		return res + axn * t * step;
+		return res + (ExpVector)axn * t * step;
 	}
 
 	public Vector3 PointOn(float a, Vector3 point) {
@@ -296,6 +304,38 @@ public class RevolveFeature : MeshFeature {
 		canvas.SetStyle("entities");
 		var sk = (source as SketchFeature).GetSketch();
 
+		bool axisDirectionFound = false;
+		var ax = axis.GetDirectionInPlane(null).Eval();
+		var o = GetOrigin(null).Eval();
+		foreach(var e in sk.entityList) {
+			if(e.type != IEntityType.Point) continue;
+			var pos = e.PointExpInPlane(null).Eval();
+
+			var prj = ExpVector.ProjectPointToLine(pos, o, o + ax);
+			if((prj - pos).magnitude < 1e-6) continue;
+
+			var ax1 = Vector3.Cross(sketch.plane.n, pos - prj);
+			shouldInvertAxis = (Vector3.Dot(ax, ax1) > 0f);
+			axisDirectionFound = true;
+			break;
+		}
+
+		// probably, some curved enity, so try actual curve points
+		if(!axisDirectionFound) {
+			foreach(var e in sk.entityList) {
+				if(e.type == IEntityType.Point) continue;
+				foreach(var pos in e.SegmentsInPlane(null)) {
+					var prj = ExpVector.ProjectPointToLine(pos, o, o + ax);
+					if((prj - pos).magnitude < 1e-6) continue;
+
+					var ax1 = Vector3.Cross(sketch.plane.n, pos - prj);
+					shouldInvertAxis = (Vector3.Dot(ax, ax1) > 0f);
+					axisDirectionFound = true;
+					break;
+				}
+			}
+		}
+
 		foreach(var e in sk.entityList.OfType<PointEntity>()) {
 			var ext = new RevolvedPointEntity(e, this);
 			canvas.DrawSegments(ext.segments);
@@ -306,20 +346,6 @@ public class RevolveFeature : MeshFeature {
 			canvas.DrawSegments(ext.segments);
 			ext = new RevolvedEntity(e, this, 1);
 			canvas.DrawSegments(ext.segments);
-		}
-
-		foreach(var e in sk.entityList) {
-			if(e.type != IEntityType.Point) continue;
-			var pos = e.PointExpInPlane(null).Eval();
-			var ax = axis.GetDirectionInPlane(null).Eval();
-			var o = GetOrigin(null).Eval();
-
-			var prj = ExpVector.ProjectPointToLine(pos, o, o + ax);
-			if((prj - pos).magnitude < 1e-6) continue;
-
-			var ax1 = Vector3.Cross(sketch.plane.n, pos - prj);
-			shouldInvertAxis = (Vector3.Dot(ax, ax1) > 0f);
-			break;
 		}
 		
 	}

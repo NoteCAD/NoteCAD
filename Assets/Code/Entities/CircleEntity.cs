@@ -37,7 +37,7 @@ public class CircleEntity : Entity, ILoopEntity {
 			float angle = 360;
 			var cp = center.pos;
 			var rv = Vector3.left * (float)radius.value;
-			int subdiv = 32;
+			int subdiv = 36;
 			var vz = Vector3.forward;
 			for(int i = 0; i < subdiv; i++) {
 				var nrv = Quaternion.AngleAxis(angle / (subdiv - 1) * i, vz) * rv;
