@@ -37,6 +37,7 @@ public class MoveTool : Tool {
 		int count = 0;
 		if(entity != null) count = entity.points.Count();
 		if(count == 0) return;
+		editor.PushUndo();
 		dragXP.value = 0;
 		dragYP.value = 0;
 		dragZP.value = 0;
@@ -122,6 +123,7 @@ public class MoveTool : Tool {
 		if(valueConstraint == null) return;
 		var sign = Math.Sign(valueConstraint.GetValue());
 		if(sign == 0) sign = 1;
+		editor.PushUndo();
 		valueConstraint.SetValue(sign * value.ToDouble());
 		valueConstraint = null;
 		input.gameObject.SetActive(false);

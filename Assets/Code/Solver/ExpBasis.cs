@@ -61,6 +61,24 @@ public class ExpBasis {
 		}
 	}
 
+	public override string ToString() {
+		string result = "";
+		foreach(var p in parameters) {
+			result += p.value.ToStr() + " ";
+		}
+		return result;
+	}
+
+	public void FromString(string str) {
+		char[] sep = { ' ' };
+		var values = str.Split(sep, StringSplitOptions.RemoveEmptyEntries);
+		int i = 0;
+		foreach(var p in parameters) {
+			p.value = values[i].ToDouble();
+			i++;
+		}
+	}
+
 	public ExpVector TransformPosition(ExpVector pos) {
 		return pos.x * u + pos.y * v + pos.z * n + p;
 	}

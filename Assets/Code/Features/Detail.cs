@@ -59,7 +59,7 @@ public class Detail : Feature {
 		}
 	}
 
-	public void ReadXml(string str) {
+	public void ReadXml(string str, bool readView, out IdPath active) {
 		Clear();
 		var xml = new XmlDocument();
 		xml.LoadXml(str);
@@ -68,14 +68,22 @@ public class Detail : Feature {
 			guid_ = idGenerator.Create(0);
 		}
 
-		if(xml.DocumentElement.Attributes["viewPos"] != null) {
-			Camera.main.transform.position = xml.DocumentElement.Attributes["viewPos"].Value.ToVector3();
+		if(readView) {
+			if(xml.DocumentElement.Attributes["viewPos"] != null) {
+				Camera.main.transform.position = xml.DocumentElement.Attributes["viewPos"].Value.ToVector3();
+			}
+			if(xml.DocumentElement.Attributes["viewRot"] != null) {
+				Camera.main.transform.rotation = xml.DocumentElement.Attributes["viewRot"].Value.ToQuaternion();
+			}
+			if(xml.DocumentElement.Attributes["viewSize"] != null) {
+				Camera.main.orthographicSize = xml.DocumentElement.Attributes["viewSize"].Value.ToFloat();
+			}
 		}
-		if(xml.DocumentElement.Attributes["viewRot"] != null) {
-			Camera.main.transform.rotation = xml.DocumentElement.Attributes["viewRot"].Value.ToQuaternion();
-		}
-		if(xml.DocumentElement.Attributes["viewSize"] != null) {
-			Camera.main.orthographicSize = xml.DocumentElement.Attributes["viewSize"].Value.ToFloat();
+
+		if(xml.DocumentElement.Attributes["activeFeature"] != null) {
+			active = IdPath.From(xml.DocumentElement.Attributes["activeFeature"].Value);
+		} else {
+			active = null;
 		}
 
 		foreach(XmlNode node in xml.DocumentElement) {
@@ -99,6 +107,7 @@ public class Detail : Feature {
 		xml.WriteAttributeString("viewPos", Camera.main.transform.position.ToStr());
 		xml.WriteAttributeString("viewRot", Camera.main.transform.rotation.ToStr());
 		xml.WriteAttributeString("viewSize", Camera.main.orthographicSize.ToStr());
+		xml.WriteAttributeString("activeFeature", DetailEditor.instance.activeFeature.id.ToString());
 
 		foreach(var f in features) {
 			f.Write(xml);

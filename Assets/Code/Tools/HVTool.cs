@@ -16,6 +16,7 @@ public class HVTool : Tool {
 
 		if(p0 == null && entity is LineEntity) {
 			var line = entity as LineEntity;
+			editor.PushUndo();
 			constraint = new HVConstraint(line.sketch, line.p0, line.p1);
 			constraint.orientation = vertical ? HVOrientation.OX : HVOrientation.OY;
 			return;
@@ -23,6 +24,7 @@ public class HVTool : Tool {
 
 		if(entity.type != IEntityType.Point) return;
 		if(p0 != null) {
+			editor.PushUndo();
 			constraint = new HVConstraint(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
 			constraint.orientation = vertical ? HVOrientation.OX : HVOrientation.OY;
 			p0 = null;

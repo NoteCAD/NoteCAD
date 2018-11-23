@@ -45,7 +45,7 @@ public class ToolBar : MonoBehaviour {
 		doubleClickTime += Time.deltaTime;
 		foreach(var t in tools) {
 			foreach(var hk in t.hotkeys) {
-				if(Input.GetKeyDown(hk)) {
+				if(Input.GetKeyDown(hk) && (!t.ctrl || Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))) {
 					ActiveTool = t;
 					break;
 				}

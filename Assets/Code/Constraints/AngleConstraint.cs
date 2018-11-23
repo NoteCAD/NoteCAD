@@ -32,20 +32,9 @@ public class AngleConstraint : ValueConstraint {
 			var p = GetPointsExp(sketch.plane);
 			ExpVector d0 = p[0] - p[1];
 			ExpVector d1 = p[3] - p[2];
-			if(sketch.is3d) {
-				var cross = ExpVector.Cross(d0, d1);
-				var dot = ExpVector.Dot(d0, d1);
-				yield return Exp.Atan2(cross.Magnitude(), dot) - value;
-			} else {
-				Exp du = d1.x * d0.x + d1.y * d0.y;
-				Exp dv = d0.x * d1.y - d0.y * d1.x;
-				if(HasEntitiesOfType(IEntityType.Arc, 1)) {
-					yield return (Math.PI - Exp.Atan2(dv, -du)) - value;
-				} else {
-					yield return Exp.Atan2(dv, du) - value;
-				}
-
-			}
+			bool angle360 = HasEntitiesOfType(IEntityType.Arc, 1);
+			Exp angle = sketch.is3d ? ConstraintExp.angle3d(d0, d1) : ConstraintExp.angle2d(d0, d1, angle360);
+			yield return angle - value;
 		}
 	}
 

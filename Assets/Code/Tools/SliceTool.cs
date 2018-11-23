@@ -17,6 +17,7 @@ public class SliceTool : Tool {
 
 	protected override void OnActivate() {
 		StopTool();
+		editor.PushUndo();
 		var feature = new SliceFeature(DetailEditor.instance.mesh);
 		feature.source = DetailEditor.instance.activeFeature;
 		DetailEditor.instance.AddFeature(feature); 

@@ -7,6 +7,7 @@ public class SplitTool : Tool {
 		if(sko == null) return;
 		if(!(sko is Entity)) return;
 		if(!(sko is ISegmentaryEntity || sko is ILoopEntity)) return;
+		editor.PushUndo();
 		var e = sko as Entity;
 		var part = e.Split(pos);
 		if(e is ISegmentaryEntity) {

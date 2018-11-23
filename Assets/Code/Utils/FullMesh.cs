@@ -60,6 +60,7 @@ public class MeshCheck {
 	public Mesh ToUnitySmoothMesh() {
 
 		Mesh mesh = new Mesh();
+		mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
 		var verts = new List<Vector3>(triangles.Count * 3);
 		var norms = new List<Vector3>(triangles.Count * 3);
@@ -115,6 +116,7 @@ public class MeshCheck {
 	public Mesh ToUnityMesh() {
 
 		Mesh mesh = new Mesh();
+		mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
 		var verts = new List<Vector3>();
 
@@ -138,6 +140,8 @@ public class MeshCheck {
 	public Mesh ToUnityWatertightMesh() {
 
 		Mesh mesh = new Mesh();
+		mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+
 		for(int i = 0; i < vertices.Count; i++) {
 			vertices[i].index = i;
 		}

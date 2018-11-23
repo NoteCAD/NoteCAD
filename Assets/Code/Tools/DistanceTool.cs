@@ -20,6 +20,7 @@ public class DistanceTool : Tool {
 
 		if(p0 == null) {
 			if(entity.type == IEntityType.Line) {
+				editor.PushUndo();
 				constraint = new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), entity);
 				constraint.pos = WorldPlanePos;
 				click = WorldPlanePos;
@@ -27,6 +28,7 @@ public class DistanceTool : Tool {
 			} else 
 			if(entity is CircleEntity) {
 				var circle = entity as CircleEntity;
+				editor.PushUndo();
 				constraint = new Diameter(circle.sketch, circle);
 				constraint.pos = WorldPlanePos;
 				click = WorldPlanePos;
@@ -36,10 +38,12 @@ public class DistanceTool : Tool {
 
 		if(p0 != null) {
 			if(entity.type == IEntityType.Point) {
+				editor.PushUndo();
 				constraint = new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
 				constraint.pos = WorldPlanePos;
 				p0 = null;
 			} else if(entity.type == IEntityType.Line) {
+				editor.PushUndo();
 				constraint = new PointLineDistance(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
 				constraint.pos = WorldPlanePos;
 				p0 = null;

@@ -256,6 +256,9 @@
     <Reference Include="UnityEditor.Android.Extensions">
       <HintPath>Library\UnityAssemblies\UnityEditor.Android.Extensions.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEditor.iOS.Extensions">
+      <HintPath>Library\UnityAssemblies\UnityEditor.iOS.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEditor.WebGL.Extensions">
       <HintPath>Library\UnityAssemblies\UnityEditor.WebGL.Extensions.dll</HintPath>
     </Reference>
@@ -292,6 +295,12 @@
     <Reference Include="UnityEngine.StandardEvents">
       <HintPath>Library\UnityAssemblies\UnityEngine.StandardEvents.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEditor.iOS.Extensions.Xcode">
+      <HintPath>Library\UnityAssemblies\UnityEditor.iOS.Extensions.Xcode.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEditor.iOS.Extensions.Common">
+      <HintPath>Library\UnityAssemblies\UnityEditor.iOS.Extensions.Common.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Code\Behaviours\ButtonContent.cs" />
@@ -299,6 +308,7 @@
     <Compile Include="Assets\Code\Behaviours\LineCanvas.cs" />
     <Compile Include="Assets\Code\Constraints\AngleConstraint.cs" />
     <Compile Include="Assets\Code\Constraints\Constraint.cs" />
+    <Compile Include="Assets\Code\Constraints\ConstraintExp.cs" />
     <Compile Include="Assets\Code\Constraints\Diameter.cs" />
     <Compile Include="Assets\Code\Constraints\EqualLineLine.cs" />
     <Compile Include="Assets\Code\Constraints\HVConstraint.cs" />
@@ -308,9 +318,11 @@
     <Compile Include="Assets\Code\Constraints\PointOn.cs" />
     <Compile Include="Assets\Code\Constraints\PointsCoincident.cs" />
     <Compile Include="Assets\Code\Constraints\PointsDistance.cs" />
+    <Compile Include="Assets\Code\Constraints\Tangent.cs" />
     <Compile Include="Assets\Code\DetailEditor\DetailEditor.cs" />
     <Compile Include="Assets\Code\DetailEditor\FeatureUI.cs" />
     <Compile Include="Assets\Code\DetailEditor\OptionsUI.cs" />
+    <Compile Include="Assets\Code\DetailEditor\UndoRedo.cs" />
     <Compile Include="Assets\Code\DraftStroke\DraftStroke.cs" />
     <Compile Include="Assets\Code\Entities\ArcEntity.cs" />
     <Compile Include="Assets\Code\Entities\CircleEntity.cs" />
@@ -1011,6 +1023,7 @@
     <Compile Include="Assets\Code\Tools\PerpendicularTool.cs" />
     <Compile Include="Assets\Code\Tools\PointsCoincidentTool.cs" />
     <Compile Include="Assets\Code\Tools\PointTool.cs" />
+    <Compile Include="Assets\Code\Tools\RedoTool.cs" />
     <Compile Include="Assets\Code\Tools\RemoveTool.cs" />
     <Compile Include="Assets\Code\Tools\RevolveTool.cs" />
     <Compile Include="Assets\Code\Tools\SaveGCodeTool.cs" />
@@ -1018,8 +1031,10 @@
     <Compile Include="Assets\Code\Tools\SketchTool.cs" />
     <Compile Include="Assets\Code\Tools\SliceTool.cs" />
     <Compile Include="Assets\Code\Tools\SplitTool.cs" />
+    <Compile Include="Assets\Code\Tools\TangentTool.cs" />
     <Compile Include="Assets\Code\Tools\Tool.cs" />
     <Compile Include="Assets\Code\Tools\ToolBar.cs" />
+    <Compile Include="Assets\Code\Tools\UndoTool.cs" />
     <Compile Include="Assets\Code\Utils\CameraController.cs" />
     <Compile Include="Assets\Code\Utils\FullMesh.cs" />
     <Compile Include="Assets\Code\Utils\NoteCADJS.cs" />

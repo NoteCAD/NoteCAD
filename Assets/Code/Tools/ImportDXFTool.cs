@@ -50,6 +50,7 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 	void DataLoaded(byte[] data) {
 		MemoryStream stream = new MemoryStream(data);
 		DxfDocument doc = DxfDocument.Load(stream);
+		editor.PushUndo();
 		foreach(var l in doc.Lines) {
 			AddLine(l);
 		}

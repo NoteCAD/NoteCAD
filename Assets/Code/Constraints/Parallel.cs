@@ -23,16 +23,6 @@ public class Parallel : Constraint {
 		ChooseBestOption();
 	}
 
-	Exp expressionAngle2d(ExpVector d0, ExpVector d1) {
-		Exp nu = d1.x * d0.x + d1.y * d0.y;
-		Exp nv = d0.x * d1.y - d0.y * d1.x;
-		return Exp.Atan2(nv, nu);
-	}
-	
-	Exp expressionAngle3d(ExpVector d0, ExpVector d1) {
-		return Exp.Atan2(ExpVector.Cross(d0, d1).Magnitude(), ExpVector.Dot(d0, d1));
-	}
-
 	public override IEnumerable<Exp> equations {
 		get {
 			var l0 = GetEntityOfType(IEntityType.Line, 0);
@@ -41,7 +31,7 @@ public class Parallel : Constraint {
 			ExpVector d0 = l0.GetPointAtInPlane(0, sketch.plane) - l0.GetPointAtInPlane(1, sketch.plane);
 			ExpVector d1 = l1.GetPointAtInPlane(0, sketch.plane) - l1.GetPointAtInPlane(1, sketch.plane);
 
-			Exp angle = sketch.is3d ? expressionAngle3d(d0, d1) : expressionAngle2d(d0, d1);
+			Exp angle = sketch.is3d ? ConstraintExp.angle3d(d0, d1) : ConstraintExp.angle2d(d0, d1);
 			switch(option) {
 				case Option.Codirected: yield return angle; break;
 				case Option.Antidirected: yield return Exp.Abs(angle) - Math.PI; break;

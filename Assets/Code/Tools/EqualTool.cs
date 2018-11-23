@@ -12,6 +12,7 @@ public class EqualTool : Tool {
 
 		if(entity.type != IEntityType.Line) return;
 		if(l0 != null) {
+			editor.PushUndo();
 			new EqualLineLine(DetailEditor.instance.currentSketch.GetSketch(), l0, entity);
 			l0 = null;
 		} else {

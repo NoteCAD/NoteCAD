@@ -21,6 +21,7 @@ public class DetailEditor : MonoBehaviour {
 	}
 
 	Detail detail;
+	public UndoRedo undoRedo;
 
 	public GameObject labelParent;
 	public Text resultText;
@@ -98,7 +99,7 @@ public class DetailEditor : MonoBehaviour {
 		yield return www;
 		ReadXml(www.text);
 	}
-
+	
 	public bool IsFirstMeshFeature(MeshFeature mf) {
 		var fi = detail.features.FindIndex(f => f is MeshFeature);
 		var mi = detail.features.IndexOf(mf);
@@ -115,6 +116,14 @@ public class DetailEditor : MonoBehaviour {
 		return go;
 	}
 
+	DetailEditor() {
+		undoRedo = new UndoRedo(this);
+	}
+
+	public void PushUndo() {
+		undoRedo.Push();
+	}
+
 	private void Start() {
 		instance_ = this;
 		mesh = new Mesh();
@@ -125,7 +134,9 @@ public class DetailEditor : MonoBehaviour {
 		if(NoteCADJS.GetParam("filename") != "") {
 			var uri = new Uri(Application.absoluteURL);
 			var url = "http://" + uri.Host + ":" + uri.Port + "/Files/" + NoteCADJS.GetParam("filename");
-			StartCoroutine(LoadWWWFile(url));
+			WWW www = new WWW(url);
+			while(!www.isDone);
+			ReadXml(www.text);
 		}
 		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
 	}
@@ -162,11 +173,13 @@ public class DetailEditor : MonoBehaviour {
 	public bool suppressSolve = false;
 	private void Update() {
 		if(activeFeature != null) {
-			if(currentSketch != null && currentSketch.IsTopologyChanged()) {
-				UpdateSystem();
+			if(currentSketch != null && (currentSketch.GetSketch().IsConstraintsChanged() || currentSketch.GetSketch().IsEntitiesChanged()) || sys.IsDirty) {
 				suppressSolve = false;
 			}
-			var res = !suppressSolve ? sys.Solve() : EquationSystem.SolveResult.DIDNT_CONVEGE;
+			if(currentSketch != null && currentSketch.IsTopologyChanged()) {
+				UpdateSystem();
+			}
+			var res = (!suppressSolve || sys.HasDragged()) ? sys.Solve() : EquationSystem.SolveResult.DIDNT_CONVEGE;
 			if(res == EquationSystem.SolveResult.DIDNT_CONVEGE) {
 				suppressSolve = true;
 			}
@@ -189,6 +202,8 @@ public class DetailEditor : MonoBehaviour {
 				}
 			}
 			result += dofText;
+			result += "Undo: " + undoRedo.Count() + "\n";
+			result += "UndoSize: " + undoRedo.Size() + "\n";
 			//result += sys.stats;
 			resultText.text = result.ToString();
 		}
@@ -330,6 +345,7 @@ public class DetailEditor : MonoBehaviour {
 			detail.Clear();
 		}
 		selection.Clear();
+		undoRedo.Clear();
 		activeFeature = null;
 		detail = new Detail();
 		var sk = new SketchFeature();
@@ -342,11 +358,13 @@ public class DetailEditor : MonoBehaviour {
 		ActivateFeature(sk);
 	}
 
-	public void ReadXml(string xml) {
+	public void ReadXml(string xml, bool readView = true, bool activateLast = true) {
 		activeFeature = null;
-		detail.ReadXml(xml);
-		UpdateFeatures();
-		ActivateFeature(detail.features.Last());
+		IdPath active = null;
+		detail.ReadXml(xml, readView, out active);
+		if(active.IsNull()) active = detail.features.Last().id;
+		UpdateFeatures();	
+		ActivateFeature(active);
 	}
 
 	public string WriteXml() {
@@ -357,6 +375,11 @@ public class DetailEditor : MonoBehaviour {
 		detail.AddFeature(feature);
 		meshDirty = true;
 		UpdateFeatures();
+	}
+
+	public void ActivateFeature(IdPath path) {
+		var feature = (Feature)detail.GetObjectById(path);
+		ActivateFeature(feature);
 	}
 
 	public void ActivateFeature(Feature feature) {

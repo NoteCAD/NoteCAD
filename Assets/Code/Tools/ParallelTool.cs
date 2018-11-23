@@ -12,6 +12,7 @@ public class ParallelTool : Tool {
 
 		if(entity.type != IEntityType.Line) return;
 		if(l0 != null) {
+			editor.PushUndo();
 			new Parallel(DetailEditor.instance.currentSketch.GetSketch(), l0, entity);
 			l0 = null;
 		} else {

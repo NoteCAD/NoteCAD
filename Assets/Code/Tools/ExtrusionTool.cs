@@ -8,6 +8,7 @@ public class ExtrusionTool : Tool {
 		if(DetailEditor.instance.currentWorkplane == null) return;
 		var feature = new ExtrusionFeature();
 		feature.source = DetailEditor.instance.currentWorkplane;
+		editor.PushUndo();
 		DetailEditor.instance.AddFeature(feature); 
 		DetailEditor.instance.ActivateFeature(feature);
 		if(Vector3.Dot(Camera.main.transform.forward, feature.extrusionDir.Eval()) > 0f) {

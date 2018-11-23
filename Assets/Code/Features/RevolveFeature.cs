@@ -99,7 +99,7 @@ class RevolvedPointEntity : IEntity {
 			var axn = ax.normalized;
 			var o = feature.GetOrigin().Eval();
 			var prj = ExpVector.ProjectPointToLine(point, o, o + ax);
-			var ra = Mathf.Atan2((float)feature.step.value / 2.0f, (point - prj).magnitude);
+			var ra = Mathf.Atan2((float)feature.step.value / 4.0f, (point - prj).magnitude);
 			var rot = ExpVector.RotateAround(point, point - prj, o, ra);
 
 			for(int i = 0; i <= subdiv; i++) {
@@ -164,8 +164,6 @@ public class RevolveFeature : MeshFeature {
 	public Param angle = new Param("a", 2f * Math.PI);
 	public Param step = new Param("s", 0f);
 
-	Mesh mesh = new Mesh();
-
 	double _meshAngleStep = 20f;	
 	[SerializeField] public double meshAngleStep { get { return _meshAngleStep; } set { _meshAngleStep = value; MarkDirty(); } }
 
@@ -197,7 +195,6 @@ public class RevolveFeature : MeshFeature {
 
 	IdPath axisId = new IdPath();
 	IdPath originId = new IdPath();
-	bool transformDirty = false;
 	bool shouldInvertAxis = false;
 
 	public IEntity axis {
@@ -206,7 +203,6 @@ public class RevolveFeature : MeshFeature {
 		}
 		set {
 			axisId = value.id;
-			transformDirty = true;
 		}
 	}
 	
@@ -216,7 +212,6 @@ public class RevolveFeature : MeshFeature {
 		}
 		set {
 			originId = value.id;
-			transformDirty = true;
 		}
 	}
 
@@ -274,7 +269,7 @@ public class RevolveFeature : MeshFeature {
 		var axn = ax.Normalized();
 		var o = GetOrigin();
 		var prj = ExpVector.ProjectPointToLine(point, o, o + ax);
-		var ra = Exp.Atan2(new Exp(step) / 2.0, (point - prj).Magnitude());
+		var ra = Exp.Atan2(new Exp(step) / 4.0, (point - prj).Magnitude());
 		*/
 		var ax = GetAxis().Eval();
 		var axn = ax.normalized;
@@ -282,7 +277,7 @@ public class RevolveFeature : MeshFeature {
 		var prj = ExpVector.ProjectPointToLine(point.Eval(), o, o + ax);
 
 		var t = a / (2.0 * Mathf.PI);
-		var ra = Exp.Atan2(new Exp(step) / 2.0, (point.Eval() - prj).magnitude);
+		var ra = Exp.Atan2(new Exp(step) / 4.0, (point.Eval() - prj).magnitude);
 		var res = ExpVector.RotateAround(point, point - prj, o, ra);
 		res = ExpVector.RotateAround(res, ax, o, a);
 		return res + (ExpVector)axn * t * step;
@@ -294,7 +289,7 @@ public class RevolveFeature : MeshFeature {
 		var t = a / (2.0f * Mathf.PI);
 		var o = GetOrigin().Eval();
 		var prj = ExpVector.ProjectPointToLine(point, o, o + ax);
-		var ra = Mathf.Atan2((float)step.value / 2.0f, (point - prj).magnitude);
+		var ra = Mathf.Atan2((float)step.value / 4.0f, (point - prj).magnitude);
 		var res = ExpVector.RotateAround(point, point - prj, o, ra);
 		res = ExpVector.RotateAround(res, ax, o, a);
 		return res + axn * t * (float)step.value;
@@ -356,6 +351,8 @@ public class RevolveFeature : MeshFeature {
 		xml.WriteAttributeString("meshAngleStep", meshAngleStep.ToStr());
 		xml.WriteAttributeString("axis", axisId.ToString());
 		xml.WriteAttributeString("origin", originId.ToString());
+		xml.WriteAttributeString("angleFixed", angleFixed.ToString());
+		xml.WriteAttributeString("stepFixed", stepFixed.ToString());
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {
@@ -364,6 +361,8 @@ public class RevolveFeature : MeshFeature {
 		meshAngleStep = xml.Attributes["meshAngleStep"].Value.ToDouble();
 		axisId.Parse(xml.Attributes["axis"].Value);
 		originId.Parse(xml.Attributes["origin"].Value);
+		angleFixed = Convert.ToBoolean(xml.Attributes["angleFixed"].Value);
+		stepFixed = Convert.ToBoolean(xml.Attributes["stepFixed"].Value);
 	}
 
 	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {

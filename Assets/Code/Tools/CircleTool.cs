@@ -18,6 +18,7 @@ public class CircleTool : Tool {
 		}
 
 		if(DetailEditor.instance.currentSketch == null) return;
+		editor.PushUndo();
 		current = new CircleEntity(DetailEditor.instance.currentSketch.GetSketch());
 		current.center.pos = pos;
 		AutoConstrainCoincident(current.center, sko as IEntity);

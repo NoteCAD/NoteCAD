@@ -178,7 +178,7 @@ public static class MeshUtils {
 			var t = a / 360.0f;
 			var o = origin;
 			var prj = ExpVector.ProjectPointToLine(point, o, o + ax);
-			var ra = Mathf.Atan2(helixStep / 2.0f, (point - prj).magnitude);
+			var ra = Mathf.Atan2(helixStep / 4.0f, (point - prj).magnitude);
 			var res = ExpVector.RotateAround(point, point - prj, o, ra);
 			res = ExpVector.RotateAround(res, ax, o, a * Mathf.PI / 180.0f);
 			return res + axn * t * helixStep;
@@ -429,6 +429,7 @@ public static class MeshUtils {
 	}
 
 	public static void FromSolid(this Mesh mesh, Solid solid) {
+		mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 		var vertices = new List<Vector3>();
 
 		foreach(var polygon in solid.Polygons) {

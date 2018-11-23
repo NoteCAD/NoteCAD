@@ -9,6 +9,7 @@ public class RevolveTool : Tool {
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		if(sko == null) return;
 		var entity = sko as IEntity;
+		if(entity == null) return;
 		if(p == null) {
 			if(entity.type == IEntityType.Point) {
 				p = entity;
@@ -17,6 +18,7 @@ public class RevolveTool : Tool {
 			if(entity.type == IEntityType.Line) {
 				axis = entity;
 				StopTool();
+				editor.PushUndo();
 				var feature = new RevolveFeature();
 				DetailEditor.instance.AddFeature(feature); 
 				feature.axis = axis;
@@ -33,6 +35,9 @@ public class RevolveTool : Tool {
 	}
 
 	protected override void OnActivate() {
+		if(DetailEditor.instance.currentWorkplane == null) {
+			StopTool();
+		}
 	}
 
 	protected override string OnGetDescription() {

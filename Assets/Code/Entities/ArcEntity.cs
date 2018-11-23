@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ArcEntity : Entity, ISegmentaryEntity {
+public class ArcEntity : Entity, ISegmentaryEntity, ITangentable {
 
 	public PointEntity p0;
 	public PointEntity p1;
@@ -51,9 +51,10 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 			var cp = c.pos;
 			var rv = p0.pos - cp;
 			int subdiv = (int)Mathf.Ceil(angle / 10f);
+			if(subdiv == 0) yield break;
 			var vz = Vector3.forward;
-			var rot = Quaternion.AngleAxis(angle / (subdiv - 1), vz);
-			for(int i = 0; i < subdiv; i++) {
+			var rot = Quaternion.AngleAxis(angle / subdiv, vz);
+			for(int i = 0; i <= subdiv; i++) {
 				yield return rv + cp;
 				rv = rot * rv;
 			}
@@ -114,6 +115,18 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		var rv = p0.exp - c.exp;
 
 		return c.exp + new ExpVector(
+			cos * rv.x - sin * rv.y, 
+			sin * rv.x + cos * rv.y, 
+			0.0
+		);
+	}
+
+	public ExpVector TangentAt(Exp t) {
+		var cos = Exp.Cos(t + Math.PI / 2);
+		var sin = Exp.Sin(t + Math.PI / 2);
+		var rv = p0.exp - c.exp;
+
+		return new ExpVector(
 			cos * rv.x - sin * rv.y, 
 			sin * rv.x + cos * rv.y, 
 			0.0

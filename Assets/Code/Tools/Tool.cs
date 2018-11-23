@@ -8,8 +8,11 @@ public class Tool : MonoBehaviour {
 
 	[HideInInspector] public ToolBar toolbar;
 	public KeyCode[] hotkeys;
+	public bool ctrl;
 	public string text;
 	public Sprite icon;
+
+	public DetailEditor editor { get { return DetailEditor.instance; } }
 
 	public bool shouldStop { get; private set; }
 
@@ -136,7 +139,7 @@ public class Tool : MonoBehaviour {
 	public string GetDescription() {
 		var result = this.GetType().Name;
 		if(hotkeys.Length > 0) {
-			result += " [" + hotkeys[0].ToString() + "]";
+			result += " [" + (ctrl ? "Ctrl + " : "") + hotkeys[0].ToString() + "]";
 		}
 		var desc = OnGetDescription();
 		if(desc != "") {
@@ -148,7 +151,7 @@ public class Tool : MonoBehaviour {
 	public string GetTooltip() {
 		var result = this.GetType().Name + ". " + OnGetDescription();
 		if(hotkeys.Length > 0) {
-			result += "[" + hotkeys[0].ToString() + "]";
+			result += "[" + (ctrl ? "Ctrl + " : "") + hotkeys[0].ToString() + "]";
 		}
 		return result;
 	}
@@ -162,13 +165,13 @@ public class Tool : MonoBehaviour {
 	}
 
 	public string GetRichText() {
-		if(hotkeys.Length == 0) return text;
+		if(hotkeys == null || hotkeys.Length == 0) return text;
 		var hk = hotkeys[0].ToString();
 		if(hk.Length != 1) return text;
 		var index = text.IndexOf(hk, System.StringComparison.OrdinalIgnoreCase);
 		var openColor = "<color=\"#6ECEEFFF\">";
 		var closeColor = "</color>";
-		if(index < 0) return text + "[" + openColor + hk + closeColor + "]";
+		if(index < 0) return text + " [" + openColor + (ctrl ? "Ctrl+" : "") + hk  + closeColor + "]";
 		return text.Substring(0, index) + openColor + text[index] + closeColor + text.Substring(index + 1, text.Length - index - 1);
 	}
 

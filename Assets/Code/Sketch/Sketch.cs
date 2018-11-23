@@ -40,6 +40,16 @@ public static class IPlaneUtils {
 		return plane.o + plane.u * pt.x + plane.v * pt.y + plane.n * pt.z;
 	}
 
+	public static ExpVector DirFromPlane(this IPlane plane, ExpVector dir) {
+		if(plane == null) return dir;
+		return (ExpVector)plane.u * dir.x + (ExpVector)plane.v * dir.y + (ExpVector)plane.n * dir.z;
+	}
+
+	public static Vector3 DirFromPlane(this IPlane plane, Vector3 dir) {
+		if(plane == null) return dir;
+		return plane.u * dir.x + plane.v * dir.y + plane.n * dir.z;
+	}
+
 	public static IEnumerable<Vector3> FromPlane(this IPlane plane, IEnumerable<Vector3> points) {
 		if(plane == null) return points;
 
@@ -65,6 +75,24 @@ public static class IPlaneUtils {
 		if(plane == null) return pt;
 		Vector3 result = new Vector3(0, 0, 0);
 		var dir = pt - plane.o;
+		result.x = Vector3.Dot(dir, plane.u);
+		result.y = Vector3.Dot(dir, plane.v);
+		result.z = Vector3.Dot(dir, plane.n);
+		return result;
+	}
+
+	public static ExpVector DirToPlane(this IPlane plane, ExpVector dir) {
+		if(plane == null) return dir;
+		ExpVector result = new ExpVector(0, 0, 0);
+		result.x = ExpVector.Dot(dir, plane.u);
+		result.y = ExpVector.Dot(dir, plane.v);
+		result.z = ExpVector.Dot(dir, plane.n);
+		return result;
+	}
+
+	public static Vector3 DirToPlane(this IPlane plane, Vector3 dir) {
+		if(plane == null) return dir;
+		Vector3 result = new Vector3(0, 0, 0);
 		result.x = Vector3.Dot(dir, plane.u);
 		result.y = Vector3.Dot(dir, plane.v);
 		result.z = Vector3.Dot(dir, plane.n);
@@ -218,7 +246,6 @@ public class Sketch : CADObject, ISketch  {
 		double min = -1.0;
 		SketchObject hoveredObject = null;
 		foreach(var e in entities) {
-			if(e.type != IEntityType.Point) continue;
 			if(!e.isSelectable) continue;
 			var dist = e.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
@@ -228,42 +255,29 @@ public class Sketch : CADObject, ISketch  {
 			hoveredObject = e;
 		}
 
-		if(hoveredObject != null) {
-			objDist = min;
-			return hoveredObject;
-		}
-		foreach(var e in entities) {
-			if(e.type == IEntityType.Point) continue;
-			if(!e.isSelectable) continue;
-			var dist = e.Select(Input.mousePosition, camera, tf);
-			if(dist < 0.0) continue;
-			if(dist > hoverRadius) continue;
-			if(min >= 0.0 && dist > min) continue;
-			min = dist;
-			hoveredObject = e;
-		}
 		Dictionary<Constraint, double> candidates = new Dictionary<Constraint, double>();
 		foreach(var c in constraints) {
 			if(!c.isSelectable) continue;
 			var dist = c.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
 			if(dist > hoverRadius) continue;
-			if(min >= 0.0 && dist > min) continue;
+			if(min >= 0.0 && dist >= min) continue;
 			min = dist;
 			hoveredObject = c;
 			candidates.Add(c, dist);
 		}
 
-		if(candidates.Count > 0) {
-			for(int i = 0; i < candidates.Count; i++) {
-				var current = candidates.ElementAt(i).Key;
-				if(DetailEditor.instance.selection.All(id => id.ToString() != current.id.ToString())) continue;
-				var next = candidates.ElementAt((i + 1) % candidates.Count);
-				objDist = next.Value;
-				return next.Key;
+		if(hoveredObject is Constraint) {
+			if(candidates.Count > 0) {
+				for(int i = 0; i < candidates.Count; i++) {
+					var current = candidates.ElementAt(i).Key;
+					if(DetailEditor.instance.selection.All(id => id.ToString() != current.id.ToString())) continue;
+					var next = candidates.ElementAt((i + 1) % candidates.Count);
+					objDist = next.Value;
+					return next.Key;
+				}
 			}
 		}
-
 		objDist = min;
 		return hoveredObject;
 	}

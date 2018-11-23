@@ -152,7 +152,6 @@ class ExtrudedPlane : IEntity, IPlane {
 [Serializable]
 public class ExtrusionFeature : MeshFeature {
 	public Param extrude = new Param("e", 5.0);
-	Mesh mesh = new Mesh();
 	GameObject go;
 
 	public Sketch sketch {

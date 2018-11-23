@@ -226,10 +226,12 @@ public class MeshImportFeature : MeshFeature {
 			if(i != 0) sb.Append(" ");
 			sb.Append(verts[indices[i]].ToStr());
 		}
+		xml.WriteAttributeString("basis", basis.ToString());
 		xml.WriteAttributeString("mesh", sb.ToString());
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {
+		basis.FromString(xml.Attributes["basis"].Value);
 		var strVerts = xml.Attributes["mesh"].Value.Split(' ');
 		var verts = new Vector3[strVerts.Length / 3];
 		for(int i = 0; i < strVerts.Length / 3; i++) {

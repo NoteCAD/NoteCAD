@@ -22,6 +22,7 @@ public class SketchTool : Tool {
 			if(entity.type == IEntityType.Line && entity != u) {
 				v = entity;
 				StopTool();
+				editor.PushUndo();
 				var feature = new SketchFeature();
 				DetailEditor.instance.AddFeature(feature); 
 				feature.u = u;

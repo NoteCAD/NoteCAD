@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LineEntity : Entity, ISegmentaryEntity {
+public class LineEntity : Entity, ISegmentaryEntity, ITangentable {
 
 	public PointEntity p0;
 	public PointEntity p1;
@@ -55,5 +55,9 @@ public class LineEntity : Entity, ISegmentaryEntity {
 		var pt0 = p0.exp;
 		var pt1 = p1.exp;
 		return pt0 + (pt1 - pt0) * t;
+	}
+
+	public ExpVector TangentAt(Exp t) {
+		return p1.exp - p0.exp;
 	}
 }
