@@ -55,6 +55,10 @@ class ArrayEntity : IEntity {
 		var shift = feature.shiftDir * index;
 		return entity.PointOn(t) + shift;
 	}
+
+	public ExpVector TangentAt(Exp t) {
+		return entity.TangentAt(t);
+	}
 }
 
 [Serializable]

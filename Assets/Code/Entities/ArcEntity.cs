@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ArcEntity : Entity, ISegmentaryEntity, ITangentable {
+public class ArcEntity : Entity, ISegmentaryEntity {
 
 	public PointEntity p0;
 	public PointEntity p1;
@@ -121,7 +121,7 @@ public class ArcEntity : Entity, ISegmentaryEntity, ITangentable {
 		);
 	}
 
-	public ExpVector TangentAt(Exp t) {
+	public override ExpVector TangentAt(Exp t) {
 		var cos = Exp.Cos(t + Math.PI / 2);
 		var sin = Exp.Sin(t + Math.PI / 2);
 		var rv = p0.exp - c.exp;

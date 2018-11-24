@@ -316,6 +316,22 @@ public class Exp {
 		}
 	}
 
+	public void Substitute(Param p, Exp e) {
+		if(a != null) {
+			a.Substitute(p, e);
+			if(b != null) {
+				b.Substitute(p, e);
+			}
+		} else
+		if(op == Op.Param && param == p) {
+			op = e.op;
+			a = e.a;
+			b = e.b;
+			param = e.param;
+			value = e.value;
+		}
+	}
+
 	public void Walk(Action<Exp> action) {
 		action(this);
 		if(a != null) {

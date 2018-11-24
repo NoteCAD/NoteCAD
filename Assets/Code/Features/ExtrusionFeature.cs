@@ -56,6 +56,10 @@ class ExtrudedEntity : IEntity {
 		return entity.plane.FromPlane(entity.PointOn(t)) + shift;
 	}
 
+	public ExpVector TangentAt(Exp t) {
+		return entity.plane.DirFromPlane(entity.TangentAt(t));
+	}
+
 }
 
 class ExtrudedPointEntity : IEntity {
@@ -105,6 +109,11 @@ class ExtrudedPointEntity : IEntity {
 		var p1 = exp + extrusion.extrusionDir;
 		return p0 + (p1 - p0) * t;
 	}
+
+	public ExpVector TangentAt(Exp t) {
+		return extrusion.extrusionDir;
+	}
+
 }
 /*
 class ExtrudedPlane : IEntity, IPlane {

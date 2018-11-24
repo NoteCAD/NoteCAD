@@ -131,14 +131,12 @@ public class DetailEditor : MonoBehaviour {
 		CreateMeshObject("DetailMesh", mesh, EntityConfig.instance.meshMaterial);
 		CreateMeshObject("DetailMeshSelection", selectedMesh, EntityConfig.instance.loopMaterial);
 		New();
+		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
 		if(NoteCADJS.GetParam("filename") != "") {
 			var uri = new Uri(Application.absoluteURL);
 			var url = "http://" + uri.Host + ":" + uri.Port + "/Files/" + NoteCADJS.GetParam("filename");
-			WWW www = new WWW(url);
-			while(!www.isDone);
-			ReadXml(www.text);
+			StartCoroutine(LoadWWWFile(url));
 		}
-		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
 	}
 
 	void UpdateFeatures() {

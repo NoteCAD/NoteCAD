@@ -53,6 +53,10 @@ class RevolvedEntity : IEntity {
 		return feature.Transform(entity.plane.FromPlane(entity.PointOn(t)), index);
 	}
 
+	public ExpVector TangentAt(Exp t) {
+		return null;
+	}
+
 }
 
 class RevolvedPointEntity : IEntity {
@@ -115,6 +119,17 @@ class RevolvedPointEntity : IEntity {
 		var exp = entity.plane.FromPlane(entity.exp);
 		return feature.PointOn(t, exp);
 	}
+
+	public ExpVector TangentAt(Exp t) {
+		Param p = new Param("pOn");
+		var pt = PointOn(p);
+		var result = new ExpVector(pt.x.Deriv(p), pt.y.Deriv(p), pt.z.Deriv(p));
+		result.x.Substitute(p, t);
+		result.y.Substitute(p, t);
+		result.z.Substitute(p, t);
+		return result;
+	}
+
 }
 /*
 class ExtrudedPlane : IEntity, IPlane {

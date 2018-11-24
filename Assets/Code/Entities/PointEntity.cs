@@ -144,4 +144,8 @@ public class PointEntity : Entity {
 	public override ExpVector PointOn(Exp t) {
 		return exp;
 	}
+
+	public override ExpVector TangentAt(Exp t) {
+		return null;
+	}
 }

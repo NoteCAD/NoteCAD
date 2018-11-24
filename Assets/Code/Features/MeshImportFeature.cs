@@ -37,11 +37,14 @@ class MeshEdgeEntity : IEntity {
 			return null;
 		}
 	}
+	
+	ExpVector p0 { get { return feature.basis.TransformPosition(feature.hitMesh.Mesh.GetVertex(v0).ToVector3()); } }
+	ExpVector p1 { get { return feature.basis.TransformPosition(feature.hitMesh.Mesh.GetVertex(v1).ToVector3()); } }
 
 	public IEnumerable<ExpVector> points {
 		get {
-			yield return feature.basis.TransformPosition(feature.hitMesh.Mesh.GetVertex(v0).ToVector3());
-			yield return feature.basis.TransformPosition(feature.hitMesh.Mesh.GetVertex(v1).ToVector3());
+			yield return p0;
+			yield return p1;
 		}
 	}
 
@@ -53,9 +56,11 @@ class MeshEdgeEntity : IEntity {
 	}
 
 	public ExpVector PointOn(Exp t) {
-		var p0 = this.GetLineP0(null);
-		var p1 = this.GetLineP1(null);
 		return p0 + (p1 - p0) * t;
+	}
+
+	public ExpVector TangentAt(Exp t) {
+		return p1 - p0;
 	}
 }
 
@@ -98,6 +103,10 @@ class MeshVertexEntity : IEntity {
 
 	public ExpVector PointOn(Exp t) {
 		return this.GetLineP0(null);
+	}
+
+	public ExpVector TangentAt(Exp t) {
+		return null;
 	}
 }
 
@@ -259,7 +268,6 @@ public class MeshImportFeature : MeshFeature {
 			return basis.matrix;
 		}
 	}
-	bool initialized = false;
 	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
 		var tris = new List<int>();
 		var fullTf = tf * transform;

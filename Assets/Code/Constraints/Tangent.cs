@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [Serializable]
-public class Tangent : ValueConstraint {
+public class Tangent : Constraint {
 
 	public enum Option {
 		Codirected,
@@ -11,9 +11,18 @@ public class Tangent : ValueConstraint {
 	}
 
 	Option option_;
+	Param ta = new Param("ta");
+	Param tb = new Param("tb");
 
 	public Option option { get { return option_; } set { option_ = value; sketch.MarkDirtySketch(topo:true); } }
 	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }
+
+	public override IEnumerable<Param> parameters {
+		get {
+			yield return ta; 
+			yield return tb; 
+		}
+	}
 
 	public Tangent(Sketch sk) : base(sk) { }
 
@@ -21,18 +30,15 @@ public class Tangent : ValueConstraint {
 		AddEntity(l0);
 		AddEntity(l1);
 		ChooseBestOption();
-		reference = true;
 	}
 
 	public override IEnumerable<Exp> equations {
 		get {
 			var l0 = GetEntity(0);
 			var l1 = GetEntity(1);
-			var t0 = l0 as ITangentable;
-			var t1 = l1 as ITangentable;
 
-			ExpVector dir0 = t0.TangentAt(value);
-			ExpVector dir1 = t1.TangentAt(value);
+			ExpVector dir0 = l0.TangentAt(ta);
+			ExpVector dir1 = l1.TangentAt(tb);
 
 			dir0 = l0.plane.DirFromPlane(dir0);
 			dir0 = sketch.plane.DirToPlane(dir0);
@@ -46,7 +52,7 @@ public class Tangent : ValueConstraint {
 				case Option.Antidirected: yield return Exp.Abs(angle) - Math.PI; break;
 			}
 
-			var eq = l1.PointOnInPlane(value, sketch.plane) - l0.PointOnInPlane(value, sketch.plane);
+			var eq = l1.PointOnInPlane(tb, sketch.plane) - l0.PointOnInPlane(ta, sketch.plane);
 
 			yield return eq.x;
 			yield return eq.y;
@@ -69,14 +75,20 @@ public class Tangent : ValueConstraint {
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
-		return;
-		//var l0 = GetEntityOfType(0);
-		//var l1 = GetEntityOfType(1);
-		//DrawStroke(canvas, l0, 0);
-		//DrawStroke(canvas, l1, 1);
-		if(DetailEditor.instance.hovered == this) {
-			DrawReferenceLink(canvas, Camera.main);
-		}
+		var l0 = GetEntity(0);
+		var dir = l0.TangentAt(ta).Eval().normalized;
+		dir = l0.plane.DirFromPlane(dir);
+		var perp = Vector3.Cross(dir, sketch.plane.n);
+
+		var pos = l0.PointOnInPlane(ta, null).Eval();
+
+		ref_points[0] = ref_points[1] = pos;
+		var size = getPixelSize() * 10f;
+		dir *= size;
+		perp *= size;
+
+		canvas.DrawLine(pos + dir, pos - dir);
+		canvas.DrawLine(pos - perp, pos + perp);
 	}
 
 }

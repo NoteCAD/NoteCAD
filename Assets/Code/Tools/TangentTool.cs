@@ -9,7 +9,7 @@ public class TangentTool : Tool {
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		var entity = sko as IEntity;
 		if(entity == null) return;
-		if(!(sko is ITangentable)) return;
+		if(entity.TangentAt(0.0) == null) return;
 
 		if(l0 != null) {
 			editor.PushUndo();

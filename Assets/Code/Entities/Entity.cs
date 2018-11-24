@@ -17,15 +17,9 @@ public interface IEntity : ICADObject {
 	IEnumerable<ExpVector> points { get; }			// enough for dragging
 	IEnumerable<Vector3> segments { get; }			// enough for drawing
 	ExpVector PointOn(Exp t);						// enough for constraining
+	ExpVector TangentAt(Exp t);
 	IPlane plane { get; }
 	IEntityType type { get; }
-}
-
-public interface ITangentable {
-	//ExpVector begin { get; }
-	//ExpVector end { get; }
-
-	ExpVector TangentAt(Exp t);
 }
 
 public static class IEntityUtils {
@@ -287,6 +281,7 @@ public abstract partial class Entity : SketchObject, IEntity {
 		});
 	}
 
+	public abstract ExpVector TangentAt(Exp t);
 }
 
 public interface ISegmentaryEntity {
