@@ -60,6 +60,13 @@ class ExtrudedEntity : IEntity {
 		return entity.plane.DirFromPlane(entity.TangentAt(t));
 	}
 
+	public Exp Length() {
+		return entity.Length();
+	}
+
+	public Exp Radius() {
+		return entity.Radius();
+	}
 }
 
 class ExtrudedPointEntity : IEntity {
@@ -114,6 +121,13 @@ class ExtrudedPointEntity : IEntity {
 		return extrusion.extrusionDir;
 	}
 
+	public Exp Length() {
+		return extrusion.extrude;
+	}
+
+	public Exp Radius() {
+		return null;
+	}
 }
 /*
 class ExtrudedPlane : IEntity, IPlane {

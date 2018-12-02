@@ -59,6 +59,15 @@ class ArrayEntity : IEntity {
 	public ExpVector TangentAt(Exp t) {
 		return entity.TangentAt(t);
 	}
+
+	public Exp Length() {
+		return entity.Length();
+	}
+
+	public Exp Radius() {
+		return entity.Radius();
+	}
+
 }
 
 [Serializable]

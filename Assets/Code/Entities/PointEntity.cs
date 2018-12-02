@@ -83,13 +83,39 @@ public class PointEntity : Entity {
 		y.value += delta.y;
 		if(is3d) z.value += delta.z;
 	}
+
+	public bool IsCoincidentWithCurve(IEntity curve, ref PointOn pOn) {
+		return IsCoincidentWithCurve(curve, ref pOn, null);
+	}
 	
-	private bool IsCoincidentWith(PointEntity point, PointEntity exclude) {
+	private bool IsCoincidentWithCurve(IEntity curve, ref PointOn pOn, IEntity exclude) {
+		for(int i = 0; i < usedInConstraints.Count; i++) {
+			var c = usedInConstraints[i] as PointOn;
+			if(c == null) continue;
+			if(c.on.IsSameAs(curve)) {
+				pOn = c;
+				return true;
+			}
+		}
 		for(int i = 0; i < usedInConstraints.Count; i++) {
 			var c = usedInConstraints[i] as PointsCoincident;
 			if(c == null) continue;
-			var p = c.GetOtherPoint(this) as PointEntity;
-			if(p == point || p != exclude && p != null && p.IsCoincidentWith(point, this)) {
+			var p = c.GetOtherPoint(this);
+			PointOn pOn1 = null;
+			if(!p.IsSameAs(exclude) && p is PointEntity && (p as PointEntity).IsCoincidentWithCurve(curve, ref pOn, this)) {
+				 pOn = pOn1;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private bool IsCoincidentWith(IEntity point, IEntity exclude) {
+		for(int i = 0; i < usedInConstraints.Count; i++) {
+			var c = usedInConstraints[i] as PointsCoincident;
+			if(c == null) continue;
+			var p = c.GetOtherPoint(this);
+			if(p.IsSameAs(point) || !p.IsSameAs(exclude) && p is PointEntity && (p as PointEntity).IsCoincidentWith(point, this)) {
 				return true;
 			}
 		}
@@ -102,7 +128,7 @@ public class PointEntity : Entity {
 		*/
 	}
 
-	public bool IsCoincidentWith(PointEntity point) {
+	public bool IsCoincidentWith(IEntity point) {
 		return IsCoincidentWith(point, null);
 	}
 
@@ -146,6 +172,14 @@ public class PointEntity : Entity {
 	}
 
 	public override ExpVector TangentAt(Exp t) {
+		return null;
+	}
+
+	public override Exp Length() {
+		return null;
+	}
+
+	public override Exp Radius() {
 		return null;
 	}
 }

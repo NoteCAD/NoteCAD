@@ -11,8 +11,13 @@ public class PointsCoincidentTool : Tool {
 		if(entity == null) return;
 		if(p0 != null) {
 			if(entity.type == IEntityType.Point) {
-				editor.PushUndo();
-				new PointsCoincident(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
+				PointEntity pt0 = p0 as PointEntity;
+				PointEntity pt1 = entity as PointEntity;
+
+				if(!p0.IsSameAs(entity) && (pt0 == null || pt1 == null || !pt0.IsCoincidentWith(pt1))) {
+					editor.PushUndo();
+					new PointsCoincident(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
+				}
 			} else {
 				editor.PushUndo();
 				new PointOn(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);

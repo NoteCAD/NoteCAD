@@ -18,11 +18,27 @@ public interface IEntity : ICADObject {
 	IEnumerable<Vector3> segments { get; }			// enough for drawing
 	ExpVector PointOn(Exp t);						// enough for constraining
 	ExpVector TangentAt(Exp t);
+	Exp Length();
+	Exp Radius();
+
 	IPlane plane { get; }
 	IEntityType type { get; }
 }
 
 public static class IEntityUtils {
+
+	public static ExpVector NormalAt(this IEntity self, Exp t) {
+		var tang = self.TangentAt(t);
+		if(tang == null) return null;
+		if(self.plane != null) return ExpVector.Cross(tang, self.plane.n);
+		return null;
+	}
+
+	public static bool IsSameAs(this IEntity e0, IEntity e1) {
+		if(e0 == null) return e1 == null;
+		if(e1 == null) return e0 == null;
+		return e0 == e1 || e0.type == e1.type && e0.id == e1.id;
+	}
 
 	public static ExpVector PointExpInPlane(this IEntity entity, IPlane plane) {
 		var it = entity.PointsInPlane(plane).GetEnumerator();
@@ -111,6 +127,37 @@ public static class IEntityUtils {
 			}
 		});
 		return minDist;
+	}
+
+	public static ExpVector OffsetAt(this IEntity e, Exp t, Exp offset) {
+		return e.PointOn(t) + e.NormalAt(t).Normalized() * offset;
+	}
+
+	public static ExpVector OffsetTangentAt(this IEntity e, Exp t, Exp offset) {
+		Param p = new Param("pOn");
+		var pt = e.OffsetAt(p, offset);
+		var result = new ExpVector(pt.x.Deriv(p), pt.y.Deriv(p), pt.z.Deriv(p));
+		result.x.Substitute(p, t);
+		result.y.Substitute(p, t);
+		result.z.Substitute(p, t);
+		return result;
+	}
+
+	public static void DrawParamRange(this IEntity e, LineCanvas canvas, double offset, double begin, double end, double step) {
+		Vector3 prev = Vector3.zero;
+		bool first = true;
+		int count = (int)Math.Ceiling(Math.Abs(end - begin) / step);
+		Param t = new Param("t");
+		var PointOn = e.OffsetAt(t, offset);
+		for(int i = 0; i <= count; i++) {
+			t.value = begin + (end - begin) * i / count;
+			var p = PointOn.Eval();
+			if(!first) {
+				canvas.DrawLine(prev, p);
+			}
+			first = false;
+			prev = p;
+		}
 	}
 
 }
@@ -282,6 +329,10 @@ public abstract partial class Entity : SketchObject, IEntity {
 	}
 
 	public abstract ExpVector TangentAt(Exp t);
+
+	public abstract Exp Length();
+	public abstract Exp Radius();
+
 }
 
 public interface ISegmentaryEntity {

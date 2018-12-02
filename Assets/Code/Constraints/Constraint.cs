@@ -545,6 +545,10 @@ public class ValueConstraint : Constraint {
 		value.value = LabelToValue(v);
 	}
 
+	public Param GetValueParam() {
+		return value;
+	}
+
 	public double dimension { get { return GetValue(); } set { SetValue(value); } }
 
 	public virtual double ValueToLabel(double value) {
@@ -832,6 +836,21 @@ public class ValueConstraint : Constraint {
 		Vector3 p = basis.GetColumn(3);
 		canvas.DrawLine(p, p + vx * 10f * pix);
 		canvas.DrawLine(p, p + vy * 10f * pix);
+	}
+
+	protected void drawArrow(LineCanvas canvas, Vector3 pos, Vector3 d, bool stroke) {
+		d = d.normalized;
+		var f = getVisualPlaneDir(Camera.main.transform.forward);
+		var n = Vector3.Cross(d, f).normalized;
+		var pix = getPixelSize();
+
+		// if label ourside distance area or sceren distance not too small, draw arrows
+		if(!stroke) {
+			canvas.DrawLine(pos, pos - n * R_ARROW_H * pix - d * R_ARROW_W * pix);
+			canvas.DrawLine(pos, pos + n * R_ARROW_H * pix - d * R_ARROW_W * pix);
+		} else {
+			canvas.DrawLine(pos - n * R_ARROW_H * pix + d * R_ARROW_H * pix, pos + n * R_ARROW_H * pix - d * R_ARROW_H * pix);
+		}
 	}
 }
 

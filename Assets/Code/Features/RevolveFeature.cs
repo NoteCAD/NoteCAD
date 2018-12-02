@@ -57,6 +57,14 @@ class RevolvedEntity : IEntity {
 		return null;
 	}
 
+	public Exp Length() {
+		return null;
+	}
+
+	public Exp Radius() {
+		return null;
+	}	
+
 }
 
 class RevolvedPointEntity : IEntity {
@@ -128,6 +136,14 @@ class RevolvedPointEntity : IEntity {
 		result.y.Substitute(p, t);
 		result.z.Substitute(p, t);
 		return result;
+	}
+
+	public Exp Length() {
+		return null;
+	}
+
+	public Exp Radius() {
+		return null;
 	}
 
 }

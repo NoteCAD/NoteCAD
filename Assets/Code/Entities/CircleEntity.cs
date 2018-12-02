@@ -59,10 +59,20 @@ public class CircleEntity : Entity, ILoopEntity {
 	}
 
 	public override ExpVector PointOn(Exp t) {
-		return c.exp + new ExpVector(Exp.Cos(t), Exp.Sin(t), 0.0) * radius;
+		var angle = t * 2.0 * Math.PI;
+		return c.exp + new ExpVector(Exp.Cos(angle), Exp.Sin(angle), 0.0) * radius;
 	}
 
 	public override ExpVector TangentAt(Exp t) {
-		return new ExpVector(-Exp.Sin(t), Exp.Cos(t), 0.0);
+		var angle = t * 2.0 * Math.PI;
+		return new ExpVector(-Exp.Sin(angle), Exp.Cos(angle), 0.0);
+	}
+
+	public override Exp Length() {
+		return new Exp(2.0) * Math.PI * radius;
+	}
+
+	public override Exp Radius() {
+		return radius;
 	}
 }

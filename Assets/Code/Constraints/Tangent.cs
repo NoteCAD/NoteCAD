@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 
 [Serializable]
@@ -11,16 +12,24 @@ public class Tangent : Constraint {
 	}
 
 	Option option_;
-	Param ta = new Param("ta");
-	Param tb = new Param("tb");
+	Param t0 = new Param("t0");
+	Param t1 = new Param("t1");
 
 	public Option option { get { return option_; } set { option_ = value; sketch.MarkDirtySketch(topo:true); } }
 	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }
 
 	public override IEnumerable<Param> parameters {
 		get {
-			yield return ta; 
-			yield return tb; 
+			double tv0 = 0.0;
+			double tv1 = 0.0;
+			Exp c = null;
+			Param p = null;
+			if(!IsCoincident(ref tv0, ref tv1, ref c, ref p)) {
+				yield return t0; 
+				yield return t1;
+			} else {
+				if(p != null) yield return p;
+			}
 		}
 	}
 
@@ -32,13 +41,37 @@ public class Tangent : Constraint {
 		ChooseBestOption();
 	}
 
+	bool IsCoincident(ref double tv0, ref double tv1, ref Exp c, ref Param p) {
+		var l0 = GetEntity(0);
+		var l1 = GetEntity(1);
+		var s0 = l0 as ISegmentaryEntity;
+		var s1 = l1 as ISegmentaryEntity;
+		if(s0 != null && s1 != null) {
+			if (s0.begin.IsCoincidentWith(s1.begin))	{ tv0 = 0.0; tv1 = 0.0; return true; }
+			if (s0.begin.IsCoincidentWith(s1.end))		{ tv0 = 0.0; tv1 = 1.0; return true; }
+			if (s0.end.IsCoincidentWith(s1.begin))		{ tv0 = 1.0; tv1 = 0.0; return true; }
+			if (s0.end.IsCoincidentWith(s1.end))		{ tv0 = 1.0; tv1 = 1.0; return true; }
+		}
+		if(s0 != null) {
+			PointOn pOn = null;
+			if(s0.begin.IsCoincidentWithCurve(l1, ref pOn)) { tv0 = 0.0; p = t1; c = new Exp(t1) - pOn.GetValueParam(); return true; }
+			if(s0.end.IsCoincidentWithCurve(l1, ref pOn))	{ tv0 = 1.0; p = t1; c = new Exp(t1) - pOn.GetValueParam(); return true; }
+		}
+		if(s1 != null) {
+			PointOn pOn = null;
+			if(s1.begin.IsCoincidentWithCurve(l0, ref pOn)) { p = t0; c = new Exp(t0) - pOn.GetValueParam(); tv1 = 0.0; return true; }
+			if(s1.end.IsCoincidentWithCurve(l0, ref pOn))   { p = t0; c = new Exp(t0) - pOn.GetValueParam(); tv1 = 1.0; return true; }
+		}
+		return false;
+	}
+
 	public override IEnumerable<Exp> equations {
 		get {
 			var l0 = GetEntity(0);
 			var l1 = GetEntity(1);
 
-			ExpVector dir0 = l0.TangentAt(ta);
-			ExpVector dir1 = l1.TangentAt(tb);
+			ExpVector dir0 = l0.TangentAt(t0);
+			ExpVector dir1 = l1.TangentAt(t1);
 
 			dir0 = l0.plane.DirFromPlane(dir0);
 			dir0 = sketch.plane.DirToPlane(dir0);
@@ -51,44 +84,58 @@ public class Tangent : Constraint {
 				case Option.Codirected: yield return angle; break;
 				case Option.Antidirected: yield return Exp.Abs(angle) - Math.PI; break;
 			}
+			double tv0 = t0.value;
+			double tv1 = t1.value;
+			Exp c = null;
+			Param p = null;
+			if(IsCoincident(ref tv0, ref tv1, ref c, ref p)) {
+				t0.value = tv0;
+				t1.value = tv1;
+				if(c != null) yield return c;
+			} else {
+				var eq = l1.PointOnInPlane(t1, sketch.plane) - l0.PointOnInPlane(t0, sketch.plane);
 
-			var eq = l1.PointOnInPlane(tb, sketch.plane) - l0.PointOnInPlane(ta, sketch.plane);
-
-			yield return eq.x;
-			yield return eq.y;
-			if(sketch.is3d) yield return eq.z;
-
+				yield return eq.x;
+				yield return eq.y;
+				if(sketch.is3d) yield return eq.z;
+			}
 		}
 	}
 
-	void DrawStroke(LineCanvas canvas, IEntity line, int rpt) {
-		var p0 = line.GetPointAtInPlane(0, null).Eval();
-		var p1 = line.GetPointAtInPlane(1, null).Eval();
-		float len = (p1 - p0).magnitude;
-		float size = Mathf.Min(len, 10f * getPixelSize());
-		Vector3 dir = (p1 - p0).normalized * size / 2f;
-		Vector3 perp = Vector3.Cross(p1 - p0, Vector3.forward).normalized * 3f * getPixelSize();
-		Vector3 pos = (p1 + p0) / 2f;
-		ref_points[rpt] = pos;
-		canvas.DrawLine(pos + dir + perp, pos - dir + perp);
-		canvas.DrawLine(pos + dir - perp, pos - dir - perp);
+	protected virtual bool OnSatisfy() {
+		EquationSystem sys = new EquationSystem();
+		sys.revertWhenNotConverged = false;
+		sys.AddParameter(t0);
+		sys.AddParameter(t1);
+		sys.AddEquations(equations);
+		return sys.Solve() == EquationSystem.SolveResult.OKAY;
 	}
+
 
 	protected override void OnDraw(LineCanvas canvas) {
 		var l0 = GetEntity(0);
-		var dir = l0.TangentAt(ta).Eval().normalized;
-		dir = l0.plane.DirFromPlane(dir);
-		var perp = Vector3.Cross(dir, sketch.plane.n);
-
-		var pos = l0.PointOnInPlane(ta, null).Eval();
+		var dir = l0.TangentAt(t0).Eval();
+		dir = l0.plane.DirFromPlane(dir).normalized;
+		var perp = Vector3.Cross(dir, sketch.plane.n).normalized;
+		var pos = l0.PointOnInPlane(t0, null).Eval();
 
 		ref_points[0] = ref_points[1] = pos;
 		var size = getPixelSize() * 10f;
-		dir *= size;
 		perp *= size;
+		dir *= size;
 
 		canvas.DrawLine(pos + dir, pos - dir);
 		canvas.DrawLine(pos - perp, pos + perp);
+	}
+
+	protected override void OnWrite(XmlTextWriter xml) {
+		xml.WriteAttributeString("t0", t0.value.ToStr());
+		xml.WriteAttributeString("t1", t1.value.ToStr());
+	}
+
+	protected override void OnRead(XmlNode xml) {
+		t0.value = xml.Attributes["t0"].Value.ToDouble();
+		t1.value = xml.Attributes["t1"].Value.ToDouble();
 	}
 
 }

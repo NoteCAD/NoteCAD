@@ -18,7 +18,7 @@ public class PointOn : ValueConstraint {
 		reference = true;
 		AddEntity(point);
 		AddEntity(on);
-		SetValue(0.5);
+		SetValue(0.51);
 		Satisfy();
 	}
 
@@ -51,8 +51,8 @@ public class PointOn : ValueConstraint {
 
 	public override double LabelToValue(double label) {
 		switch(on.type) {
-			case IEntityType.Arc:
-			case IEntityType.Circle:
+			//case IEntityType.Arc:
+			//case IEntityType.Circle:
 			case IEntityType.Helix:
 				return label / 180.0 * Math.PI;
 		}
@@ -61,8 +61,8 @@ public class PointOn : ValueConstraint {
 
 	public override double ValueToLabel(double value) {
 		switch(on.type) {
-			case IEntityType.Arc:
-			case IEntityType.Circle:
+			//case IEntityType.Arc:
+			//case IEntityType.Circle:
 			case IEntityType.Helix:
 				return value * 180.0 / Math.PI;
 		}

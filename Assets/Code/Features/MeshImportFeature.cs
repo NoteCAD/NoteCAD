@@ -62,6 +62,14 @@ class MeshEdgeEntity : IEntity {
 	public ExpVector TangentAt(Exp t) {
 		return p1 - p0;
 	}
+
+	public Exp Length() {
+		return (p1 - p0).Magnitude();
+	}
+
+	public Exp Radius() {
+		return null;
+	}
 }
 
 class MeshVertexEntity : IEntity {
@@ -106,6 +114,14 @@ class MeshVertexEntity : IEntity {
 	}
 
 	public ExpVector TangentAt(Exp t) {
+		return null;
+	}
+
+	public Exp Length() {
+		return null;
+	}
+
+	public Exp Radius() {
 		return null;
 	}
 }

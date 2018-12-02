@@ -60,4 +60,12 @@ public class LineEntity : Entity, ISegmentaryEntity {
 	public override ExpVector TangentAt(Exp t) {
 		return p1.exp - p0.exp;
 	}
+
+	public override Exp Length() {
+		return (p1.exp - p0.exp).Magnitude();
+	}
+
+	public override Exp Radius() {
+		return null;
+	}
 }

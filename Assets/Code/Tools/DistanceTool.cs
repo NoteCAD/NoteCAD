@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class DistanceTool : Tool {
 
-
 	IEntity p0;
 	ValueConstraint constraint;
 	Vector3 click;

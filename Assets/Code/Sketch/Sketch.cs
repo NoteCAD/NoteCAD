@@ -245,37 +245,38 @@ public class Sketch : CADObject, ISketch  {
 	public SketchObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
 		double min = -1.0;
 		SketchObject hoveredObject = null;
+		Dictionary<SketchObject, double> candidates = new Dictionary<SketchObject, double>();
+
 		foreach(var e in entities) {
 			if(!e.isSelectable) continue;
 			var dist = e.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
 			if(dist > hoverRadius) continue;
+			candidates.Add(e, dist);
 			if(min >= 0.0 && dist > min) continue;
 			min = dist;
 			hoveredObject = e;
 		}
 
-		Dictionary<Constraint, double> candidates = new Dictionary<Constraint, double>();
 		foreach(var c in constraints) {
 			if(!c.isSelectable) continue;
 			var dist = c.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
 			if(dist > hoverRadius) continue;
+			candidates.Add(c, dist);
 			if(min >= 0.0 && dist >= min) continue;
 			min = dist;
 			hoveredObject = c;
-			candidates.Add(c, dist);
 		}
 
-		if(hoveredObject is Constraint) {
-			if(candidates.Count > 0) {
-				for(int i = 0; i < candidates.Count; i++) {
-					var current = candidates.ElementAt(i).Key;
-					if(DetailEditor.instance.selection.All(id => id.ToString() != current.id.ToString())) continue;
-					var next = candidates.ElementAt((i + 1) % candidates.Count);
-					objDist = next.Value;
-					return next.Key;
-				}
+		if(candidates.Count > 0) {
+			for(int i = 0; i < candidates.Count; i++) {
+				var current = candidates.ElementAt(i).Key;
+				Debug.Log(current.GetType().ToString());
+				if(DetailEditor.instance.selection.All(id => id.ToString() != current.id.ToString())) continue;
+				var next = candidates.ElementAt((i + 1) % candidates.Count);
+				objDist = next.Value;
+				return next.Key;
 			}
 		}
 		objDist = min;
@@ -393,8 +394,10 @@ public class Sketch : CADObject, ISketch  {
 				} else {
 					continue;
 				}
-				polygon.RemoveAt(polygon.Count - 1);
-				if(idPolygon != null) idPolygon.RemoveAt(idPolygon.Count - 1);
+				if(polygon.Count > 0) {
+					polygon.RemoveAt(polygon.Count - 1);
+					if(idPolygon != null) idPolygon.RemoveAt(idPolygon.Count - 1);
+				}
 			}
 			if(polygon.Count < 3) continue;
 			if(!Triangulation.IsClockwise(polygon)) {

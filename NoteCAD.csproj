@@ -312,6 +312,7 @@
     <Compile Include="Assets\Code\Constraints\Diameter.cs" />
     <Compile Include="Assets\Code\Constraints\EqualLineLine.cs" />
     <Compile Include="Assets\Code\Constraints\HVConstraint.cs" />
+    <Compile Include="Assets\Code\Constraints\Length.cs" />
     <Compile Include="Assets\Code\Constraints\Parallel.cs" />
     <Compile Include="Assets\Code\Constraints\Perpendicular.cs" />
     <Compile Include="Assets\Code\Constraints\PointLineDistance.cs" />
@@ -1013,6 +1014,7 @@
     <Compile Include="Assets\Code\Tools\HVTool.cs" />
     <Compile Include="Assets\Code\Tools\ImportDXFTool.cs" />
     <Compile Include="Assets\Code\Tools\ImportSTLTool.cs" />
+    <Compile Include="Assets\Code\Tools\LengthTool.cs" />
     <Compile Include="Assets\Code\Tools\LinearArrayTool.cs" />
     <Compile Include="Assets\Code\Tools\LineTool.cs" />
     <Compile Include="Assets\Code\Tools\LoadTool.cs" />
