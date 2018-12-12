@@ -54,6 +54,7 @@ public class LineTool : Tool {
 		if(current != null) {
 			current.Destroy();
 			current = null;
+			editor.PopUndo();
 		}
 		canCreate = true;
 	}

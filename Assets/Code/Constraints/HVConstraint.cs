@@ -44,7 +44,7 @@ public class HVConstraint : Constraint {
 		float size = Mathf.Min(len, 20f * getPixelSize());
 		Vector3 dir = (p1 - p0).normalized * size / 2f;
 		Vector3 pos = (p1 + p0) / 2f;
-		ref_points[rpt] = pos;
+		ref_points[rpt] = sketch.plane.ToPlane(pos);
 		canvas.DrawLine(pos + dir, pos - dir);
 	}
 

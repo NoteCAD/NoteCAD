@@ -231,7 +231,8 @@ public abstract class Feature : CADObject {
 public enum CombineOp {
 	Union,
 	Difference,
-	Intersection
+	Intersection,
+	Assembly
 }
 
 public abstract class MeshFeature : SketchFeatureBase {

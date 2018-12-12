@@ -52,6 +52,16 @@ public class Detail : Feature {
 		}
 	}
 
+	public void UpdateUntil(Feature until) {
+		foreach(var f in features) {
+			f.Update();
+			if(f == until) break;
+		}
+		if(features.Any(f => f.dirty)) {
+			MarkDirty();
+		}
+	}
+
 	public void UpdateDirtyUntil(Feature until) {
 		foreach(var f in features) {
 			f.UpdateDirty();
@@ -126,7 +136,7 @@ public class Detail : Feature {
 			double dist = -1.0;
 			var hovered = f.Hover(mouse, camera, tf, ref dist);
 
-			if(dist >= 0.0 && dist < Sketch.hoverRadius && (min < 0.0 || dist < min)) {
+			if(dist >= 0.0 && dist < Sketch.hoverRadius && (min < 0.0 || dist <= min)) {
 				result = hovered;
 				min = dist;
 			}

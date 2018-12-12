@@ -67,8 +67,7 @@ public class Constraint : SketchObject {
 			optionInternal = (Enum)Enum.Parse(type, names[i]);
 			List<Exp> exprs = equations.ToList();
 			
-			if(exprs.Count != 1) return;
-			double cur_value = Math.Abs(exprs[0].Eval());
+			double cur_value = exprs.Sum(e => Math.Abs(e.Eval()));
 			Debug.Log(String.Format("check option {0} (min: {1}, cur: {2})\n", optionInternal, min_value, cur_value));
 			if(min_value < 0.0 || cur_value < min_value) {
 				min_value = cur_value;
@@ -191,6 +190,7 @@ public class Constraint : SketchObject {
 	public void DrawReferenceLink(LineCanvas renderer, Camera camera) {
 		float pix = getPixelSize();
 		float size = 12f * pix;
+		var ref_points = this.ref_points.Select(p => sketch.plane.FromPlane(p)).ToArray();
 		drawCameraCircle(renderer, camera, ref_points[0], size, 16);
 		if(ref_points.Length > 1) {
 			drawCameraCircle(renderer, camera, ref_points[1], size, 16);
@@ -484,14 +484,20 @@ public class ValueConstraint : Constraint {
 	}
 	Vector3 position_;
 
-	public Vector3 localPos {
+	public Vector3 labelPos {
 		get {
 			return position_;
 		}
 	}
+	public float labelX { get { return position_.x; } set { position_.x = value; } }
+	public float labelY { get { return position_.y; } set { position_.y = value; } }
+	public float labelZ { get { return position_.z; } set { position_.z = value; } }
 
 	public virtual bool valueVisible { get { return true; } }
+
+	protected bool selectByRefPoints = false;
 	
+	[SerializeField]
 	public Vector3 pos {
 		get {
 			return GetBasis().MultiplyPoint(position_);
@@ -535,8 +541,12 @@ public class ValueConstraint : Constraint {
 		return ValueToLabel(value.value);
 	}
 
+	protected virtual string OnGetLabelValue() {
+		return Math.Abs(GetValue()).ToString("0.##");
+	}
+
 	public string GetLabel() {
-		var v = Math.Abs(GetValue()).ToString("0.##");
+		var v = OnGetLabelValue();
 		if(reference) v = "<" + v + ">";
 		return v;
 	}
@@ -576,7 +586,7 @@ public class ValueConstraint : Constraint {
 	}
 
 	protected void setRefPoint(Vector3 pos) {
-		ref_points[0] = pos;
+		ref_points[0] = sketch.plane.ToPlane(pos);
 	}
 
 	protected override void OnWrite(XmlTextWriter xml) {
@@ -601,12 +611,16 @@ public class ValueConstraint : Constraint {
 	}
 
 	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
-		var pp = camera.WorldToScreenPoint(pos);
+		double distRp = -1;
+		if(selectByRefPoints) {
+			distRp = base.OnSelect(mouse, camera, tf);
+		}
+		var pp = camera.WorldToScreenPoint(tf.MultiplyPoint(sketch.plane.ToPlane(pos)));
 		pp.z = 0f;
 		mouse.z = 0f;
 		var dist = (pp - mouse).magnitude - 10;
 		if(dist < 0f) return 0f;
-		return dist;
+		return (distRp >= 0.0) ? Math.Min(dist, distRp) : dist;
 	}
 
 	protected void drawPointLineDistance(Vector3 lip0_, Vector3 lip1_, Vector3 p0_, LineCanvas renderer, Camera camera) {
@@ -713,7 +727,7 @@ public class ValueConstraint : Constraint {
 		return pos;
 	}
 
-	protected void drawPointsDistance(Vector3 pp0, Vector3 pp1, LineCanvas renderer, Camera camera, bool label, bool arrow0 = true, bool arrow1 = true, int style = 0) {
+	protected void drawPointsDistance(Vector3 pp0, Vector3 pp1, LineCanvas renderer, Camera camera, bool label = false, bool arrow0 = true, bool arrow1 = true, int style = 0) {
 		float pix = getPixelSize();
 		
 		Vector3 p0 = drawPointProjection(renderer, pp0, R_DASH * pix);
@@ -838,18 +852,23 @@ public class ValueConstraint : Constraint {
 		canvas.DrawLine(p, p + vy * 10f * pix);
 	}
 
-	protected void drawArrow(LineCanvas canvas, Vector3 pos, Vector3 d, bool stroke) {
-		d = d.normalized;
+	public override void Draw(LineCanvas canvas) {
+		base.Draw(canvas);
+		//drawBasis(canvas);
+	}
+
+	protected void drawArrow(LineCanvas canvas, Vector3 pos, Vector3 dir, bool stroke = false) {
+		dir = dir.normalized;
 		var f = getVisualPlaneDir(Camera.main.transform.forward);
-		var n = Vector3.Cross(d, f).normalized;
+		var n = Vector3.Cross(dir, f).normalized;
 		var pix = getPixelSize();
 
 		// if label ourside distance area or sceren distance not too small, draw arrows
 		if(!stroke) {
-			canvas.DrawLine(pos, pos - n * R_ARROW_H * pix - d * R_ARROW_W * pix);
-			canvas.DrawLine(pos, pos + n * R_ARROW_H * pix - d * R_ARROW_W * pix);
+			canvas.DrawLine(pos, pos - n * R_ARROW_H * pix - dir * R_ARROW_W * pix);
+			canvas.DrawLine(pos, pos + n * R_ARROW_H * pix - dir * R_ARROW_W * pix);
 		} else {
-			canvas.DrawLine(pos - n * R_ARROW_H * pix + d * R_ARROW_H * pix, pos + n * R_ARROW_H * pix - d * R_ARROW_H * pix);
+			canvas.DrawLine(pos - n * R_ARROW_H * pix + dir * R_ARROW_H * pix, pos + n * R_ARROW_H * pix - dir * R_ARROW_H * pix);
 		}
 	}
 }

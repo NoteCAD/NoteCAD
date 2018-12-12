@@ -63,7 +63,12 @@ class RevolvedEntity : IEntity {
 
 	public Exp Radius() {
 		return null;
-	}	
+	}
+
+	public ExpVector Center() {
+		return null;
+	}
+
 
 }
 
@@ -143,6 +148,10 @@ class RevolvedPointEntity : IEntity {
 	}
 
 	public Exp Radius() {
+		return null;
+	}
+
+	public ExpVector Center() {
 		return null;
 	}
 

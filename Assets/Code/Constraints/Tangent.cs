@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 using UnityEngine;
 
@@ -38,7 +39,36 @@ public class Tangent : Constraint {
 	public Tangent(Sketch sk, IEntity l0, IEntity l1) : base(sk) {
 		AddEntity(l0);
 		AddEntity(l1);
+		Satisfy();
 		ChooseBestOption();
+	}
+
+	bool Satisfy() {
+		EquationSystem sys = new EquationSystem();
+		sys.AddParameters(parameters);
+		addAngle = false;
+		var exprs = equations.ToList();
+		addAngle = true;
+		sys.AddEquations(equations);
+
+		double bestI = 0.0;
+		double bestJ = 0.0;
+		double min = -1.0;
+		for(double i = 0.0; i < 1.0; i += 0.25 / 2.0) {
+			for(double j = 0.0; j < 1.0; j += 0.25 / 2.0) {
+				t0.value = i;
+				t1.value = j;
+				sys.Solve();
+				double cur_value = exprs.Sum(e => Math.Abs(e.Eval()));
+				if(min >= 0.0 && min < cur_value) continue;
+				bestI = t0.value;
+				bestJ = t1.value;
+				min = cur_value;
+			}
+		}
+		t0.value = bestI;
+		t1.value = bestJ;
+		return true;
 	}
 
 	bool IsCoincident(ref double tv0, ref double tv1, ref Exp c, ref Param p) {
@@ -64,7 +94,7 @@ public class Tangent : Constraint {
 		}
 		return false;
 	}
-
+	bool addAngle = true;
 	public override IEnumerable<Exp> equations {
 		get {
 			var l0 = GetEntity(0);
@@ -79,10 +109,12 @@ public class Tangent : Constraint {
 			dir1 = l1.plane.DirFromPlane(dir1);
 			dir1 = sketch.plane.DirToPlane(dir1);
 
-			Exp angle = sketch.is3d ? ConstraintExp.angle3d(dir0, dir1) : ConstraintExp.angle2d(dir0, dir1);
-			switch(option) {
-				case Option.Codirected: yield return angle; break;
-				case Option.Antidirected: yield return Exp.Abs(angle) - Math.PI; break;
+			if(addAngle) {
+				Exp angle = sketch.is3d ? ConstraintExp.angle3d(dir0, dir1) : ConstraintExp.angle2d(dir0, dir1);
+				switch(option) {
+					case Option.Codirected: yield return angle; break;
+					case Option.Antidirected: yield return Exp.Abs(angle) - Math.PI; break;
+				}
 			}
 			double tv0 = t0.value;
 			double tv1 = t1.value;
@@ -119,13 +151,17 @@ public class Tangent : Constraint {
 		var perp = Vector3.Cross(dir, sketch.plane.n).normalized;
 		var pos = l0.PointOnInPlane(t0, null).Eval();
 
-		ref_points[0] = ref_points[1] = pos;
+		ref_points[0] = ref_points[1] = sketch.plane.ToPlane(pos);
 		var size = getPixelSize() * 10f;
 		perp *= size;
 		dir *= size;
 
 		canvas.DrawLine(pos + dir, pos - dir);
 		canvas.DrawLine(pos - perp, pos + perp);
+
+		//GetEntity(0).DrawExtend(canvas, t0.value, 0.05);
+		//GetEntity(1).DrawExtend(canvas, t1.value, 0.05);
+
 	}
 
 	protected override void OnWrite(XmlTextWriter xml) {

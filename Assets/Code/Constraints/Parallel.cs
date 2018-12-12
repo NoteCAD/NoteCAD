@@ -45,9 +45,9 @@ public class Parallel : Constraint {
 		float len = (p1 - p0).magnitude;
 		float size = Mathf.Min(len, 10f * getPixelSize());
 		Vector3 dir = (p1 - p0).normalized * size / 2f;
-		Vector3 perp = Vector3.Cross(p1 - p0, Vector3.forward).normalized * 3f * getPixelSize();
+		Vector3 perp = Vector3.Cross(p1 - p0, Camera.main.transform.forward).normalized * 3f * getPixelSize();
 		Vector3 pos = (p1 + p0) / 2f;
-		ref_points[rpt] = pos;
+		ref_points[rpt] = sketch.plane.ToPlane(pos);
 		canvas.DrawLine(pos + dir + perp, pos - dir + perp);
 		canvas.DrawLine(pos + dir - perp, pos - dir - perp);
 	}

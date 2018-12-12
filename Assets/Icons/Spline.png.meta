@@ -7,7 +7,7 @@ TextureImporter:
   externalObjects: {}
   serializedVersion: 4
   mipmaps:
-    mipMapMode: 0
+    mipMapMode: 1
     enableMipMap: 1
     sRGBTexture: 1
     linearTexture: 0

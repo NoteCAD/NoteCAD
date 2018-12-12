@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Linq;
 
 [Serializable]
 public class PointOn : ValueConstraint {
@@ -12,7 +13,9 @@ public class PointOn : ValueConstraint {
 	public Vector3 pointPos { get { return point.PointExpInPlane(null).Eval(); } }
 	public override bool valueVisible { get { return !reference; } }
 
-	public PointOn(Sketch sk) : base(sk) { }
+	public PointOn(Sketch sk) : base(sk) {
+		selectByRefPoints = true;
+	}
 
 	public PointOn(Sketch sk, IEntity point, IEntity on) : base(sk) {
 		reference = true;
@@ -20,6 +23,27 @@ public class PointOn : ValueConstraint {
 		AddEntity(on);
 		SetValue(0.51);
 		Satisfy();
+		selectByRefPoints = true;
+	}
+
+	protected override bool OnSatisfy() {
+		EquationSystem sys = new EquationSystem();
+		sys.AddParameters(parameters);
+		var exprs = equations.ToList();
+		sys.AddEquations(equations);
+
+		double bestI = 0.0;
+		double min = -1.0;
+		for(double i = 0.0; i < 1.0; i += 0.25 / 2.0) {
+			value.value = i;
+			sys.Solve();
+			double cur_value = exprs.Sum(e => Math.Abs(e.Eval()));
+			if(min >= 0.0 && min < cur_value) continue;
+			bestI = value.value;
+			min = cur_value;
+		}
+		value.value = bestI;
+		return true;
 	}
 
 	public override IEnumerable<Exp> equations {
@@ -34,13 +58,15 @@ public class PointOn : ValueConstraint {
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
-		
-		//var lip0 = lineP0Pos;
-		//var lip1 = lineP1Pos;
 		var p0 = pointPos;
-
-		drawCameraCircle(canvas, Camera.main, p0, R_CIRLE_R * getPixelSize()); 
-		//drawLineExtendInPlane(sketch.plane, canvas, lip0, lip1, p0, 6f * getPixelSize());
+		drawCameraCircle(canvas, Camera.main, p0, R_CIRLE_R * getPixelSize());
+		if(!reference) {
+			pos = on.OffsetAt(value.value, 20f * getPixelSize()).Eval();
+		} else {
+			pos = on.PointOn(value.value).Eval();
+		}
+		ref_points[0] = ref_points[1] = sketch.plane.ToPlane(p0);
+		//on.DrawExtend(canvas, value.value, 0.05);
 	}
 
 	protected override Matrix4x4 OnGetBasis() {

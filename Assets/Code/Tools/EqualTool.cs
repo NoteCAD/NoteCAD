@@ -10,10 +10,10 @@ public class EqualTool : Tool {
 		var entity = sko as IEntity;
 		if(entity == null) return;
 
-		if(entity.type != IEntityType.Line) return;
+		if(entity.Radius() == null && entity.Length() == null) return;
 		if(l0 != null) {
 			editor.PushUndo();
-			new EqualLineLine(DetailEditor.instance.currentSketch.GetSketch(), l0, entity);
+			new Equal(DetailEditor.instance.currentSketch.GetSketch(), l0, entity);
 			l0 = null;
 		} else {
 			l0 = entity;
@@ -25,7 +25,7 @@ public class EqualTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "hover and click two different lines.";
+		return "hover and click two different entities.";
 	}
 
 }

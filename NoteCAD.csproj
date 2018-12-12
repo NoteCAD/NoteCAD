@@ -307,14 +307,17 @@
     <Compile Include="Assets\Code\Behaviours\EntityConfig.cs" />
     <Compile Include="Assets\Code\Behaviours\LineCanvas.cs" />
     <Compile Include="Assets\Code\Constraints\AngleConstraint.cs" />
+    <Compile Include="Assets\Code\Constraints\CirclesDistance.cs" />
     <Compile Include="Assets\Code\Constraints\Constraint.cs" />
     <Compile Include="Assets\Code\Constraints\ConstraintExp.cs" />
     <Compile Include="Assets\Code\Constraints\Diameter.cs" />
-    <Compile Include="Assets\Code\Constraints\EqualLineLine.cs" />
+    <Compile Include="Assets\Code\Constraints\Equal.cs" />
     <Compile Include="Assets\Code\Constraints\HVConstraint.cs" />
     <Compile Include="Assets\Code\Constraints\Length.cs" />
+    <Compile Include="Assets\Code\Constraints\LineCircleDistance.cs" />
     <Compile Include="Assets\Code\Constraints\Parallel.cs" />
     <Compile Include="Assets\Code\Constraints\Perpendicular.cs" />
+    <Compile Include="Assets\Code\Constraints\PointCircleDistance.cs" />
     <Compile Include="Assets\Code\Constraints\PointLineDistance.cs" />
     <Compile Include="Assets\Code\Constraints\PointOn.cs" />
     <Compile Include="Assets\Code\Constraints\PointsCoincident.cs" />
@@ -1018,6 +1021,7 @@
     <Compile Include="Assets\Code\Tools\LinearArrayTool.cs" />
     <Compile Include="Assets\Code\Tools\LineTool.cs" />
     <Compile Include="Assets\Code\Tools\LoadTool.cs" />
+    <Compile Include="Assets\Code\Tools\MidPointTool.cs" />
     <Compile Include="Assets\Code\Tools\MoveTool.cs" />
     <Compile Include="Assets\Code\Tools\NewTool.cs" />
     <Compile Include="Assets\Code\Tools\ObjectsListTool.cs" />

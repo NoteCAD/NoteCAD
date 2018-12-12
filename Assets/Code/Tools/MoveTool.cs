@@ -10,11 +10,13 @@ public class MoveTool : Tool {
 	ICADObject current;
 	Vector3 click;
 	Vector3 worldClick;
+	double deltaR;
 	List<Exp> drag = new List<Exp>();
 	Param dragXP = new Param("dragX", reduceable: false);
 	Param dragYP = new Param("dragY", reduceable: false);
 	Param dragZP = new Param("dragZ", reduceable: false);
 	ValueConstraint valueConstraint;
+	bool shouldPushUndo = true;
 	public InputField input;
 	public static MoveTool instance;
 	//bool canMove = true;
@@ -38,24 +40,33 @@ public class MoveTool : Tool {
 		if(entity != null) count = entity.points.Count();
 		if(count == 0) return;
 		editor.PushUndo();
+
+		DetailEditor.instance.suppressCombine = true;
+		DetailEditor.instance.suppressHovering = true;
+
 		dragXP.value = 0;
 		dragYP.value = 0;
 		dragZP.value = 0;
-		foreach(var ptExp in entity.points) {
-			var dragX = ptExp.x.Drag(dragXP.exp + ptExp.x.Eval());
-			var dragY = ptExp.y.Drag(dragYP.exp + ptExp.y.Eval());
-			var dragZ = ptExp.z.Drag(dragZP.exp + ptExp.z.Eval());
-			drag.Add(dragX);
-			drag.Add(dragY);
-			drag.Add(dragZ);
-			//Debug.Log("x: " + dragX);
-			//Debug.Log("y: " + dragY);
-			//Debug.Log("z: " + dragZ);
-			DetailEditor.instance.AddDrag(dragX);
-			DetailEditor.instance.AddDrag(dragY);
-			DetailEditor.instance.AddDrag(dragZ);
-			DetailEditor.instance.suppressCombine = true;
-			DetailEditor.instance.suppressHovering = true;
+		if(entity.IsCircular()) {
+			var dragR = entity.Radius().Drag(dragXP.exp);
+			DetailEditor.instance.AddDrag(dragR);
+			drag.Add(dragR);
+			deltaR = entity.Radius().Eval() - (entity.CenterInPlane(null).Eval() - worldClick).magnitude;
+		} else {
+			foreach(var ptExp in entity.points) {
+				var dragX = ptExp.x.Drag(dragXP.exp + ptExp.x.Eval());
+				var dragY = ptExp.y.Drag(dragYP.exp + ptExp.y.Eval());
+				var dragZ = ptExp.z.Drag(dragZP.exp + ptExp.z.Eval());
+				drag.Add(dragX);
+				drag.Add(dragY);
+				drag.Add(dragZ);
+				//Debug.Log("x: " + dragX);
+				//Debug.Log("y: " + dragY);
+				//Debug.Log("z: " + dragZ);
+				DetailEditor.instance.AddDrag(dragX);
+				DetailEditor.instance.AddDrag(dragY);
+				DetailEditor.instance.AddDrag(dragZ);
+			}
 		}
 	}
 
@@ -80,10 +91,16 @@ public class MoveTool : Tool {
 		if(current == null) return;
 		var delta = pos - click;
 		var worldDelta = WorldPlanePos - worldClick;
+		
 		if(drag.Count > 0) {
-			dragXP.value += delta.x;
-			dragYP.value += delta.y;
-			dragZP.value += delta.z;
+			if(current is IEntity && (current as IEntity).IsCircular()) {
+				var circle = current as IEntity;
+				dragXP.value = (circle.CenterInPlane(null).Eval() - WorldPlanePos).magnitude + deltaR;
+			} else {
+				dragXP.value += delta.x;
+				dragYP.value += delta.y;
+				dragZP.value += delta.z;
+			}
 		} else if(current is Constraint) {
 			(current as Constraint).Drag(worldDelta);
 		}
@@ -95,8 +112,9 @@ public class MoveTool : Tool {
 		ClearDrag();
 	}
 	
-	public void EditConstraintValue(ValueConstraint constraint) {
+	public void EditConstraintValue(ValueConstraint constraint, bool pushUndo = true) {
 		valueConstraint = constraint;
+		pushUndo = true;
 		input.gameObject.SetActive(true);
 		input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
 		input.Select();
@@ -123,7 +141,7 @@ public class MoveTool : Tool {
 		if(valueConstraint == null) return;
 		var sign = Math.Sign(valueConstraint.GetValue());
 		if(sign == 0) sign = 1;
-		editor.PushUndo();
+		if(shouldPushUndo) editor.PushUndo();
 		valueConstraint.SetValue(sign * value.ToDouble());
 		valueConstraint = null;
 		input.gameObject.SetActive(false);

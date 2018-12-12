@@ -70,6 +70,10 @@ class MeshEdgeEntity : IEntity {
 	public Exp Radius() {
 		return null;
 	}
+
+	public ExpVector Center() {
+		return null;
+	}
 }
 
 class MeshVertexEntity : IEntity {
@@ -124,6 +128,11 @@ class MeshVertexEntity : IEntity {
 	public Exp Radius() {
 		return null;
 	}
+
+	public ExpVector Center() {
+		return null;
+	}
+
 }
 
 [Serializable]

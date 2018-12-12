@@ -4,56 +4,93 @@ using UnityEngine;
 
 public class DistanceTool : Tool {
 
-	IEntity p0;
+	IEntity e0;
 	ValueConstraint constraint;
 	Vector3 click;
 
-	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
+	T SpawnConstraint<T>(T c) where T: ValueConstraint {
 		if(constraint != null) {
-			MoveTool.instance.EditConstraintValue(constraint);
-			constraint = null;
+			constraint.Destroy();
+			editor.PopUndo();
+		}
+		editor.PushUndo();
+		constraint = c;
+		constraint.pos = WorldPlanePos;
+		click = WorldPlanePos;
+		constraint.isSelectable = false;
+		return c;
+	}
+
+	void Finish() {
+		constraint.isSelectable = true;
+		MoveTool.instance.EditConstraintValue(constraint, pushUndo:false);
+		constraint = null;
+		e0 = null;
+	}
+
+	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
+		var entity = sko as IEntity;
+		if(constraint != null && entity == null) {
+			Finish();
 			return;
 		}
-		var entity = sko as IEntity;
 		if(entity == null) return;
 
-		if(p0 == null) {
+		if(e0 == null) {
+			e0 = entity;
 			if(entity.type == IEntityType.Line) {
-				editor.PushUndo();
-				constraint = new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), entity);
-				constraint.pos = WorldPlanePos;
-				click = WorldPlanePos;
-				return;
+				SpawnConstraint(new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), entity));
 			} else 
-			if(entity is CircleEntity) {
-				var circle = entity as CircleEntity;
-				editor.PushUndo();
-				constraint = new Diameter(circle.sketch, circle);
-				constraint.pos = WorldPlanePos;
-				click = WorldPlanePos;
-				return;
+			if(entity.IsCircular()) {
+				SpawnConstraint(new Diameter(DetailEditor.instance.currentSketch.GetSketch(), entity));
 			}
-		}
-
-		if(p0 != null) {
-			if(entity.type == IEntityType.Point) {
-				editor.PushUndo();
-				constraint = new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
-				constraint.pos = WorldPlanePos;
-				p0 = null;
-			} else if(entity.type == IEntityType.Line) {
-				editor.PushUndo();
-				constraint = new PointLineDistance(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
-				constraint.pos = WorldPlanePos;
-				p0 = null;
+		} else {
+			if(entity.type == IEntityType.Point || e0.IsCircular() && entity.type == IEntityType.Line) {
+				var t = e0;
+				e0 = entity;
+				entity = t;
 			}
-		} else if(entity.type == IEntityType.Point) {
-			p0 = entity;
+			if(e0.type == IEntityType.Point) {
+				if(entity.type == IEntityType.Point) {
+					SpawnConstraint(new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
+				} else if(entity.type == IEntityType.Line) {
+					SpawnConstraint(new PointLineDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
+				} else if(entity.IsCircular()) {
+					var circle = entity as CircleEntity;
+					var arc = entity as ArcEntity;
+					if(circle != null && circle.center.IsCoincidentWith(e0)) {
+						var c = SpawnConstraint(new Diameter(DetailEditor.instance.currentSketch.GetSketch(), circle));
+						c.showAsRadius = true;
+						e0 = null;
+					} else 
+					if(arc != null && arc.c.IsCoincidentWith(e0)) {
+						var c = SpawnConstraint(new Diameter(DetailEditor.instance.currentSketch.GetSketch(), arc));
+						e0 = null;
+					} else {
+						SpawnConstraint(new PointCircleDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
+					}
+				}
+			} else if(e0.IsCircular()) {
+				if(entity.IsCircular()) {
+					SpawnConstraint(new CirclesDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
+				}
+			} else if(e0.type == IEntityType.Line) {
+				if(entity.type == IEntityType.Line) {
+					SpawnConstraint(AngleTool.CreateConstraint(e0, entity));
+				} else
+				if(entity.IsCircular()) {
+					SpawnConstraint(new LineCircleDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
+				}
+			}
 		}
 	}
 
 	protected override void OnDeactivate() {
-		p0 = null;
+		e0 = null;
+		if(constraint != null) {
+			constraint.Destroy();
+			editor.PopUndo();
+		}
 		constraint = null;
 	}
 

@@ -33,7 +33,7 @@ public class PointsCoincidentTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "hover and click two different points to constrain them to be coincident.";
+		return "hover and click point and arbitrary entity for constraining them to be coincident.";
 	}
 
 }

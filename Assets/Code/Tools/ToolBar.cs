@@ -41,8 +41,10 @@ public class ToolBar : MonoBehaviour {
 	}
 
 	float doubleClickTime;
+	int doubleClickFrame;
 	void Update() {
 		doubleClickTime += Time.deltaTime;
+		doubleClickFrame++;
 		foreach(var t in tools) {
 			foreach(var hk in t.hotkeys) {
 				if(Input.GetKeyDown(hk) && (!t.ctrl || Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))) {
@@ -57,11 +59,12 @@ public class ToolBar : MonoBehaviour {
 		//mouseDown = mouseDown || Input.touches.Length > 0 && Input.touches[0].phase == TouchPhase.Began;
 #endif
 		if(activeTool != null && mouseDown) {
-			if(doubleClickTime < 0.3f) {
+			if(doubleClickFrame == 1 || doubleClickTime < 0.3f) {
 				activeTool.MouseDoubleClick(Tool.MousePos, DetailEditor.instance.hovered);
 			}
 			activeTool.MouseDown(Tool.MousePos, DetailEditor.instance.hovered);
 			doubleClickTime = 0f;
+			doubleClickFrame = 0;
 		}
 
 		bool mouseUp = Input.GetKeyUp(KeyCode.Mouse0) || Input.GetMouseButtonUp(0);

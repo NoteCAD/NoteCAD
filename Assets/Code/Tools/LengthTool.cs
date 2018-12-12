@@ -22,7 +22,7 @@ public class LengthTool : Tool {
 			constraint = new Length(DetailEditor.instance.currentSketch.GetSketch(), entity);
 			//constraint.pos = WorldPlanePos;
 			click = WorldPlanePos;
-			MoveTool.instance.EditConstraintValue(constraint);
+			MoveTool.instance.EditConstraintValue(constraint, pushUndo:false);
 			constraint = null;
 		}
 	}

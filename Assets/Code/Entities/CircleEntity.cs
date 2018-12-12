@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
 
+[Serializable]
 public class CircleEntity : Entity, ILoopEntity {
 
 	public PointEntity c;
@@ -14,6 +15,8 @@ public class CircleEntity : Entity, ILoopEntity {
 	public CircleEntity(Sketch sk) : base(sk) {
 		c = AddChild(new PointEntity(sk));
 	}
+
+	public double rad { get { return radius.value; } set { radius.value = value; } } 
 
 	public override IEnumerable<PointEntity> points {
 		get {
@@ -36,7 +39,7 @@ public class CircleEntity : Entity, ILoopEntity {
 		get {
 			float angle = 360;
 			var cp = center.pos;
-			var rv = Vector3.left * (float)radius.value;
+			var rv = Vector3.left * Mathf.Abs((float)radius.value);
 			int subdiv = 36;
 			var vz = Vector3.forward;
 			for(int i = 0; i < subdiv; i++) {
@@ -51,7 +54,7 @@ public class CircleEntity : Entity, ILoopEntity {
 	}
 
 	protected override void OnWrite(XmlTextWriter xml) {
-		xml.WriteAttributeString("r", radius.value.ToStr());
+		xml.WriteAttributeString("r", Math.Abs(radius.value).ToStr());
 	}
 
 	protected override void OnRead(XmlNode xml) {
@@ -60,7 +63,7 @@ public class CircleEntity : Entity, ILoopEntity {
 
 	public override ExpVector PointOn(Exp t) {
 		var angle = t * 2.0 * Math.PI;
-		return c.exp + new ExpVector(Exp.Cos(angle), Exp.Sin(angle), 0.0) * radius;
+		return c.exp + new ExpVector(Exp.Cos(angle), Exp.Sin(angle), 0.0) * Radius();
 	}
 
 	public override ExpVector TangentAt(Exp t) {
@@ -69,10 +72,15 @@ public class CircleEntity : Entity, ILoopEntity {
 	}
 
 	public override Exp Length() {
-		return new Exp(2.0) * Math.PI * radius;
+		return new Exp(2.0) * Math.PI * Radius();
 	}
 
 	public override Exp Radius() {
-		return radius;
+		return Exp.Abs(radius);
 	}
+
+	public override ExpVector Center() {
+		return center.exp;
+	}
+
 }

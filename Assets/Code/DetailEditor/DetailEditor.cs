@@ -124,6 +124,10 @@ public class DetailEditor : MonoBehaviour {
 		undoRedo.Push();
 	}
 
+	public void PopUndo() {
+		undoRedo.Pop();
+	}
+
 	private void Start() {
 		instance_ = this;
 		mesh = new Mesh();
@@ -192,7 +196,7 @@ public class DetailEditor : MonoBehaviour {
 						dofText = "<color=\"#FF3030\">DOF: " + dof + "</color>\n";
 					} else if(dof == 0) {
 						dofText = "<color=\"#30FF30\">DOF: " + dof + "</color>\n";
-					} else {
+					} else {	
 						dofText = "<color=\"#FFFFFF\">DOF: " + dof + "</color>\n";
 					}
 				} else {
@@ -206,7 +210,8 @@ public class DetailEditor : MonoBehaviour {
 			resultText.text = result.ToString();
 		}
 
-		detail.Update();
+		detail.UpdateUntil(activeFeature);
+		//detail.Update();
 		meshDirty = meshDirty | detail.features.OfType<MeshFeature>().Any(f => f.dirty);
 		detail.MarkDirty();
 		detail.UpdateDirtyUntil(activeFeature);
@@ -231,6 +236,7 @@ public class DetailEditor : MonoBehaviour {
 								case CombineOp.Union: mf.combined = Solids.Union(result, mf.solid); break;
 								case CombineOp.Difference: mf.combined = Solids.Difference(result, mf.solid); break;
 								case CombineOp.Intersection: mf.combined = Solids.Intersection(result, mf.solid); break;
+								case CombineOp.Assembly: mf.combined = Solids.Assembly(result, mf.solid); break;
 							}
 							combinedCount++;
 						}

@@ -68,6 +68,10 @@ class ArrayEntity : IEntity {
 		return entity.Radius();
 	}
 
+	public ExpVector Center() {
+		var shift = feature.shiftDir * index;
+		return entity.Center() + shift;
+	}
 }
 
 [Serializable]

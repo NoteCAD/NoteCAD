@@ -67,6 +67,10 @@ class ExtrudedEntity : IEntity {
 	public Exp Radius() {
 		return entity.Radius();
 	}
+
+	public ExpVector Center() {
+		return entity.Center();
+	}
 }
 
 class ExtrudedPointEntity : IEntity {
@@ -126,6 +130,10 @@ class ExtrudedPointEntity : IEntity {
 	}
 
 	public Exp Radius() {
+		return null;
+	}
+
+	public ExpVector Center() {
 		return null;
 	}
 }

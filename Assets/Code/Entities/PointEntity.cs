@@ -111,6 +111,7 @@ public class PointEntity : Entity {
 	}
 
 	private bool IsCoincidentWith(IEntity point, IEntity exclude) {
+		if(point.IsSameAs(this)) return true;
 		for(int i = 0; i < usedInConstraints.Count; i++) {
 			var c = usedInConstraints[i] as PointsCoincident;
 			if(c == null) continue;

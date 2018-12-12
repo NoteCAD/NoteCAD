@@ -140,7 +140,7 @@ public abstract class SketchObject : CADObject, ICADObject {
 	
 	}
 
-	public void Draw(LineCanvas canvas) {
+	public virtual void Draw(LineCanvas canvas) {
 		OnDraw(canvas);
 	}
 

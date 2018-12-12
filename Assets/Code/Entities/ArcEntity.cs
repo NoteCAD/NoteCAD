@@ -152,4 +152,9 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 	public override Exp Radius() {
 		return (p0.exp - c.exp).Magnitude();
 	}
+
+	public override ExpVector Center() {
+		return c.exp;
+	}
+
 }

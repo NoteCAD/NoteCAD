@@ -83,7 +83,7 @@ public class AngleConstraint : ValueConstraint {
 		
 		var plane = getPlane();
 		var value = GetValue();
-		var offset = localPos;
+		var offset = labelPos;
 
 		if(Math.Abs(value) > EPSILON) {
 			Vector3[] pts = GetPointsInPlane(null);

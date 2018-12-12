@@ -28,15 +28,7 @@ public class PointLineDistance : ValueConstraint {
 
 	public override IEnumerable<Exp> equations {
 		get {
-			var p = pointExp;
-			var p0 = lineP0Exp;
-			var p1 = lineP1Exp;
-			if(sketch.is3d) {
-				var d = lineP0Exp - lineP1Exp;
-				yield return ExpVector.Cross(d, lineP0Exp - pointExp).Magnitude() / d.Magnitude() - value;
-			} else {
-				yield return ((p0.y - p1.y) * p.x + (p1.x - p0.x) * p.y + p0.x * p1.y - p1.x * p0.y) / Exp.Sqrt(Exp.Sqr(p1.x - p0.x) + Exp.Sqr(p1.y - p0.y)) - value;
-			}
+			yield return ConstraintExp.pointLineDistance(pointExp, lineP0Exp, lineP1Exp, sketch.is3d) - value;
 		}
 	}
 
@@ -55,7 +47,6 @@ public class PointLineDistance : ValueConstraint {
 	}
 
 	protected override Matrix4x4 OnGetBasis() {
-		
 		var lip0 = lineP0Pos;
 		var lip1 = lineP1Pos;
 		var p0 = pointPos;

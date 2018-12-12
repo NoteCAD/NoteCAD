@@ -20,7 +20,7 @@ public interface IEntity : ICADObject {
 	ExpVector TangentAt(Exp t);
 	Exp Length();
 	Exp Radius();
-
+	ExpVector Center();
 	IPlane plane { get; }
 	IEntityType type { get; }
 }
@@ -28,10 +28,30 @@ public interface IEntity : ICADObject {
 public static class IEntityUtils {
 
 	public static ExpVector NormalAt(this IEntity self, Exp t) {
-		var tang = self.TangentAt(t);
-		if(tang == null) return null;
-		if(self.plane != null) return ExpVector.Cross(tang, self.plane.n);
-		return null;
+		return self.NormalAtInPlane(t, self.plane);
+	}
+
+	public static ExpVector NormalAtInPlane(this IEntity self, Exp t, IPlane plane) {
+		if(self.plane != null) {
+			var tang = self.TangentAt(t);
+			if(tang == null) return null;
+			var n = ExpVector.Cross(tang, Vector3.forward);
+			if(plane == self.plane) return n;
+			return plane.DirToFrom(n, self.plane);
+		}
+
+		Param p = new Param("pOn");
+		var pt = self.PointOn(p);
+		var result = new ExpVector(pt.x.Deriv(p).Deriv(p), pt.y.Deriv(p).Deriv(p), pt.z.Deriv(p).Deriv(p));
+		result.x.Substitute(p, t);
+		result.y.Substitute(p, t);
+		result.z.Substitute(p, t);
+		if(plane == null) return result;
+		return plane.DirToPlane(result);
+	}
+
+	public static bool IsCircular(this IEntity e) {
+		return e.Radius() != null && e.Center() != null;
 	}
 
 	public static bool IsSameAs(this IEntity e0, IEntity e1) {
@@ -45,6 +65,12 @@ public static class IEntityUtils {
 		it.MoveNext();
 		return it.Current;
 		//return entity.PointsInPlane(plane).Single();
+	}
+
+	public static ExpVector CenterInPlane(this IEntity entity, IPlane plane) {
+		var c = entity.Center();
+		if(c == null) return null;
+		return plane.ToFrom(c, entity.plane);
 	}
 
 	public static IEnumerable<ExpVector> PointsInPlane(this IEntity entity, IPlane plane) {
@@ -67,6 +93,20 @@ public static class IEntityUtils {
 			return entity.PointOn(t);
 		}
 		return plane.ToFrom(entity.PointOn(t), entity.plane);
+	}
+
+	public static ExpVector TangentAtInPlane(this IEntity entity, Exp t, IPlane plane) {
+		if(plane == entity.plane) {
+			return entity.TangentAt(t);
+		}
+		return plane.DirToFrom(entity.TangentAt(t), entity.plane);
+	}
+
+	public static ExpVector OffsetAtInPlane(this IEntity e, Exp t, Exp offset, IPlane plane) {
+		if(plane == e.plane) {
+			return e.PointOn(t) + e.NormalAt(t).Normalized() * offset;
+		}
+		return e.PointOnInPlane(t, plane) + e.NormalAtInPlane(t, plane).Normalized() * offset;
 	}
 
 	public static ExpVector GetDirectionInPlane(this IEntity entity, IPlane plane) {
@@ -143,12 +183,12 @@ public static class IEntityUtils {
 		return result;
 	}
 
-	public static void DrawParamRange(this IEntity e, LineCanvas canvas, double offset, double begin, double end, double step) {
+	public static void DrawParamRange(this IEntity e, LineCanvas canvas, double offset, double begin, double end, double step, IPlane plane) {
 		Vector3 prev = Vector3.zero;
 		bool first = true;
 		int count = (int)Math.Ceiling(Math.Abs(end - begin) / step);
 		Param t = new Param("t");
-		var PointOn = e.OffsetAt(t, offset);
+		var PointOn = e.OffsetAtInPlane(t, offset, plane);
 		for(int i = 0; i <= count; i++) {
 			t.value = begin + (end - begin) * i / count;
 			var p = PointOn.Eval();
@@ -157,6 +197,15 @@ public static class IEntityUtils {
 			}
 			first = false;
 			prev = p;
+		}
+	}
+
+	public static void DrawExtend(this IEntity e, LineCanvas canvas, double t, double step) {
+		if(t < 0.0) {
+			e.DrawParamRange(canvas, 0.0, t, 0.0, step, null);
+		} else
+		if(t > 1.0) {
+			e.DrawParamRange(canvas, 0.0, 1.0, t, step, null);
 		}
 	}
 
@@ -333,6 +382,9 @@ public abstract partial class Entity : SketchObject, IEntity {
 	public abstract Exp Length();
 	public abstract Exp Radius();
 
+	public virtual ExpVector Center() {
+		return null;
+	}
 }
 
 public interface ISegmentaryEntity {

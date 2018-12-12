@@ -30,6 +30,13 @@ public class UndoRedo {
 		pointer = history.Count;
 	}
 
+	public void Pop() {
+		if(history.Count > 0) {
+			history.RemoveAt(history.Count - 1);
+		}
+		pointer = history.Count;
+	}
+
 	public bool CanUndo() {
 		return pointer - 1 >= 0;
 	}

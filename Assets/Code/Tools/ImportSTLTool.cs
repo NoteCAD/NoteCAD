@@ -19,6 +19,7 @@ public class ImportSTLTool : Tool, IPointerDownHandler {
 		editor.PushUndo();
 		var feature = new MeshImportFeature(data);
 		feature.source = DetailEditor.instance.activeFeature;
+		feature.operation = CombineOp.Assembly;
 		DetailEditor.instance.AddFeature(feature); 
 		DetailEditor.instance.ActivateFeature(feature);
 	}

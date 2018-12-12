@@ -5,16 +5,18 @@ using System;
 [Serializable]
 public class Diameter : ValueConstraint {
 
-	public CircleEntity circle { get { return GetEntity(0) as CircleEntity; } set { SetEntity(0, value); } }
-
-	public Exp radius { get { return circle.radius; } }
-
 	public Diameter(Sketch sk) : base(sk) { }
 
-	public Diameter(Sketch sk, CircleEntity c) : base(sk) {
+	public bool showAsRadius = false;
+
+	public Diameter(Sketch sk, IEntity c) : base(sk) {
+		showAsRadius = (c.type == IEntityType.Arc);
 		AddEntity(c);
 		Satisfy();
 	}
+
+	Exp radius { get { return GetEntity(0).Radius(); } }
+	ExpVector center { get { return GetEntity(0).CenterInPlane(null); } }
 
 	public override IEnumerable<Exp> equations {
 		get {
@@ -22,21 +24,43 @@ public class Diameter : ValueConstraint {
 		}
 	}
 
+	public override double LabelToValue(double label) {
+		return showAsRadius ? label * 2.0 : label;
+	}
+
+	public override double ValueToLabel(double value) {
+		return showAsRadius ? value / 2.0 : value;
+	}
+
 	protected override void OnDraw(LineCanvas canvas) {
 		var pl = getPlane();
-		var p = pl.FromPlane(circle.center.pos);
-		var lo = getLabelOffset();
+		var p = GetEntity(0).CenterInPlane(null).Eval();
+		var lo = getPlane().projectVectorInto(getLabelOffset());
 		var dir = (lo - p).normalized;
 		
 		float r = (float)value.exp.Eval() / 2f;
-		drawPointsDistance(p - dir * r, p + dir * r, canvas, Camera.main, false);
+
+
+		
+		if(showAsRadius) {
+			var rpt = p + dir * r;
+			var rdir = lo - rpt;
+			drawPointsDistance(p, p + dir * r, canvas, Camera.main, arrow0: false, arrow1: true);
+			canvas.DrawLine(rpt, lo);
+		} else {
+			drawPointsDistance(p - dir * r, p + dir * r, canvas, Camera.main);
+		}
 		
 		//drawLabel(renderer, camera, "Ø" + getValueString());
 
 	}
 
+	protected override string OnGetLabelValue() {
+		return (showAsRadius ? "R" : "Ø") + base.OnGetLabelValue();
+	}
+
 	protected override Matrix4x4 OnGetBasis() {
-		return getPlane().GetTransform() * Matrix4x4.Translate(circle.center.pos);
+		return sketch.plane.GetTransform() * Matrix4x4.Translate(GetEntity(0).CenterInPlane(sketch.plane).Eval());
 	}
 
 }

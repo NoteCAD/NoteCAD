@@ -133,6 +133,10 @@ public static class IPlaneUtils {
 		return to.ToPlane(from.FromPlane(points));
 	}
 
+	public static ExpVector DirToFrom(this IPlane to, ExpVector pt, IPlane from) {
+		return to.DirToPlane(from.DirFromPlane(pt));
+	}
+
 }
 
 public class Sketch : CADObject, ISketch  {
@@ -272,7 +276,6 @@ public class Sketch : CADObject, ISketch  {
 		if(candidates.Count > 0) {
 			for(int i = 0; i < candidates.Count; i++) {
 				var current = candidates.ElementAt(i).Key;
-				Debug.Log(current.GetType().ToString());
 				if(DetailEditor.instance.selection.All(id => id.ToString() != current.id.ToString())) continue;
 				var next = candidates.ElementAt((i + 1) % candidates.Count);
 				objDist = next.Value;

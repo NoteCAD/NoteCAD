@@ -24,13 +24,16 @@ public class FeatureUI : MonoBehaviour, IPointerDownHandler {
 	}
 
 	float oldDownTime = 0;
+	int oldDownFrame = 0;
 
 	public void OnPointerDown(PointerEventData eventData) {
 		var currentTime = Time.realtimeSinceStartup;
-		if(currentTime - oldDownTime < 0.3f) {
+		var currentFrame = Time.frameCount;
+		if(currentFrame - oldDownFrame == 1 || currentTime - oldDownTime < 0.3f) {
 			OnClick();
 		}
 		oldDownTime = currentTime;
+		oldDownFrame = currentFrame;
 	}
 
 }

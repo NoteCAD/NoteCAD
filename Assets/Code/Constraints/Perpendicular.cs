@@ -47,7 +47,7 @@ public class Perpendicular : Constraint {
 		Vector3 dir = (p1 - p0).normalized * size / 2f;
 		Vector3 perp = Vector3.Cross(p1 - p0, Vector3.forward).normalized * 3f * getPixelSize();
 		Vector3 pos = (p1 + p0) / 2f;
-		ref_points[rpt] = pos;
+		ref_points[rpt] = sketch.plane.ToPlane(pos);
 		canvas.DrawLine(pos + dir + perp, pos - dir + perp);
 		canvas.DrawLine(pos + dir - perp, pos - dir - perp);
 	}
@@ -92,8 +92,7 @@ public class Perpendicular : Constraint {
 			Vector3 corner = p + dir1 + dir2;
 			canvas.DrawLine(p + dir1, corner);
 			canvas.DrawLine(p + dir2, corner);
-			ref_points[0] = corner;
-			ref_points[1] = corner;
+			ref_points[0] = ref_points[1] = sketch.plane.ToPlane(corner);
 		} else {
 			for(int i=0; i<2; i++) {
 				var line = GetEntityOfType(IEntityType.Line, i);
@@ -108,8 +107,9 @@ public class Perpendicular : Constraint {
 				Vector3 p = center - perp * pix * 8.0f;
 				canvas.DrawLine(p - dir * pix * 8.0f, p + dir * pix * 8.0f);
 				canvas.DrawLine(p, p - perp * pix * 13.0f);
-				ref_points[i] = p - perp * pix * 6.0f;
+				ref_points[i] = sketch.plane.ToPlane(p - perp * pix * 6.0f);
 			}
+
 			if(DetailEditor.instance.hovered == this) {
 				DrawReferenceLink(canvas, Camera.main);
 			}

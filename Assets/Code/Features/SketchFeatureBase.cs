@@ -183,6 +183,7 @@ public class SketchFeatureBase : Feature {
 
 
 	protected sealed override void OnWrite(XmlTextWriter xml) {
+		xml.WriteAttributeString("solveParent", solveParent.ToString());
 		OnWriteSketchFeatureBase(xml);
 		sketch.Write(xml);
 	}
@@ -192,6 +193,9 @@ public class SketchFeatureBase : Feature {
 	}
 
 	protected sealed override void OnRead(XmlNode xml) {
+		if(xml.Attributes["solveParent"] != null) {
+			solveParent = Convert.ToBoolean(xml.Attributes["solveParent"].Value);
+		}
 		OnReadSketchFeatureBase(xml);
 		sketch.Read(xml);
 	}
