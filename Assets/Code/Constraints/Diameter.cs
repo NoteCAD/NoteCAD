@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Xml;
 
 [Serializable]
 public class Diameter : ValueConstraint {
@@ -62,5 +63,16 @@ public class Diameter : ValueConstraint {
 	protected override Matrix4x4 OnGetBasis() {
 		return sketch.plane.GetTransform() * Matrix4x4.Translate(GetEntity(0).CenterInPlane(sketch.plane).Eval());
 	}
+
+	protected override void OnWriteValueConstraint(XmlTextWriter xml) {
+		xml.WriteAttributeString("showAsRadius", showAsRadius.ToString());
+	}
+
+	protected override void OnRead(XmlNode xml) {
+		if(xml.Attributes["showAsRadius"] != null) {
+			showAsRadius = Convert.ToBoolean(xml.Attributes["showAsRadius"].Value);
+		}
+	}
+
 
 }

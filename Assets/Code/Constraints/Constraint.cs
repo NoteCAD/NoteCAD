@@ -589,12 +589,17 @@ public class ValueConstraint : Constraint {
 		ref_points[0] = sketch.plane.ToPlane(pos);
 	}
 
-	protected override void OnWrite(XmlTextWriter xml) {
+	protected sealed override void OnWrite(XmlTextWriter xml) {
 		xml.WriteAttributeString("x", pos.x.ToStr());
 		xml.WriteAttributeString("y", pos.y.ToStr());
 		xml.WriteAttributeString("z", pos.z.ToStr());
 		xml.WriteAttributeString("value", GetValue().ToStr());
 		xml.WriteAttributeString("reference", reference.ToString());
+		OnWriteValueConstraint(xml);
+	}
+
+	protected virtual void OnWriteValueConstraint(XmlTextWriter xml) {
+
 	}
 
 	public override void Read(XmlNode xml) {
