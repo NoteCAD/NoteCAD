@@ -10,6 +10,7 @@ public class MoveTool : Tool {
 	ICADObject current;
 	Vector3 click;
 	Vector3 worldClick;
+	Vector3 firstClickCenter;
 	double deltaR;
 	List<Exp> drag = new List<Exp>();
 	Param dragXP = new Param("dragX", reduceable: false);
@@ -51,7 +52,8 @@ public class MoveTool : Tool {
 			var dragR = entity.Radius().Drag(dragXP.exp);
 			DetailEditor.instance.AddDrag(dragR);
 			drag.Add(dragR);
-			deltaR = entity.Radius().Eval() - (entity.CenterInPlane(null).Eval() - worldClick).magnitude;
+			firstClickCenter = entity.CenterInPlane(null).Eval();
+			deltaR = entity.Radius().Eval() - (firstClickCenter - worldClick).magnitude;
 		} else {
 			foreach(var ptExp in entity.points) {
 				var dragX = ptExp.x.Drag(dragXP.exp + ptExp.x.Eval());
@@ -95,7 +97,7 @@ public class MoveTool : Tool {
 		if(drag.Count > 0) {
 			if(current is IEntity && (current as IEntity).IsCircular()) {
 				var circle = current as IEntity;
-				dragXP.value = (circle.CenterInPlane(null).Eval() - WorldPlanePos).magnitude + deltaR;
+				dragXP.value = (firstClickCenter - WorldPlanePos).magnitude + deltaR;
 			} else {
 				dragXP.value += delta.x;
 				dragYP.value += delta.y;
@@ -114,7 +116,7 @@ public class MoveTool : Tool {
 	
 	public void EditConstraintValue(ValueConstraint constraint, bool pushUndo = true) {
 		valueConstraint = constraint;
-		pushUndo = true;
+		this.shouldPushUndo = pushUndo;
 		input.gameObject.SetActive(true);
 		input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
 		input.Select();

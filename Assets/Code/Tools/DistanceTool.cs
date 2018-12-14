@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,12 +9,13 @@ public class DistanceTool : Tool {
 	ValueConstraint constraint;
 	Vector3 click;
 
-	T SpawnConstraint<T>(T c) where T: ValueConstraint {
+	T SpawnConstraint<T>(Func<T> create) where T: ValueConstraint {
 		if(constraint != null) {
 			constraint.Destroy();
 			editor.PopUndo();
 		}
 		editor.PushUndo();
+		var c = create();
 		constraint = c;
 		constraint.pos = WorldPlanePos;
 		click = WorldPlanePos;
@@ -39,10 +41,10 @@ public class DistanceTool : Tool {
 		if(e0 == null) {
 			e0 = entity;
 			if(entity.type == IEntityType.Line) {
-				SpawnConstraint(new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), entity));
+				SpawnConstraint(() => new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), entity));
 			} else 
 			if(entity.IsCircular()) {
-				SpawnConstraint(new Diameter(DetailEditor.instance.currentSketch.GetSketch(), entity));
+				SpawnConstraint(() => new Diameter(DetailEditor.instance.currentSketch.GetSketch(), entity));
 			}
 		} else {
 			if(entity.type == IEntityType.Point || e0.IsCircular() && entity.type == IEntityType.Line) {
@@ -52,34 +54,34 @@ public class DistanceTool : Tool {
 			}
 			if(e0.type == IEntityType.Point) {
 				if(entity.type == IEntityType.Point) {
-					SpawnConstraint(new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
+					SpawnConstraint(() => new PointsDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
 				} else if(entity.type == IEntityType.Line) {
-					SpawnConstraint(new PointLineDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
+					SpawnConstraint(() => new PointLineDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
 				} else if(entity.IsCircular()) {
 					var circle = entity as CircleEntity;
 					var arc = entity as ArcEntity;
 					if(circle != null && circle.center.IsCoincidentWith(e0)) {
-						var c = SpawnConstraint(new Diameter(DetailEditor.instance.currentSketch.GetSketch(), circle));
+						var c = SpawnConstraint(() => new Diameter(DetailEditor.instance.currentSketch.GetSketch(), circle));
 						c.showAsRadius = true;
 						e0 = null;
 					} else 
 					if(arc != null && arc.c.IsCoincidentWith(e0)) {
-						var c = SpawnConstraint(new Diameter(DetailEditor.instance.currentSketch.GetSketch(), arc));
+						var c = SpawnConstraint(() => new Diameter(DetailEditor.instance.currentSketch.GetSketch(), arc));
 						e0 = null;
 					} else {
-						SpawnConstraint(new PointCircleDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
+						SpawnConstraint(() => new PointCircleDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
 					}
 				}
 			} else if(e0.IsCircular()) {
 				if(entity.IsCircular()) {
-					SpawnConstraint(new CirclesDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
+					SpawnConstraint(() => new CirclesDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
 				}
 			} else if(e0.type == IEntityType.Line) {
 				if(entity.type == IEntityType.Line) {
-					SpawnConstraint(AngleTool.CreateConstraint(e0, entity));
+					SpawnConstraint(() => AngleTool.CreateConstraint(e0, entity));
 				} else
 				if(entity.IsCircular()) {
-					SpawnConstraint(new LineCircleDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
+					SpawnConstraint(() => new LineCircleDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
 				}
 			}
 		}
