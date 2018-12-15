@@ -602,8 +602,7 @@ public class ValueConstraint : Constraint {
 
 	}
 
-	public override void Read(XmlNode xml) {
-		base.Read(xml);
+	protected sealed override void OnRead(XmlNode xml) {
 		Vector3 pos;
 		pos.x = xml.Attributes["x"].Value.ToFloat();
 		pos.y = xml.Attributes["y"].Value.ToFloat();
@@ -613,6 +612,11 @@ public class ValueConstraint : Constraint {
 		if(xml.Attributes["reference"] != null) {
 			reference = Convert.ToBoolean(xml.Attributes["reference"].Value);
 		}
+		OnReadValueConstraint(xml);
+	}
+
+	protected virtual void OnReadValueConstraint(XmlNode xml) {
+
 	}
 
 	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {

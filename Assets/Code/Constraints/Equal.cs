@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Xml;
 using UnityEngine;
 
 [Serializable]
@@ -96,4 +97,13 @@ public class Equal : ValueConstraint {
 		return sketch.plane.GetTransform();
 	}
 
+	protected override void OnWriteValueConstraint(XmlTextWriter xml) {
+		xml.WriteAttributeString("firstLength", lengthType[0].ToString());
+		xml.WriteAttributeString("secondLength", lengthType[1].ToString());
+	}
+
+	protected override void OnReadValueConstraint(XmlNode xml) {
+		if(xml.Attributes["firstLength"] != null) xml.Attributes["firstLength"].Value.ToEnum(ref lengthType[0]);
+		if(xml.Attributes["secondLength"] != null) xml.Attributes["secondLength"].Value.ToEnum(ref lengthType[1]);
+	}
 }

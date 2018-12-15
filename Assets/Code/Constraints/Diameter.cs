@@ -68,7 +68,7 @@ public class Diameter : ValueConstraint {
 		xml.WriteAttributeString("showAsRadius", showAsRadius.ToString());
 	}
 
-	protected override void OnRead(XmlNode xml) {
+	protected override void OnReadValueConstraint(XmlNode xml) {
 		if(xml.Attributes["showAsRadius"] != null) {
 			showAsRadius = Convert.ToBoolean(xml.Attributes["showAsRadius"].Value);
 		}
