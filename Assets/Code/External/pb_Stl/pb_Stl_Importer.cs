@@ -5,6 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System;
 
 namespace Parabox.STL
 {
@@ -13,7 +14,7 @@ namespace Parabox.STL
 	 */
 	public static class pb_Stl_Importer
 	{
-		const int MAX_FACETS_PER_MESH = 65535 / 3;
+		const int MAX_FACETS_PER_MESH = Int32.MaxValue / 3;
 
 		class Facet
 		{
@@ -270,6 +271,7 @@ namespace Parabox.STL
 				}
 
 				meshes[i] = new Mesh();
+				meshes[i].indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 				meshes[i].vertices = v;
 				meshes[i].normals = n;
 				meshes[i].triangles = t;
