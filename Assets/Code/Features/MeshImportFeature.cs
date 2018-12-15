@@ -148,8 +148,26 @@ public class MeshImportFeature : MeshFeature {
 
 	GameObject go;
 	List<Pair<Vector3, Vector3>> edges;
-	float thresholdAngle_ = 25f;
 
+	[NonSerialized]
+	public bool useThreshold_ = false;
+	public bool useThreshold {
+		get {
+			return useThreshold_;
+		}
+		set {
+			if(useThreshold_ == value) return;
+			useThreshold_ = value;
+			if(useThreshold_ == true) {
+				meshCheck.setMesh(mesh);
+			}
+			MarkDirty();
+			edges = null;
+		}
+	}
+
+	[NonSerialized]
+	float thresholdAngle_ = 25f;
 	public float thresholdAngle {
 		get {
 			return thresholdAngle_;
@@ -169,8 +187,14 @@ public class MeshImportFeature : MeshFeature {
 
 	public MeshImportFeature(byte[] data) {
 		MemoryStream ms = new MemoryStream(data);
-		mesh = Parabox.STL.pb_Stl_Importer.Import(ms)[0];
-		meshCheck.setMesh(mesh);
+		var meshes = Parabox.STL.pb_Stl_Importer.Import(ms);
+		mesh = meshes[0];
+		useThreshold = (mesh.GetIndexCount(0) < 5000);
+		if(meshes.Length > 1) {
+			Debug.LogWarning("Imported " + meshes.Length + " meshes, but used only one");
+		}
+
+		//meshCheck.setMesh(mesh);
 		//mesh = meshCheck.ToUnityWatertightMesh();
 		basis = new ExpBasis();
 		hitMesh = new DMeshAABBTree3(mesh.ToDMesh3(), true);
@@ -232,7 +256,18 @@ public class MeshImportFeature : MeshFeature {
 				canvas.Clear();
 			}
 			canvas.SetStyle("entities");
-			edges = meshCheck.GenerateEdges(thresholdAngle);
+			if(useThreshold) {
+				edges = meshCheck.GenerateEdges(thresholdAngle);
+			} else {
+				edges = new List<Pair<Vector3, Vector3>>();
+				var indices = mesh.GetIndices(0);
+				var vertices = mesh.vertices;
+				for(int i = 0; i < indices.Length / 3; i++) {
+					for(int j = 0; j < 3; j++) {
+						edges.Add(new Pair<Vector3, Vector3>(vertices[indices[i * 3 + j]], vertices[indices[i * 3 + (j + 1) % 3]]));
+					}
+				}
+			}
 			foreach(var edge in edges) {
 				canvas.DrawLine(edge.a, edge.b);
 			}
@@ -262,10 +297,12 @@ public class MeshImportFeature : MeshFeature {
 		}
 		xml.WriteAttributeString("basis", basis.ToString());
 		xml.WriteAttributeString("mesh", sb.ToString());
+		xml.WriteAttributeString("useThreshold", useThreshold.ToString());
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {
 		basis.FromString(xml.Attributes["basis"].Value);
+		if(xml.Attributes["useThreshold"] != null) useThreshold = Convert.ToBoolean(xml.Attributes["useThreshold"].Value);
 		var strVerts = xml.Attributes["mesh"].Value.Split(' ');
 		var verts = new Vector3[strVerts.Length / 3];
 		for(int i = 0; i < strVerts.Length / 3; i++) {
@@ -326,7 +363,7 @@ public class MeshImportFeature : MeshFeature {
 			for(int i = 0; i < 3; i++) {
 				var v0 = hitMesh.Mesh.GetVertex(t[i]).ToVector3();
 				var v1 = hitMesh.Mesh.GetVertex(t[(i + 1) % 3]).ToVector3();
-				if(!meshCheck.IsEdgeSharp(v0, v1, thresholdAngle)) continue;
+				if(useThreshold && !meshCheck.IsEdgeSharp(v0, v1, thresholdAngle)) continue;
 				if(!HoverSegment(mouse, camera, ref min, fullTf.MultiplyPoint3x4(v0), fullTf.MultiplyPoint3x4(v1))) continue;
 				hoverV0 = t[i];
 				hoverV1 = t[(i + 1) % 3];
