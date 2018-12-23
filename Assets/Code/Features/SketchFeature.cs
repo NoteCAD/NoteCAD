@@ -172,4 +172,11 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 	protected override void OnShow(bool state) {
 		loopObj.SetActive(state && active);
 	}
+
+	public void DrawTriangulation(LineCanvas canvas) {
+		var ids = new List<List<Id>>();
+		var polygons = Sketch.GetPolygons(loops.Where(l => l.All(e => !e.isError)).ToList(), ref ids);
+		MeshUtils.DrawTriangulation(polygons, canvas);
+	}
+
 }

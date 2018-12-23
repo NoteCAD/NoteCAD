@@ -35,6 +35,13 @@ public static class MeshUtils {
 
 	}
 
+	public static void DrawTriangulation(List<List<Vector3>> polygons, LineCanvas canvas) {
+		foreach(var p in polygons) {
+			var pv = new List<Vector3>(p);
+			var triangles = Triangulation.Triangulate(pv, canvas);
+		}
+	}
+
 	public static void CreateMeshExtrusion(List<List<Vector3>> polygons, float extrude, ref Mesh mesh) {
 		var capacity = polygons.Sum(p => (p.Count - 2) * 3 + p.Count) * 2;
 		var vertices = new List<Vector3>(capacity);

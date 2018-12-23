@@ -26,11 +26,11 @@ public class Diameter : ValueConstraint {
 	}
 
 	public override double LabelToValue(double label) {
-		return showAsRadius ? label * 2.0 : label;
+		return showAsRadius ? label : label / 2.0;
 	}
 
 	public override double ValueToLabel(double value) {
-		return showAsRadius ? value / 2.0 : value;
+		return showAsRadius ? value : value * 2.0;
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
@@ -70,7 +70,9 @@ public class Diameter : ValueConstraint {
 
 	protected override void OnReadValueConstraint(XmlNode xml) {
 		if(xml.Attributes["showAsRadius"] != null) {
+			var value = GetValue();
 			showAsRadius = Convert.ToBoolean(xml.Attributes["showAsRadius"].Value);
+			SetValue(value);
 		}
 	}
 

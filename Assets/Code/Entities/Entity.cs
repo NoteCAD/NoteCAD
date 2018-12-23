@@ -371,7 +371,11 @@ public abstract partial class Entity : SketchObject, IEntity {
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
-		canvas.SetStyle("entities");
+		if(isError) {
+			canvas.SetStyle("error");
+		} else {
+			canvas.SetStyle("entities");
+		}
 		ForEachSegment((a, b) => {
 			canvas.DrawLine(a, b);
 		});

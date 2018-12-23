@@ -125,19 +125,10 @@ public class SketchFeatureBase : Feature {
 		base.UpdateDirty();
 		go.transform.SetMatrix(transform);
 	
-		//if(sketch.IsEntitiesChanged()) {
-			canvas.SetStyle("entities");
-			foreach(var e in sketch.entityList) {
-				e.Draw(canvas);
-			}
-
-			canvas.ClearStyle("error");
-			canvas.SetStyle("error");
-			foreach(var e in sketch.entityList) {
-				if(!e.isError) continue;
-				e.Draw(canvas);
-			}
-		//}
+		canvas.SetStyle("entities");
+		foreach(var e in sketch.entityList) {
+			e.Draw(canvas);
+		}
 
 		sketch.MarkUnchanged();
 		canvas.UpdateDirty();

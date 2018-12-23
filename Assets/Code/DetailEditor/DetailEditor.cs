@@ -290,6 +290,9 @@ public class DetailEditor : MonoBehaviour {
 		if(activeFeature is SketchFeatureBase) {
 			var sk = activeFeature as SketchFeatureBase;
 			sk.DrawConstraints(canvas);
+
+			//var skk = activeFeature as SketchFeature;
+			//if(skk != null) skk.DrawTriangulation(canvas);
 		} else {
 			canvas.ClearStyle("constraints");
 		}

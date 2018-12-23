@@ -33,6 +33,7 @@ public class Tool : MonoBehaviour {
 	protected virtual void OnMouseUp(Vector3 pos, ICADObject sko) { }
 	protected virtual void OnMouseMove(Vector3 pos, ICADObject sko) { }
 	protected virtual void OnMouseDoubleClick(Vector3 pos, ICADObject sko) { }
+	public virtual bool CanActivate() { return true; }
 
 	public void Activate() {
 		shouldStop = false;

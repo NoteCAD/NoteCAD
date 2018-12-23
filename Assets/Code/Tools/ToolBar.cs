@@ -47,10 +47,17 @@ public class ToolBar : MonoBehaviour {
 		doubleClickFrame++;
 		foreach(var t in tools) {
 			foreach(var hk in t.hotkeys) {
-				if(Input.GetKeyDown(hk) && (!t.ctrl || Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))) {
-					ActiveTool = t;
-					break;
+				if(t.ctrl && !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl)) continue;
+				/*if(hk == KeyCode.Mouse1) {
+					if(CameraController.instance.WasMoved || !Input.GetKeyUp(hk)) {
+						continue;
+					}
+				} else*/
+				if(!Input.GetKeyDown(hk)) {
+					continue;
 				}
+				ActiveTool = t;
+				break;
 			}
 		}
 		bool overUI = IsPointerOverUIObject();
@@ -92,6 +99,7 @@ public class ToolBar : MonoBehaviour {
 
 	void ActivateTool(Tool tool) {
 		if(tool == activeTool) return;
+		if(!tool.CanActivate()) return;
 		if(activeTool != null) {
 			var btn = activeTool.GetComponent<Button>();
 			var cb = btn.colors;

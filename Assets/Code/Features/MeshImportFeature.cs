@@ -372,7 +372,6 @@ public class MeshImportFeature : MeshFeature {
 
 		if(hoverV0 != -1) {
 			dist = min;
-			Debug.Log("v0" + hoverV0 + "v1" + hoverV1);
 			return new MeshEdgeEntity(this, hoverV0, hoverV1);
 		}
 

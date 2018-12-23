@@ -447,8 +447,13 @@ public class Sketch : CADObject, ISketch  {
 			if(nodeKind.Name == "constraints") {
 				foreach(XmlNode node in nodeKind.ChildNodes) {
 					if(node.Name != "constraint") continue;
-					var type = node.Attributes["type"].Value;
-					var constraint = Type.GetType(type).GetConstructor(types).Invoke(param) as Constraint;
+					var typeName = node.Attributes["type"].Value;
+					var type = Type.GetType(typeName);
+					if(type == null) {
+						Debug.LogError("Can't create constraint of type " + typeName);
+						continue;
+					}
+					var constraint = type.GetConstructor(types).Invoke(param) as Constraint;
 					constraint.Read(node);
 				}
 			}

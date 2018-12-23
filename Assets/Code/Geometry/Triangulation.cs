@@ -20,7 +20,7 @@ public static class Triangulation {
 		return Vector3.Cross(a - b, c - b).z > 0f;
 	}
 
-	public static List<Vector3> Triangulate(List<Vector3> points) {
+	public static List<Vector3> Triangulate(List<Vector3> points, LineCanvas canvas = null) {
 		List<Vector3> result = new List<Vector3>();
 		bool processed = true;
 		while(points.Count > 2 && processed) {
@@ -39,6 +39,11 @@ public static class Triangulation {
 						break;
 					}
 					if(!contains) {
+						if(canvas) {
+							canvas.DrawLine(a, b);
+							canvas.DrawLine(b, c);
+							canvas.DrawLine(c, a);
+						}
 						result.Add(a);
 						result.Add(b);
 						result.Add(c);
@@ -53,7 +58,7 @@ public static class Triangulation {
 	}
 
 	static readonly Vector3 rayDir = Vector3.forward;
-
+	static readonly double EPS = 1e-6;
 	static bool TriangleContains2d(Vector3 a, Vector3 b, Vector3 c, Vector3 p) {
 		// Find vectors for two edges sharing vert0
 		var edge1 = b - a;
@@ -63,22 +68,26 @@ public static class Triangulation {
 		var pvec = Vector3.Cross(rayDir, edge2);
 
 		// If determinant is near zero, ray lies in plane of triangle
-		float det = Vector3.Dot(edge1, pvec);
-		float inv_det = 1.0f / det;
+		double det = Vector3.Dot(edge1, pvec);
+		double inv_det = 1.0 / det;
 
 		// Calculate distance from vert0 to ray origin
 		var tvec = p - a;
 
 		// Calculate U parameter and test bounds
-		float u = Vector3.Dot(tvec, pvec) * inv_det;
-		if (u < 0.0f || u > 1.0f) return false;
+		double u = Vector3.Dot(tvec, pvec) * inv_det;
+		if (u < 0.0 - EPS || u > 1.0 + EPS) {
+			return false;
+		}
 
 		// Prepare to test V parameter
 		var qvec = Vector3.Cross(tvec, edge1);
 
 		// Calculate V parameter and test bounds
-		float v = Vector3.Dot(rayDir, qvec) * inv_det;
-		if (v < 0.0f || u + v > 1.0f) return false;
+		double v = Vector3.Dot(rayDir, qvec) * inv_det;
+		if (v < 0.0 - EPS || u + v > 1.0 + EPS) {
+			return false;
+		}
 		return true;
 	}
 }

@@ -10,6 +10,7 @@ public class CameraController : MonoBehaviour {
 	bool rotate;
 
 	public bool IsMoving { get { return shift || rotate; } }
+	public bool WasMoved { get { return wasMoved; } }
 
 	Vector3 click;
 	Vector3 rotPoint;
@@ -24,7 +25,7 @@ public class CameraController : MonoBehaviour {
 	Vector3 srcPos;
 	Vector3 dstPos;
 	float phase = 1.0f;
-	double orthoSize;
+	bool wasMoved;
 
 	public static CameraController instance;
 
@@ -34,7 +35,6 @@ public class CameraController : MonoBehaviour {
 
 	private void Awake() {
 		camera = GetComponent<Camera>();
-		orthoSize = camera.orthographicSize;
 	}
 
 	public void AnimateToPlane(IPlane plane) {
@@ -72,11 +72,14 @@ public class CameraController : MonoBehaviour {
 			rotate = false;
 		}
 		if(shift) {
-			camera.transform.position -= pos - click;
+			var delta = pos - click;
+			if(delta.magnitude != 0.0) wasMoved = true;
+			camera.transform.position -= delta;
 			click = Tool.WorldMousePos;
 		}
 		if(rotate) {
 			var delta = -(Input.mousePosition - screenClick).magnitude * rotateSensitivity;
+			if(delta != 0.0) wasMoved = true;
 			var axis = Vector3.Cross(pos - click, camera.transform.forward).normalized;
 			camera.transform.RotateAround(rotPoint, axis,  delta);
 			click = Tool.WorldMousePos;
@@ -84,6 +87,7 @@ public class CameraController : MonoBehaviour {
 		}
 		if(!EventSystem.current.IsPointerOverGameObject() && Input.mouseScrollDelta.y != 0f) {
 			var mouse = Input.mouseScrollDelta.y;
+			double orthoSize = camera.orthographicSize;
 			if(mouse < 0f) {
 				mouse = -1f;
 				if(orthoSize > maxSize) mouse = 0f;
@@ -97,6 +101,7 @@ public class CameraController : MonoBehaviour {
 
 			for(int i = 0; i < count; i++) {
 				double factor = mouse * scaleFactor;
+				wasMoved = true;
 				if(factor < 0.0) {
 					factor = 1.0 / (1.0 + factor);
 				} else {
@@ -112,6 +117,10 @@ public class CameraController : MonoBehaviour {
 				//camera.nearClipPlane = (float)(-orthoSize * 10.0);
 			}
 		}
+		if(!IsMoving) {
+			wasMoved = false;
+		}
+
 	}
 
 	private void OnDrawGizmos() {
