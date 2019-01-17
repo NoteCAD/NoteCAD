@@ -26,11 +26,11 @@ public class Diameter : ValueConstraint {
 	}
 
 	public override double LabelToValue(double label) {
-		return showAsRadius ? label : label / 2.0;
+		return showAsRadius ? label / 2.0 : label;
 	}
 
 	public override double ValueToLabel(double value) {
-		return showAsRadius ? value : value * 2.0;
+		return showAsRadius ? value * 2.0 : value;
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {

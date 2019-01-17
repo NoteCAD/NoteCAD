@@ -565,14 +565,16 @@ PlayerSettings:
   webGLUseWasm: 1
   webGLCompressionFormat: 0
   scriptingDefineSymbols:
-    1: G3_USING_UNITY
-    13: G3_USING_UNITY
+    1: G3_USING_UNITY;CT_FB
+    13: G3_USING_UNITY;CT_FB
   platformArchitecture: {}
   scriptingBackend: {}
   incrementalIl2cppBuild: {}
   additionalIl2CppArgs: 
   scriptingRuntimeVersion: 0
-  apiCompatibilityLevelPerPlatform: {}
+  apiCompatibilityLevelPerPlatform:
+    Standalone: 1
+    WebGL: 1
   m_RenderingPath: 1
   m_MobileRenderingPath: 1
   metroPackageName: NoteCAD

@@ -3,27 +3,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Runtime.InteropServices;
 using System;
+using Crosstales.FB;
 
 public class NoteCADJS : MonoBehaviour {
 
-#if UNITY_EDITOR
+#if !UNITY_WEBGL || UNITY_EDITOR
 
 	public static void SaveData(string data, string filename) {
-		var path = UnityEditor.EditorUtility.SaveFilePanel("Save NoteCAD file", "", filename, "");
+		var path = FileBrowser.SaveFile("Save NoteCAD file", "", filename, "");
+		//var path = UnityEditor.EditorUtility.SaveFilePanel("Save NoteCAD file", "", filename, "");
 		System.IO.File.WriteAllText(path, data);
 	}
 
 	public static void LoadData(Action<string> callback) {
-		var path = UnityEditor.EditorUtility.OpenFilePanel("Load NoteCAD file", "", "");
+		var path = FileBrowser.OpenSingleFile("Load NoteCAD file", "", "");
+		//var path = UnityEditor.EditorUtility.OpenFilePanel("Load NoteCAD file", "", "");
 		callback(System.IO.File.ReadAllText(path));
 	}
 
 	public static void LoadBinaryData(Action<byte[]> callback) {
-		var path = UnityEditor.EditorUtility.OpenFilePanel("Load NoteCAD file", "", "");
+		var path = FileBrowser.OpenSingleFile("Load NoteCAD file", "", "");
+		//var path = UnityEditor.EditorUtility.OpenFilePanel("Load NoteCAD file", "", "");
 		callback(System.IO.File.ReadAllBytes(path));
 	}
 	
-#elif UNITY_WEBGL
+#else
 	
 	[DllImport("__Internal")]
 	public static extern void SaveData(string data, string filename);
@@ -60,12 +64,6 @@ public class NoteCADJS : MonoBehaviour {
 		yield return www;
 		loadBinaryCallback(www.bytes);
 	}
-
-#else
-	
-	public static void SaveData(string data, string filename) {}
-	public static void LoadData(Action<string> callback) {}
-	public static void LoadBinaryData(Action<byte[]> callback) {}
 
 #endif
 

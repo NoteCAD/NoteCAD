@@ -21,6 +21,7 @@ public class Constraint : SketchObject {
 	[NonSerialized] public bool changed;
 	List<IdPath> ids = new List<IdPath>();
 	protected Vector3[] ref_points = new Vector3[2];
+	List<Constraint> usedInConstraints = new List<Constraint>();
 
 	enum Option {
 		Default
@@ -33,17 +34,36 @@ public class Constraint : SketchObject {
 		ids.Add(e.id);
 	}
 
+	protected void AddObject(ICADObject o) {
+		if(o is IEntity) AddEntity(o as IEntity);
+		if(o is Constraint) AddConstraint(o as Constraint);
+	}
+
+	protected void AddConstraint(Constraint c) {
+		c.usedInConstraints.Add(this);
+		ids.Add(c.id);
+	}
+
 	public Constraint(Sketch sk) : base(sk) {
 		sk.AddConstraint(this);
 	}
 
 	public override void Destroy() {
 		if(isDestroyed) return;
+		while(usedInConstraints.Count > 0) {
+			usedInConstraints[0].Destroy();
+		}
 		base.Destroy();
 		for(int i = 0; i < ids.Count; i++) {
 			var ent = GetEntity(i) as Entity;
-			if(ent == null) continue;
-			ent.RemoveConstraint(this);
+			if(ent != null) {
+				ent.RemoveConstraint(this);
+			} else {
+				var c = GetConstraint(i);
+				if(c != null) {
+					c.usedInConstraints.Remove(this);
+				}
+			}
 		}
 	}
 
@@ -103,14 +123,18 @@ public class Constraint : SketchObject {
 		foreach(XmlNode node in xml.ChildNodes) {
 			if(node.Name != "entity") continue;
 			var path = IdPath.From(node.Attributes["path"].Value);
-			var e = sketch.feature.detail.GetObjectById(path) as IEntity;
-			AddEntity(e);
+			var o = sketch.feature.detail.GetObjectById(path);
+			AddObject(o);
 		}
 		base.Read(xml);
 	}
 
 	public IEntity GetEntity(int i) {
 		return sketch.feature.detail.GetObjectById(ids[i]) as IEntity;
+	}
+
+	public Constraint GetConstraint(int i) {
+		return sketch.feature.detail.GetObjectById(ids[i]) as Constraint;
 	}
 
 	public int GetEntitiesCount() {

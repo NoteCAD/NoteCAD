@@ -133,6 +133,7 @@ public class Tool : MonoBehaviour {
 			point.SetPosition(with.GetPointAtInPlane(0, point.sketch.plane).Eval());
 		} else {
 			new PointOn(point.sketch, point, with);
+			return false;
 		}
 		return true;
 	}

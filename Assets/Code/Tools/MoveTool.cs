@@ -123,6 +123,10 @@ public class MoveTool : Tool {
 		UpdateInputPosition();
 	}
 
+	public bool IsConstraintEditing(ValueConstraint constraint) {
+		return valueConstraint == constraint;
+	}
+
 	protected override void OnMouseDoubleClick(Vector3 pos, ICADObject sko) {
 		if(sko is ValueConstraint) {
 			EditConstraintValue(sko as ValueConstraint);

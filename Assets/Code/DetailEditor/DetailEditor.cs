@@ -94,6 +94,11 @@ public class DetailEditor : MonoBehaviour {
 		}
 	}
 	
+	public bool IsSelected(ICADObject obj) {
+		var objId = obj.id.ToString();
+		return selection.Any(id => id.ToString() == objId);
+	}
+
 	IEnumerator LoadWWWFile(string url) {
 		WWW www = new WWW(url);
 		yield return www;
@@ -333,15 +338,29 @@ public class DetailEditor : MonoBehaviour {
 				if(!(c is ValueConstraint)) continue;
 				var constraint = c as ValueConstraint;
 				if(!constraint.valueVisible) continue;
-				if(hovered == c) {
-					style.normal.textColor = canvas.GetStyle("hovered").color;
-				} else {
-					style.normal.textColor = Color.white;
-				}
+				if(MoveTool.instance.IsConstraintEditing(constraint)) continue;
 				var pos = constraint.pos;
 				pos = Camera.main.WorldToScreenPoint(pos);
 				var txt = constraint.GetLabel();
-				GUI.Label(new Rect(pos.x, Camera.main.pixelHeight - pos.y, 0, 0), txt, style);
+				var rect = new Rect(pos.x, Camera.main.pixelHeight - pos.y, 0, 0);
+				style.normal.textColor = Color.black;
+				for(int i = -1; i <= 1; i++) {
+					for(int j = -1; j <= 1; j++) {
+						if(i == 0 && j == 0) continue;
+						GUI.Label(new Rect(rect.x + i, rect.y + j, 0, 0), txt, style);
+					}
+				}
+
+				if(hovered == c) {
+					style.normal.textColor = canvas.GetStyle("hovered").color;
+				} else 
+				if(IsSelected(c)) {
+					style.normal.textColor = canvas.GetStyle("selected").color;
+				} else {
+					style.normal.textColor = Color.white;
+				}
+				GUI.Label(rect, txt, style);
+
 			}
 		}
 	}

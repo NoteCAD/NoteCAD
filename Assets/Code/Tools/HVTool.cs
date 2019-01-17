@@ -14,10 +14,9 @@ public class HVTool : Tool {
 		var entity = sko as IEntity;
 		if(entity == null) return;
 
-		if(p0 == null && entity is LineEntity) {
-			var line = entity as LineEntity;
+		if(p0 == null && entity.type == IEntityType.Line) {
 			editor.PushUndo();
-			constraint = new HVConstraint(line.sketch, line.p0, line.p1);
+			constraint = new HVConstraint(DetailEditor.instance.currentSketch.GetSketch(), entity);
 			constraint.orientation = vertical ? HVOrientation.OX : HVOrientation.OY;
 			return;
 		}

@@ -276,7 +276,7 @@ public class Sketch : CADObject, ISketch  {
 		if(candidates.Count > 0) {
 			for(int i = 0; i < candidates.Count; i++) {
 				var current = candidates.ElementAt(i).Key;
-				if(DetailEditor.instance.selection.All(id => id.ToString() != current.id.ToString())) continue;
+				if(!DetailEditor.instance.IsSelected(current)) continue;
 				var next = candidates.ElementAt((i + 1) % candidates.Count);
 				objDist = next.Value;
 				return next.Key;
@@ -538,5 +538,17 @@ public class Sketch : CADObject, ISketch  {
 		var points = entities.SelectMany(e => e.SegmentsInPlane(null)).ToArray();
 		if(points.Length == 0) return new Bounds();
 		return GeometryUtility.CalculateBounds(points, Matrix4x4.identity);
+	}
+
+	public PointEntity GetOtherPointByPoint(PointEntity point, float eps) {
+		Vector3 pos = point.pos;
+		for(int i = 0; i < entities.Count; i++) {
+			if(entities[i].type != IEntityType.Point) continue;
+			var pt = entities[i] as PointEntity;
+			if(pt == point) continue;
+			if((pt.pos - point.pos).sqrMagnitude > eps * eps) continue;
+			return pt;
+		}
+		return null;
 	}
 }

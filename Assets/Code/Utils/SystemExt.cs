@@ -39,4 +39,10 @@ public static class SystemExt {
 			action(i);
 		}
 	}
+
+	public static void Swap<T>(ref T a, ref T b) {
+		var t = a;
+		a = b;
+		b = t;
+	}
 }
