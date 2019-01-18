@@ -97,7 +97,7 @@ public class CameraController : MonoBehaviour {
 				if(orthoSize < minSize) mouse = 0f;
 			}
 
-			var count = (int)Mathf.Abs(Input.mouseScrollDelta.y);
+			var count = (int)Mathf.Ceil(Mathf.Abs(Input.mouseScrollDelta.y));
 
 			for(int i = 0; i < count; i++) {
 				double factor = mouse * scaleFactor;
