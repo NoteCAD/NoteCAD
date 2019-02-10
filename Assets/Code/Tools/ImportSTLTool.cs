@@ -12,7 +12,7 @@ public class ImportSTLTool : Tool, IPointerDownHandler {
 	}
 
 	public void OnPointerDown(PointerEventData eventData) {
-		NoteCADJS.LoadBinaryData(DataLoaded);
+		NoteCADJS.LoadBinaryData(DataLoaded, "stl");
 	}
 
 	void DataLoaded(byte[] data) {

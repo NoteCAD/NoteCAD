@@ -9,6 +9,6 @@ public class ExportCurrentSTLTool : Tool {
 		StopTool();
 		var data = DetailEditor.instance.ExportCurrentSTL();
 		if(data == "") return;
-		NoteCADJS.SaveData(data, "NoteCADExport.stl");
+		NoteCADJS.SaveData(data, "NoteCADExport.stl", "stl");
 	}
 }

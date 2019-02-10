@@ -6,6 +6,8 @@ using UnityEngine.UI;
 using System.Linq;
 using Csg;
 using RuntimeInspectorNamespace;
+using System.IO;
+using System.Xml;
 
 public class DetailEditor : MonoBehaviour {
 
@@ -38,7 +40,7 @@ public class DetailEditor : MonoBehaviour {
 
 	LineCanvas canvas;
 	EquationSystem sys = new EquationSystem();
-	public List<IdPath> selection = new List<IdPath>();
+	public HashSet<IdPath> selection = new HashSet<IdPath>();
 
 	ICADObject hovered_;
 	public ICADObject hovered {
@@ -95,8 +97,8 @@ public class DetailEditor : MonoBehaviour {
 	}
 	
 	public bool IsSelected(ICADObject obj) {
-		var objId = obj.id.ToString();
-		return selection.Any(id => id.ToString() == objId);
+		if(obj == null) return false;
+		return selection.Contains(obj.id);
 	}
 
 	IEnumerator LoadWWWFile(string url) {
@@ -286,7 +288,7 @@ public class DetailEditor : MonoBehaviour {
 		}
 
 		if(selection.Count == 1) {
-			var obj = detail.GetObjectById(selection[0]);
+			var obj = detail.GetObjectById(selection.First());
 			inspector.Inspect(obj);
 		} else {
 			inspector.Inspect(activeFeature);
@@ -343,10 +345,11 @@ public class DetailEditor : MonoBehaviour {
 				pos = Camera.main.WorldToScreenPoint(pos);
 				var txt = constraint.GetLabel();
 				var rect = new Rect(pos.x, Camera.main.pixelHeight - pos.y, 0, 0);
+				var isSelected = IsSelected(c);
 				style.normal.textColor = Color.black;
 				for(int i = -1; i <= 1; i++) {
 					for(int j = -1; j <= 1; j++) {
-						if(i == 0 && j == 0) continue;
+						if(i == 0 || j == 0) continue;
 						GUI.Label(new Rect(rect.x + i, rect.y + j, 0, 0), txt, style);
 					}
 				}
@@ -354,7 +357,7 @@ public class DetailEditor : MonoBehaviour {
 				if(hovered == c) {
 					style.normal.textColor = canvas.GetStyle("hovered").color;
 				} else 
-				if(IsSelected(c)) {
+				if(isSelected) {
 					style.normal.textColor = canvas.GetStyle("selected").color;
 				} else {
 					style.normal.textColor = Color.white;
@@ -391,6 +394,75 @@ public class DetailEditor : MonoBehaviour {
 		if(active.IsNull()) active = detail.features.Last().id;
 		UpdateFeatures();	
 		ActivateFeature(active);
+	}
+
+	public string CopySelection() {
+		if(currentSketch == null || currentSketch.GetSketch() == null) return "";
+
+		var text = new StringWriter();
+		var xml = new XmlTextWriter(text);
+		xml.Formatting = Formatting.Indented;
+		xml.IndentChar = '\t';
+		xml.Indentation = 1;
+		xml.WriteStartDocument();
+
+		xml.WriteStartElement("copy");
+		xml.WriteAttributeString("program", "NoteCAD");
+		xml.WriteAttributeString("version", "0");
+		xml.WriteAttributeString("pos", Tool.MousePos.ToStr());
+
+		var sk = currentSketch.GetSketch();
+		var objects = new HashSet<SketchObject>(
+			selection
+				.Select(s => detail.GetObjectById(s))
+				.OfType<SketchObject>()
+				.Where(o => !(o is Constraint) || (o as Constraint).objects.All(co => co is SketchObject && (co as SketchObject).sketch == sk)));
+
+		sk.Write(xml, o => 
+			objects.Contains(o) && 
+			(!(o is Entity) || !objects.Contains((o as Entity).parent)) &&
+			(!(o is Constraint) || (o as Constraint).objects.All(co => co is SketchObject && objects.Contains(co as SketchObject)))
+		);
+
+		xml.WriteEndElement();
+		return text.ToString();
+	}
+	
+	public List<IdPath> Paste(string str) {
+		if(currentSketch == null || currentSketch.GetSketch() == null) return null;
+
+		var xml = new XmlDocument();
+		xml.LoadXml(str);
+
+		if(xml.DocumentElement.Attributes["program"] == null || xml.DocumentElement.Attributes["program"].Value != "NoteCAD") {
+			return null;
+		}
+
+		var pos = xml.DocumentElement.Attributes["pos"].Value.ToVector3();
+		var delta = Tool.MousePos - pos;
+
+		var sk = currentSketch.GetSketch();
+		sk.Read(xml.DocumentElement, true);
+		var result = sk.idMapping;
+		sk.idMapping = null;
+
+		var objs = result.Select(o => sk.GetChild(o.Value)).ToList();
+		foreach(var obj in objs) {
+			var sko = obj as SketchObject;
+			if(sko == null) continue;
+			if(!(sko is Entity) || (sko as Entity).type != IEntityType.Point) continue;
+			sko.Drag(delta);
+		}
+
+		return objs.Select(o => o.id).ToList();
+	}
+
+	public void MarqueeSelect(Rect rect, bool wholeObject) {
+		var result = new List<ICADObject>();
+		detail.MarqueeSelectUntil(rect, wholeObject, Camera.main, UnityEngine.Matrix4x4.identity, ref result, activeFeature);
+		foreach(var co in result) {
+			selection.Add(co.id);
+		}
 	}
 
 	public string WriteXml() {

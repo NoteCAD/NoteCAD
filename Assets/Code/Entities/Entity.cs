@@ -11,6 +11,7 @@ public enum IEntityType {
 	Circle,
 	Helix,
 	Plane,
+	Function
 }
 
 public interface IEntity : ICADObject {
@@ -125,6 +126,13 @@ public static class IEntityUtils {
 		return plane.ToFrom(points.Current, entity.plane);
 	}
 
+	public static Vector3 GetPointPosAtInPlane(this IEntity entity, int index, IPlane plane) {
+		var points = entity.points.GetEnumerator();
+		int curIndex = -1;
+		while(curIndex++ < index && points.MoveNext());
+		return plane.ToFrom(points.Current.Eval(), entity.plane);
+	}
+
 	public static ExpVector GetLineP0(this IEntity entity, IPlane plane) {
 		var points = entity.points.GetEnumerator();
 		points.MoveNext();
@@ -228,6 +236,18 @@ public abstract partial class Entity : SketchObject, IEntity {
 		}
 	}
 
+	public int GetChildrenCount() {
+		return children.Count;
+	}
+
+	public Id GetChildGuid(int i) {
+		return children[i].guid;
+	}
+
+	public void SetChildGuid(int i, Id guid) {
+		children[i].SetGuid(guid);
+	}
+
 	IEnumerable<ExpVector> IEntity.points {
 		get {
 			for(var it = points.GetEnumerator(); it.MoveNext(); ) {
@@ -327,7 +347,7 @@ public abstract partial class Entity : SketchObject, IEntity {
 		return false;
 	}
 
-	public void ForEachSegment(Action<Vector3, Vector3> action) {
+	public void ForEachSegment(Func<Vector3, Vector3, bool> action) {
 		IEnumerable<Vector3> points = null;
 		if(this is ISegmentaryEntity) points = (this as ISegmentaryEntity).segmentPoints;
 		if(this is ILoopEntity) points = (this as ILoopEntity).loopPoints;
@@ -336,7 +356,9 @@ public abstract partial class Entity : SketchObject, IEntity {
 		bool first = true;
 		foreach(var ep in points) {
 			if(!first) {
-				action(prev, ep);
+				if(!action(prev, ep)) {
+					return;
+				}
 			}
 			first = false;
 			prev = ep;
@@ -366,9 +388,69 @@ public abstract partial class Entity : SketchObject, IEntity {
 			if(minDist < 0.0 || dist < minDist) {
 				minDist = dist;
 			}
+			return true;
 		});
 		return minDist;
 	}
+
+	protected static bool MarqueeSelectSegment(Rect rect, bool wholeObject, Vector3 ap, Vector3 bp) {
+		if(wholeObject) {
+			if(rect.Contains(ap) && rect.Contains(bp)) {
+				return true; 
+			}
+		} else {
+			if(rect.Contains(ap) || rect.Contains(bp)) {
+				return true; 
+			}
+			var line = Rect.MinMaxRect(
+				Mathf.Min(ap.x, bp.x), 
+				Mathf.Min(ap.y, bp.y),
+				Mathf.Max(ap.x, bp.x), 
+				Mathf.Max(ap.y, bp.y)
+			);
+			if(!rect.Overlaps(line)) {
+				return false;
+			}
+			Vector3 res = Vector3.zero;
+			Vector3[] points = {
+				new Vector3(rect.xMin, rect.yMin),
+				new Vector3(rect.xMax, rect.yMin),
+				new Vector3(rect.xMax, rect.yMax),
+				new Vector3(rect.xMin, rect.yMax)
+			};
+			for(int i = 0; i < points.Length; i++) {
+				if(GeomUtils.isSegmentsCrossed(ap, bp, points[i], points[(i + 1) % points.Length], ref res, 1e-6f) == GeomUtils.Cross.INTERSECTION) {
+					return true;
+				}
+			}
+			return false;
+		}
+		return false;
+	}
+
+	protected override bool OnMarqueeSelect(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf) {
+		var any = false;
+		var whole = true;
+		ForEachSegment((a, b) => {
+			Vector2 ap = camera.WorldToScreenPoint(tf.MultiplyPoint(a));
+			Vector2 bp = camera.WorldToScreenPoint(tf.MultiplyPoint(b));
+			var segSelected = MarqueeSelectSegment(rect, wholeObject, ap, bp);
+			any = any || segSelected;
+			if(!wholeObject && any) {
+				// break for each loop
+				return false; 
+			}
+			whole = whole && segSelected;
+			if(wholeObject && !whole) {
+				// break for each loop
+				return false;
+			}
+			// continue for each loop
+			return true;
+		});
+		return wholeObject && whole || !wholeObject && any;
+	}
+
 
 	protected override void OnDraw(LineCanvas canvas) {
 		if(isError) {
@@ -378,6 +460,7 @@ public abstract partial class Entity : SketchObject, IEntity {
 		}
 		ForEachSegment((a, b) => {
 			canvas.DrawLine(a, b);
+			return true;
 		});
 	}
 

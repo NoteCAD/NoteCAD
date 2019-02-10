@@ -81,6 +81,7 @@ public class HVConstraint : Constraint {
 
 		if(HasEntitiesOfType(IEntityType.Line, 1)) {
 			DrawStroke(canvas, p0, p1, 0);
+			ref_points[1] = ref_points[0];
 		} else {
 			DrawPointStroke(canvas, p0, p1, 0);
 			DrawPointStroke(canvas, p0, p1, 1);
@@ -106,5 +107,4 @@ public class HVConstraint : Constraint {
 	protected override void OnRead(XmlNode xml) {
 		xml.Attributes["orientation"].Value.ToEnum(ref orientation);
 	}
-
 }

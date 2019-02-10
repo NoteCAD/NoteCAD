@@ -12,7 +12,7 @@ public class LoadTool : Tool, IPointerDownHandler {
 	}
 
 	public void OnPointerDown(PointerEventData eventData) {
-		NoteCADJS.LoadData(DataLoaded);
+		NoteCADJS.LoadData(DataLoaded, "xml");
 	}
 
 	void DataLoaded(string data) {

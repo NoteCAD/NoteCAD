@@ -29,7 +29,7 @@ public class SaveGCodeTool : Tool {
 				//Debug.Log(message);
 			},
 			data => {
-				NoteCADJS.SaveData(data, "NoteCAMFile.gcode");
+				NoteCADJS.SaveData(data, "NoteCAMFile.gcode", "gcode");
 				message = "";
 				StopTool();
 			}

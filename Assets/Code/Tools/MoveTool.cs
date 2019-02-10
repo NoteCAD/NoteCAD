@@ -18,9 +18,13 @@ public class MoveTool : Tool {
 	Param dragZP = new Param("dragZ", reduceable: false);
 	ValueConstraint valueConstraint;
 	bool shouldPushUndo = true;
+	bool rectSelection = false;
+	bool rectInvertedX = false;
 	public InputField input;
 	public static MoveTool instance;
 	//bool canMove = true;
+	public Texture2D rectSelectionImage;
+	public Texture2D rectSelectionImageInverted;
 
 	protected override void OnStart() {
 		input.onEndEdit.AddListener(OnEndEdit);
@@ -29,10 +33,18 @@ public class MoveTool : Tool {
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		ClearDrag();
-		if(!Input.GetKey(KeyCode.LeftShift)) DetailEditor.instance.selection.Clear();
+		if(!Input.GetKey(KeyCode.LeftShift) && !editor.IsSelected(sko)) DetailEditor.instance.selection.Clear();
 		if(valueConstraint != null) return;
-		if(sko == null) return;
-		DetailEditor.instance.selection.Add(sko.id);
+		if(sko == null) {
+			rectSelection = true;
+			firstClickCenter = click = Camera.main.WorldToGuiPoint(pos);
+			return;
+		}
+		if(Input.GetKey(KeyCode.LeftShift) && editor.selection.Contains(sko.id)) {
+			editor.selection.Remove(sko.id);
+		} else {
+			editor.selection.Add(sko.id);
+		}
 		var entity = sko as IEntity;
 		current = sko;
 		click = pos;
@@ -90,6 +102,10 @@ public class MoveTool : Tool {
 	}
 
 	protected override void OnMouseMove(Vector3 pos, ICADObject sko) {
+		if(rectSelection) {
+			click = Camera.main.WorldToGuiPoint(pos);
+			return;
+		}
 		if(current == null) return;
 		var delta = pos - click;
 		var worldDelta = WorldPlanePos - worldClick;
@@ -111,6 +127,10 @@ public class MoveTool : Tool {
 	}
 
 	protected override void OnMouseUp(Vector3 pos, ICADObject sko) {
+		if(rectSelection) {
+			rectSelection = false;
+			DetailEditor.instance.MarqueeSelect(marqueeRect, rectInvertedX);
+		}
 		ClearDrag();
 	}
 	
@@ -155,6 +175,34 @@ public class MoveTool : Tool {
 
 	protected override string OnGetDescription() {
 		return "hover over an entity, hold down left mouse button to move it. Double click on any dimension to edit. Click on Help icon for additional info.";
+	}
+
+	Rect marqueeRectUI {
+		get {
+			var p0 = firstClickCenter;
+			var p1 = click;
+			rectInvertedX = (p0.x > p1.x);
+			if(rectInvertedX) SystemExt.Swap(ref p0.x, ref p1.x);
+			if(p0.y > p1.y) SystemExt.Swap(ref p0.y, ref p1.y);
+			var size = p1 - p0;
+			return new Rect(p0.x, p0.y, size.x, size.y);
+		}
+	}
+
+	Rect marqueeRect {
+		get {
+			var rect = marqueeRectUI;
+			var h = Camera.main.pixelHeight;
+			return new Rect(rect.x, h - (rect.y + rect.height), rect.width, rect.height);
+		}
+	}
+
+	private void OnGUI() {
+		if(rectSelection) {
+			var rect = marqueeRectUI;
+			GUI.DrawTexture(rect, rectInvertedX ? rectSelectionImageInverted : rectSelectionImage, ScaleMode.StretchToFill, true);
+			GUI.DrawTexture(rect, rectInvertedX ? rectSelectionImageInverted : rectSelectionImage, ScaleMode.StretchToFill, true, 0f, new Color(1f, 1f, 1f, 1f), 1f, 0f);
+		}
 	}
 
 }

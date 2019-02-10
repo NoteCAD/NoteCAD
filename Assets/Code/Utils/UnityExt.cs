@@ -42,4 +42,10 @@ public static class UnityExt {
 	public static string ToStr(this Quaternion q) {
 		return q.x.ToStr() + " " + q.y.ToStr() + " " + q.z.ToStr() + " " + q.w.ToStr();
 	}
+
+	public static Vector3 WorldToGuiPoint(this Camera camera, Vector3 position) {
+		var result = camera.WorldToScreenPoint(position);
+		result.y = camera.pixelHeight - result.y;
+		return result;
+	}
 }

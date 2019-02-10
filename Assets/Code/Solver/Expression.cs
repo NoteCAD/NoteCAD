@@ -36,6 +36,7 @@ public class Param {
 public class Exp {
 
 	public enum Op {
+		Undefined,
 		Const,
 		Param,
 		Add,
@@ -52,6 +53,7 @@ public class Exp {
 		Abs,
 		Sign,
 		Neg,
+		Pos,
 		Drag,
 		//Pow,
 	}
@@ -61,12 +63,12 @@ public class Exp {
 	public static readonly Exp mOne = new Exp(-1.0);
 	public static readonly Exp two  = new Exp(2.0);
 
-	Op op;
+	public Op op;
 
-	Exp a;
-	Exp b;
-	Param param;
-	double value;
+	public Exp a;
+	public Exp b;
+	public Param param;
+	public double value;
 
 	Exp() { }
 
@@ -93,7 +95,7 @@ public class Exp {
 		return result;
 	}
 
-	Exp(Op op, Exp a, Exp b) {
+	public Exp(Op op, Exp a, Exp b) {
 		this.a = a;
 		this.b = b;
 		this.op = op;
@@ -103,6 +105,7 @@ public class Exp {
 		if(a.IsZeroConst()) return b;
 		if(b.IsZeroConst()) return a;
 		if(b.op == Op.Neg) return a - b.a;
+		if(b.op == Op.Pos) return a + b.a;
 		return new Exp(Op.Add, a, b);
 	}
 
@@ -179,6 +182,7 @@ public class Exp {
 			case Op.Abs:	return Math.Abs(a.Eval());
 			case Op.Sign:	return Math.Sign(a.Eval());
 			case Op.Neg:	return -a.Eval();
+			case Op.Pos:	return a.Eval();
 			//case Op.Pow:	return Math.Pow(a.Eval(), b.Eval());
 		}
 		return 0.0;
@@ -203,6 +207,7 @@ public class Exp {
 			case Op.Abs:
 			case Op.Sign:
 			case Op.Neg:
+            case Op.Pos:
 				return true;
 		}
 		return false;
@@ -246,6 +251,7 @@ public class Exp {
 			case Op.Sign:	return "sign(" + a.ToString() + ")";
 			case Op.Atan2:	return "atan2(" + a.ToString() + ", " + b.ToString() + ")";
 			case Op.Neg:	return "-" + a.Quoted();
+			case Op.Pos:	return "+" + a.Quoted();
 			case Op.Drag:   return a.ToString() + " ≈ " + b.QuotedAdd();
 			//case Op.Pow:	return Quoted(a) + " ^ " + Quoted(b);
 		}
@@ -284,7 +290,7 @@ public class Exp {
 			case Op.Sqr:	return a.d(p) * two * a;
 			case Op.Abs:	return a.d(p) * Sign(a);
 			case Op.Sign:	return zero;
-			case Op.Neg:	return -a.d(p);
+			case Op.Neg:    return -a.d(p);
 			case Op.Atan2:	return (b * a.d(p) - a * b.d(p)) / (Sqr(a) + Sqr(b));
 		}
 		return zero;
@@ -378,6 +384,14 @@ public class Exp {
 			}
 		}
 
+	}
+
+	public bool HasTwoOperands() {
+		return a != null && b != null;
+	}
+
+	public Op GetOp() {
+		return op;
 	}
 
 }

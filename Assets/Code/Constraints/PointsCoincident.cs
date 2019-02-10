@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System;
+using UnityEngine;
 
 [Serializable]
 public class PointsCoincident : Constraint {
@@ -27,5 +28,15 @@ public class PointsCoincident : Constraint {
 	public IEntity GetOtherPoint(IEntity p) {
 		if(p0 == p) return p1;
 		return p0;
+	}
+
+	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
+		return -1;
+	}
+
+	protected override bool OnMarqueeSelect(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf) {
+		var pos = p0.GetPointAtInPlane(0, null).Eval();
+		Vector2 pp = camera.WorldToScreenPoint(tf.MultiplyPoint(pos));
+		return rect.Contains(pp);
 	}
 }

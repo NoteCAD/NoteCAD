@@ -14,7 +14,7 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 	}
 
 	public void OnPointerDown(PointerEventData eventData) {
-		NoteCADJS.LoadBinaryData(DataLoaded);
+		NoteCADJS.LoadBinaryData(DataLoaded, "dxf");
 	}
 
 	void AutoConstrain(Entity e) {

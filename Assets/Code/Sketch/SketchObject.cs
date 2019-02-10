@@ -48,6 +48,10 @@ public abstract class SketchObject : CADObject, ICADObject {
 	Id guid_;
 	public override Id guid { get { return guid_; } }
 
+	public void SetGuid(Id guid) {
+		guid_ = guid;
+	}
+
 	public override CADObject parentObject {
 		get {
 			return sketch;
@@ -131,8 +135,12 @@ public abstract class SketchObject : CADObject, ICADObject {
 	}
 
 	public virtual void Read(XmlNode xml) {
-
-		guid_ = sketch.idGenerator.Create(xml.Attributes["id"].Value);
+		var newGuid = sketch.idGenerator.Create(xml.Attributes["id"].Value);
+		if(sketch.idMapping != null) {
+			sketch.idMapping[newGuid] = guid_;
+		} else {
+			guid_ = newGuid;
+		}
 		OnRead(xml);
 	}
 
@@ -164,4 +172,11 @@ public abstract class SketchObject : CADObject, ICADObject {
 		return -1.0;
 	}
 
+	public virtual bool MarqueeSelect(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf) {
+		return OnMarqueeSelect(rect, wholeObject, camera, tf);
+	}
+
+	protected virtual bool OnMarqueeSelect(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf) {
+		return false;
+	}
 }

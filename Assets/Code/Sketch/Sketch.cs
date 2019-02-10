@@ -7,11 +7,6 @@ using System.IO;
 using System.Xml;
 using System.Collections;
 
-interface ISketch {
-	IEnumerable<IEntity> entities { get; }
-	IEntity Hover(Vector3 mouse, Camera camera, Matrix4x4 transform, ref double dist);
-}
-
 public interface IPlane {
 	Vector3 u { get; }
 	Vector3 v { get; }
@@ -129,6 +124,10 @@ public static class IPlaneUtils {
 		return to.ToPlane(from.FromPlane(pt));
 	}
 
+	public static Vector3 ToFrom(this IPlane to, Vector3 pt, IPlane from) {
+		return to.ToPlane(from.FromPlane(pt));
+	}
+
 	public static IEnumerable<Vector3> ToFrom(this IPlane to, IEnumerable<Vector3> points, IPlane from) {
 		return to.ToPlane(from.FromPlane(points));
 	}
@@ -139,7 +138,7 @@ public static class IPlaneUtils {
 
 }
 
-public class Sketch : CADObject, ISketch  {
+public class Sketch : CADObject  {
 	List<Entity> entities = new List<Entity>();
 	List<Constraint> constraints = new List<Constraint>();
 	Feature feature_;
@@ -160,12 +159,6 @@ public class Sketch : CADObject, ISketch  {
 	public IPlane plane;
 
 	public bool is3d = false;
-
-	IEnumerable<IEntity> ISketch.entities {
-		get {
-			foreach(var e in entities) yield return e;
-		}
-	}
 
 	public IEnumerable<Entity> entityList {
 		get {
@@ -242,9 +235,22 @@ public class Sketch : CADObject, ISketch  {
 		loopsChanged = loopsChanged || loops;
 	}
 
-	IEntity ISketch.Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
-		return Hover(mouse, camera, tf, ref objDist) as IEntity;
+	public void MarqueeSelect(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf, ref List<ICADObject> result) {
+		foreach(var e in entities) {
+			if(!e.isSelectable) continue;
+			if(e.MarqueeSelect(rect, wholeObject, camera, tf)) {
+				result.Add(e);
+			}
+		}
+
+		foreach(var c in constraints) {
+			if(!c.isSelectable) continue;
+			if(c.MarqueeSelect(rect, wholeObject, camera, tf)) {
+				result.Add(c);
+			}
+		}
 	}
+
 	public static double hoverRadius = 5.0;
 	public SketchObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
 		double min = -1.0;
@@ -413,11 +419,11 @@ public class Sketch : CADObject, ISketch  {
 		return result;
 	}
 
-	public void Write(XmlTextWriter xml) {
+	public void Write(XmlTextWriter xml, Func<SketchObject, bool> filter = null) {
 		if(entities.Count > 0) {
 			xml.WriteStartElement("entities");
 			foreach(var e in entities) {
-				if(e.parent != null) continue;
+				if(filter != null && !filter(e as SketchObject) || filter == null && e.parent != null) continue;
 				e.Write(xml);
 			}
 			xml.WriteEndElement();
@@ -426,15 +432,23 @@ public class Sketch : CADObject, ISketch  {
 		if(constraints.Count > 0) {
 			xml.WriteStartElement("constraints");
 			foreach(var c in constraints) {
+				if(filter != null && !filter(c as SketchObject)) continue;
 				c.Write(xml);
 			}
 			xml.WriteEndElement();
 		}
 	}
 
-	public void Read(XmlNode xml) {
+	public Dictionary<Id, Id> idMapping = null;
+
+	public void Read(XmlNode xml, bool remap = false) {
 		Type[] types = { typeof(Sketch) };
 		object[] param = { this };
+
+		if(remap) {
+			idMapping = new Dictionary<Id, Id>();
+		}
+
 		foreach(XmlNode nodeKind in xml.ChildNodes) {
 			if(nodeKind.Name == "entities") {
 				foreach(XmlNode node in nodeKind.ChildNodes) {
@@ -442,6 +456,7 @@ public class Sketch : CADObject, ISketch  {
 					var type = node.Attributes["type"].Value;
 					var entity = Type.GetType(type).GetConstructor(types).Invoke(param) as Entity;
 					entity.Read(node);
+
 				}
 			}
 			if(nodeKind.Name == "constraints") {

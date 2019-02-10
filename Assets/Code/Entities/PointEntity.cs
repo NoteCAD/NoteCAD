@@ -163,6 +163,11 @@ public class PointEntity : Entity {
 		return dist;
 	}
 
+	protected override bool OnMarqueeSelect(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf) {
+		Vector2 pp = camera.WorldToScreenPoint(tf.MultiplyPoint(pos));
+		return rect.Contains(pp);
+	}
+
 	protected override void OnDraw(LineCanvas canvas) {
 		canvas.SetStyle("points");
 		canvas.DrawPoint(pos);

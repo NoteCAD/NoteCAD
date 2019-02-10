@@ -134,6 +134,12 @@ public class SketchFeatureBase : Feature {
 		canvas.UpdateDirty();
 	}
 
+
+	public override void MarqueeSelect(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf, ref List<ICADObject> result) {
+		var resTf = GetTransform() * tf;
+		sketch.MarqueeSelect(rect, wholeObject, camera, resTf, ref result);
+	}
+
 	public override ICADObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
 		double dist = -1;
 		var resTf = GetTransform() * tf;
@@ -175,6 +181,9 @@ public class SketchFeatureBase : Feature {
 
 	protected sealed override void OnWrite(XmlTextWriter xml) {
 		xml.WriteAttributeString("solveParent", solveParent.ToString());
+		if(shouldHoverWhenInactive) {
+			xml.WriteAttributeString("alwaysHover", shouldHoverWhenInactive.ToString());
+		}
 		OnWriteSketchFeatureBase(xml);
 		sketch.Write(xml);
 	}
@@ -186,6 +195,9 @@ public class SketchFeatureBase : Feature {
 	protected sealed override void OnRead(XmlNode xml) {
 		if(xml.Attributes["solveParent"] != null) {
 			solveParent = Convert.ToBoolean(xml.Attributes["solveParent"].Value);
+		}
+		if(xml.Attributes["alwaysHover"] != null) {
+			shouldHoverWhenInactive = Convert.ToBoolean(xml.Attributes["alwaysHover"].Value);
 		}
 		OnReadSketchFeatureBase(xml);
 		sketch.Read(xml);

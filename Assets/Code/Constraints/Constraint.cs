@@ -106,7 +106,7 @@ public class Constraint : SketchObject {
 		}
 		base.Write(xml);
 		foreach(var id in ids) {
-			xml.WriteStartElement("entity");
+			xml.WriteStartElement("link");
 			xml.WriteAttributeString("path", id.ToString());
 			xml.WriteEndElement();
 		}
@@ -121,9 +121,15 @@ public class Constraint : SketchObject {
 			optionInternal = output;
 		}
 		foreach(XmlNode node in xml.ChildNodes) {
-			if(node.Name != "entity") continue;
+			if(node.Name != "entity" && node.Name != "link") continue;
 			var path = IdPath.From(node.Attributes["path"].Value);
-			var o = sketch.feature.detail.GetObjectById(path);
+			ICADObject o = null;
+			if(sketch.idMapping != null) {
+				o = sketch.GetChild(sketch.idMapping[path.path.Last()]);
+			} else {
+				o = sketch.feature.detail.GetObjectById(path);
+			}
+				
 			AddObject(o);
 		}
 		base.Read(xml);
@@ -131,6 +137,14 @@ public class Constraint : SketchObject {
 
 	public IEntity GetEntity(int i) {
 		return sketch.feature.detail.GetObjectById(ids[i]) as IEntity;
+	}
+
+	public IEnumerable<ICADObject> objects {
+		get {
+			foreach(var id in ids) {
+				yield return sketch.feature.detail.GetObjectById(id) as ICADObject;
+			}
+		}
 	}
 
 	public Constraint GetConstraint(int i) {
@@ -490,6 +504,14 @@ public class Constraint : SketchObject {
 		return result;
 	}
 
+	protected override bool OnMarqueeSelect(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf) {
+		for(int i = 0; i < ref_points.Length; i++) {
+			Vector2 pp = camera.WorldToScreenPoint(tf.MultiplyPoint(ref_points[i]));
+			if(rect.Contains(pp)) return true;
+		}
+		return false;
+	}
+
 }
 
 [Serializable]
@@ -655,6 +677,16 @@ public class ValueConstraint : Constraint {
 		if(dist < 0f) return 0f;
 		return (distRp >= 0.0) ? Math.Min(dist, distRp) : dist;
 	}
+
+	protected override bool OnMarqueeSelect(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf) {
+		if(selectByRefPoints) {
+			if(base.OnMarqueeSelect(rect, wholeObject, camera, tf)) return true;
+		}
+		Vector2 pp = camera.WorldToScreenPoint(tf.MultiplyPoint(sketch.plane.ToPlane(pos)));
+		if(rect.Contains(pp)) return true;
+		return false;
+	}
+
 
 	protected void drawPointLineDistance(Vector3 lip0_, Vector3 lip1_, Vector3 p0_, LineCanvas renderer, Camera camera) {
 		

@@ -173,7 +173,7 @@ public class Tool : MonoBehaviour {
 		var index = text.IndexOf(hk, System.StringComparison.OrdinalIgnoreCase);
 		var openColor = "<color=\"#6ECEEFFF\">";
 		var closeColor = "</color>";
-		if(index < 0) return text + " [" + openColor + (ctrl ? "Ctrl+" : "") + hk  + closeColor + "]";
+		if(index < 0 || ctrl) return text + " [" + openColor + (ctrl ? "Ctrl+" : "") + hk  + closeColor + "]";
 		return text.Substring(0, index) + openColor + text[index] + closeColor + text.Substring(index + 1, text.Length - index - 1);
 	}
 

@@ -40,24 +40,35 @@ public class ToolBar : MonoBehaviour {
 		return results.Count > 0;
 	}
 
+	private bool IsInputFieldFocused() {
+		var cur = EventSystem.current.currentSelectedGameObject;
+		return cur != null && cur.GetComponent<InputField>() != null;
+	}
+
 	float doubleClickTime;
 	int doubleClickFrame;
 	void Update() {
 		doubleClickTime += Time.deltaTime;
 		doubleClickFrame++;
-		foreach(var t in tools) {
-			foreach(var hk in t.hotkeys) {
-				if(t.ctrl && !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightControl)) continue;
-				/*if(hk == KeyCode.Mouse1) {
-					if(CameraController.instance.WasMoved || !Input.GetKeyUp(hk)) {
+		if(!IsInputFieldFocused()) {
+			foreach(var t in tools) {
+				bool activated = false;
+				foreach(var hk in t.hotkeys) {
+					var ctrl = (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl));
+					if(t.ctrl != ctrl) continue;
+					/*if(hk == KeyCode.Mouse1) {
+						if(CameraController.instance.WasMoved || !Input.GetKeyUp(hk)) {
+							continue;
+						}
+					} else*/
+					if(!Input.GetKeyDown(hk)) {
 						continue;
 					}
-				} else*/
-				if(!Input.GetKeyDown(hk)) {
-					continue;
+					ActiveTool = t;
+					activated = true;
+					break;
 				}
-				ActiveTool = t;
-				break;
+				if(activated) break;
 			}
 		}
 		bool overUI = IsPointerOverUIObject();

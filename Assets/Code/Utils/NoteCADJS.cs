@@ -9,20 +9,20 @@ public class NoteCADJS : MonoBehaviour {
 
 #if !UNITY_WEBGL || UNITY_EDITOR
 
-	public static void SaveData(string data, string filename) {
-		var path = FileBrowser.SaveFile("Save NoteCAD file", "", filename, "");
+	public static void SaveData(string data, string filename, string ext) {
+		var path = FileBrowser.SaveFile("Save NoteCAD file", "", filename, ext);
 		//var path = UnityEditor.EditorUtility.SaveFilePanel("Save NoteCAD file", "", filename, "");
 		System.IO.File.WriteAllText(path, data);
 	}
 
-	public static void LoadData(Action<string> callback) {
-		var path = FileBrowser.OpenSingleFile("Load NoteCAD file", "", "");
+	public static void LoadData(Action<string> callback, string ext) {
+		var path = FileBrowser.OpenSingleFile("Load NoteCAD file", "", ext);
 		//var path = UnityEditor.EditorUtility.OpenFilePanel("Load NoteCAD file", "", "");
 		callback(System.IO.File.ReadAllText(path));
 	}
 
-	public static void LoadBinaryData(Action<byte[]> callback) {
-		var path = FileBrowser.OpenSingleFile("Load NoteCAD file", "", "");
+	public static void LoadBinaryData(Action<byte[]> callback, string ext) {
+		var path = FileBrowser.OpenSingleFile("Load NoteCAD file", "", ext);
 		//var path = UnityEditor.EditorUtility.OpenFilePanel("Load NoteCAD file", "", "");
 		callback(System.IO.File.ReadAllBytes(path));
 	}
@@ -30,13 +30,13 @@ public class NoteCADJS : MonoBehaviour {
 #else
 	
 	[DllImport("__Internal")]
-	public static extern void SaveData(string data, string filename);
+	public static extern void SaveData(string data, string filename, string ext);
 
 
 	[DllImport("__Internal")]
 	private static extern string LoadDataInternal();
 	private static Action<string> loadCallback;
-	public static void LoadData(Action<string> callback) {
+	public static void LoadData(Action<string> callback, string ext) {
 		loadCallback = callback;
 		LoadDataInternal();
 	}
@@ -50,7 +50,7 @@ public class NoteCADJS : MonoBehaviour {
 	[DllImport("__Internal")]
 	private static extern void LoadBinaryDataInternal();
 	private static Action<byte[]> loadBinaryCallback;
-	public static void LoadBinaryData(Action<byte[]> callback) {
+	public static void LoadBinaryData(Action<byte[]> callback, string ext) {
 		loadBinaryCallback = callback;
 		LoadBinaryDataInternal();
 	}

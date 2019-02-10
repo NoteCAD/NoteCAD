@@ -126,6 +126,16 @@ public class Detail : Feature {
 		return text.ToString();
 	}
 
+	public void MarqueeSelectUntil(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf, ref List<ICADObject> result, Feature feature) {
+		foreach(var f in features) {
+			if(!f.ShouldHoverWhenInactive() && !f.active) {
+				continue;
+			}
+			f.MarqueeSelect(rect, wholeObject, camera, tf, ref result);
+			if(f == feature) break;
+		}
+	}
+
 	public ICADObject HoverUntil(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist, Feature feature) {
 		double min = -1.0;
 		ICADObject result = null;
