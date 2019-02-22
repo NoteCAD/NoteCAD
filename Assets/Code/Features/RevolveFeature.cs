@@ -255,7 +255,7 @@ public class RevolveFeature : MeshFeature {
 		}
 	}
 
-	public Sketch sketch {
+	public Sketch sourceSketch {
 		get {
 			return (source as SketchFeature).GetSketch();
 		}
@@ -265,7 +265,7 @@ public class RevolveFeature : MeshFeature {
 		var result = base.GetChild(guid);
 		if(result != null) return result;
 
-		var entity = sketch.GetEntity(guid.WithoutSecond());
+		var entity = sourceSketch.GetEntity(guid.WithoutSecond());
 		if(guid.second == 2) return new RevolvedPointEntity(entity as PointEntity, this);
 		return new RevolvedEntity(entity, this, guid.second);
 	}
@@ -349,7 +349,7 @@ public class RevolveFeature : MeshFeature {
 			var prj = ExpVector.ProjectPointToLine(pos, o, o + ax);
 			if((prj - pos).magnitude < 1e-6) continue;
 
-			var ax1 = Vector3.Cross(sketch.plane.n, pos - prj);
+			var ax1 = Vector3.Cross(sourceSketch.plane.n, pos - prj);
 			shouldInvertAxis = (Vector3.Dot(ax, ax1) > 0f);
 			axisDirectionFound = true;
 			break;
@@ -363,7 +363,7 @@ public class RevolveFeature : MeshFeature {
 					var prj = ExpVector.ProjectPointToLine(pos, o, o + ax);
 					if((prj - pos).magnitude < 1e-6) continue;
 
-					var ax1 = Vector3.Cross(sketch.plane.n, pos - prj);
+					var ax1 = Vector3.Cross(sourceSketch.plane.n, pos - prj);
 					shouldInvertAxis = (Vector3.Dot(ax, ax1) > 0f);
 					axisDirectionFound = true;
 					break;
@@ -411,7 +411,7 @@ public class RevolveFeature : MeshFeature {
 		var points = sk.GetSketch().entityList.OfType<PointEntity>();
 		double min = -1.0;
 		IEntity hover = null;
-		var sktf = tf * sk.GetTransform();
+		//var sktf = tf * sk.GetTransform();
 		foreach(var p in points) {
 			var e = new RevolvedPointEntity(p, this);
 			double d = e.Hover(mouse, camera, tf);
@@ -422,7 +422,7 @@ public class RevolveFeature : MeshFeature {
 			hover = e;
 		}
 
-		foreach(var p in sketch.entityList) {
+		foreach(var p in sourceSketch.entityList) {
 			var e = new RevolvedEntity(p, this, 0);
 			double d = e.Hover(mouse, camera, tf);
 			if(d < 0) continue;
@@ -432,7 +432,7 @@ public class RevolveFeature : MeshFeature {
 			hover = e;
 		}
 
-		foreach(var p in sketch.entityList) {
+		foreach(var p in sourceSketch.entityList) {
 			var e = new RevolvedEntity(p, this, 1);
 			double d = e.Hover(mouse, camera, tf);
 			if(d < 0) continue;

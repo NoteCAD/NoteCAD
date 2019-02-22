@@ -31,9 +31,18 @@ public class MoveTool : Tool {
 		instance = this;
 	}
 
+	public static void ShiftObjects(IEnumerable<ICADObject> objs, Vector3 delta) {
+		foreach(var obj in objs) {
+			var sko = obj as SketchObject;
+			if(sko == null) continue;
+			if(!(sko is Entity) || (sko as Entity).type != IEntityType.Point) continue;
+			sko.Drag(delta);
+		}
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		ClearDrag();
-		if(!Input.GetKey(KeyCode.LeftShift) && !editor.IsSelected(sko)) DetailEditor.instance.selection.Clear();
+		if(!Input.GetKey(KeyCode.LeftShift) && !editor.IsSelected(sko)) editor.selection.Clear();
 		if(valueConstraint != null) return;
 		if(sko == null) {
 			rectSelection = true;
@@ -54,32 +63,35 @@ public class MoveTool : Tool {
 		if(count == 0) return;
 		editor.PushUndo();
 
-		DetailEditor.instance.suppressCombine = true;
-		DetailEditor.instance.suppressHovering = true;
+		editor.suppressCombine = true;
+		editor.suppressHovering = true;
 
-		dragXP.value = 0;
-		dragYP.value = 0;
-		dragZP.value = 0;
-		if(entity.IsCircular()) {
-			var dragR = entity.Radius().Drag(dragXP.exp);
-			DetailEditor.instance.AddDrag(dragR);
-			drag.Add(dragR);
-			firstClickCenter = entity.CenterInPlane(null).Eval();
-			deltaR = entity.Radius().Eval() - (firstClickCenter - worldClick).magnitude;
+		if(editor.selection.Count > 1) {
 		} else {
-			foreach(var ptExp in entity.points) {
-				var dragX = ptExp.x.Drag(dragXP.exp + ptExp.x.Eval());
-				var dragY = ptExp.y.Drag(dragYP.exp + ptExp.y.Eval());
-				var dragZ = ptExp.z.Drag(dragZP.exp + ptExp.z.Eval());
-				drag.Add(dragX);
-				drag.Add(dragY);
-				drag.Add(dragZ);
-				//Debug.Log("x: " + dragX);
-				//Debug.Log("y: " + dragY);
-				//Debug.Log("z: " + dragZ);
-				DetailEditor.instance.AddDrag(dragX);
-				DetailEditor.instance.AddDrag(dragY);
-				DetailEditor.instance.AddDrag(dragZ);
+			dragXP.value = 0;
+			dragYP.value = 0;
+			dragZP.value = 0;
+			if(entity.IsCircular()) {
+				var dragR = entity.Radius().Drag(dragXP.exp);
+				editor.AddDrag(dragR);
+				drag.Add(dragR);
+				firstClickCenter = entity.CenterInPlane(null).Eval();
+				deltaR = entity.Radius().Eval() - (firstClickCenter - worldClick).magnitude;
+			} else {
+				foreach(var ptExp in entity.points) {
+					var dragX = ptExp.x.Drag(dragXP.exp + ptExp.x.Eval());
+					var dragY = ptExp.y.Drag(dragYP.exp + ptExp.y.Eval());
+					var dragZ = ptExp.z.Drag(dragZP.exp + ptExp.z.Eval());
+					drag.Add(dragX);
+					drag.Add(dragY);
+					drag.Add(dragZ);
+					//Debug.Log("x: " + dragX);
+					//Debug.Log("y: " + dragY);
+					//Debug.Log("z: " + dragZ);
+					editor.AddDrag(dragX);
+					editor.AddDrag(dragY);
+					editor.AddDrag(dragZ);
+				}
 			}
 		}
 	}
@@ -87,10 +99,10 @@ public class MoveTool : Tool {
 	void ClearDrag() {
 		current = null;
 		foreach(var d in drag) {
-			DetailEditor.instance.RemoveDrag(d);
-			DetailEditor.instance.suppressCombine = false;
-			DetailEditor.instance.suppressHovering = false;
+			editor.RemoveDrag(d);
 		}
+		editor.suppressCombine = false;
+		editor.suppressHovering = false;
 		drag.Clear();
 		//canMove = true;
 	}
@@ -112,14 +124,17 @@ public class MoveTool : Tool {
 		
 		if(drag.Count > 0) {
 			if(current is IEntity && (current as IEntity).IsCircular()) {
-				var circle = current as IEntity;
 				dragXP.value = (firstClickCenter - WorldPlanePos).magnitude + deltaR;
 			} else {
 				dragXP.value += delta.x;
 				dragYP.value += delta.y;
 				dragZP.value += delta.z;
 			}
-		} else if(current is Constraint) {
+		} else if(editor.selection.Count > 1) {
+			var objs = editor.selection.Select(s => editor.GetDetail().GetObjectById(s));
+			ShiftObjects(objs, delta);
+		} else
+		if(current is Constraint) {
 			(current as Constraint).Drag(worldDelta);
 		}
 		click = pos;
@@ -129,7 +144,7 @@ public class MoveTool : Tool {
 	protected override void OnMouseUp(Vector3 pos, ICADObject sko) {
 		if(rectSelection) {
 			rectSelection = false;
-			DetailEditor.instance.MarqueeSelect(marqueeRect, rectInvertedX);
+			editor.MarqueeSelect(marqueeRect, rectInvertedX);
 		}
 		ClearDrag();
 	}

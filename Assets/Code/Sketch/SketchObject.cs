@@ -48,10 +48,6 @@ public abstract class SketchObject : CADObject, ICADObject {
 	Id guid_;
 	public override Id guid { get { return guid_; } }
 
-	public void SetGuid(Id guid) {
-		guid_ = guid;
-	}
-
 	public override CADObject parentObject {
 		get {
 			return sketch;
@@ -76,43 +72,14 @@ public abstract class SketchObject : CADObject, ICADObject {
 		OnDrag(delta);
 	}
 
-	Color oldColor;
-
 	bool hovered;
-	public bool isHovered {
-		get {
-			return hovered;
-		}
-		set {
-			if(value == hovered) return;
-			hovered = value;
-		}
-	}
+	public bool isHovered {	get { return hovered; }	set { hovered = value; } }
 
 	bool error;
-	public bool isError {
-		get {
-			return error;
-		}
-		set {
-			if(value == error) return;
-			if(value) {
-				isHovered = false;
-			}
-			error = value;
-		}
-	}
+	public bool isError { get { return error; } set { error = value; } }
 
 	bool selectable = true;
-	public bool isSelectable {
-		get {
-			return selectable;
-		}
-		set {
-			if(value == selectable) return;
-			selectable = value;
-		}
-	}
+	public bool isSelectable { get { return selectable; } set { selectable = value; } }
 
 	public virtual void Destroy() {
 		if(isDestroyed) return;

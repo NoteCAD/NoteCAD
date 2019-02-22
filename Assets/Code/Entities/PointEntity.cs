@@ -51,12 +51,16 @@ public class PointEntity : Entity {
 		}
 	}
 
+	ExpVector exp_;
 	public ExpVector exp {
 		get {
-			if(transform != null) {
-				return transform(new ExpVector(x, y, z));
+			if(exp_ == null) {
+				exp_ = new ExpVector(x, y, z);
 			}
-			return new ExpVector(x, y, z);
+			if(transform != null) {
+				return transform(exp_);
+			}
+			return exp_;
 		}
 	}
 

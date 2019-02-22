@@ -5,7 +5,7 @@ using UnityEngine;
 public class LengthTool : Tool {
 
 	ValueConstraint constraint;
-	Vector3 click;
+	//Vector3 click;
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		/*
@@ -21,7 +21,7 @@ public class LengthTool : Tool {
 			editor.PushUndo();
 			constraint = new Length(DetailEditor.instance.currentSketch.GetSketch(), entity);
 			//constraint.pos = WorldPlanePos;
-			click = WorldPlanePos;
+			//click = WorldPlanePos;
 			MoveTool.instance.EditConstraintValue(constraint, pushUndo:false);
 			constraint = null;
 		}

@@ -185,7 +185,7 @@ public class ExtrusionFeature : MeshFeature {
 	public Param extrude = new Param("e", 5.0);
 	GameObject go;
 
-	public Sketch sketch {
+	public Sketch sourceSketch {
 		get {
 			return (source as SketchFeature).GetSketch();
 		}
@@ -201,7 +201,7 @@ public class ExtrusionFeature : MeshFeature {
 		var result = base.GetChild(guid);
 		if(result != null) return result;
 
-		var entity = sketch.GetEntity(guid.WithoutSecond());
+		var entity = sourceSketch.GetEntity(guid.WithoutSecond());
 		if(guid.second == 2) return new ExtrudedPointEntity(entity as PointEntity, this);
 		return new ExtrudedEntity(entity, this, guid.second);
 	}

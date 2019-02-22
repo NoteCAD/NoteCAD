@@ -45,8 +45,6 @@ public class CirclesDistance : ValueConstraint {
 			var c1 = GetEntity(1);
 			var r0 = c0.Radius();
 			var r1 = c1.Radius();
-			var cp0 = getCenterPoint(c0);
-			var cp1 = getCenterPoint(c1);
 			if(isCentersCoincident(c0, c1)) {
 				if(option == Option.FirstInside) {
 					yield return r0 - r1 - value.exp;

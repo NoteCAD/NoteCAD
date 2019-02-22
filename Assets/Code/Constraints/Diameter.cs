@@ -34,7 +34,6 @@ public class Diameter : ValueConstraint {
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
-		var pl = getPlane();
 		var p = GetEntity(0).CenterInPlane(null).Eval();
 		var lo = getPlane().projectVectorInto(getLabelOffset());
 		var dir = (lo - p).normalized;
@@ -45,7 +44,6 @@ public class Diameter : ValueConstraint {
 		
 		if(showAsRadius) {
 			var rpt = p + dir * r;
-			var rdir = lo - rpt;
 			drawPointsDistance(p, p + dir * r, canvas, Camera.main, arrow0: false, arrow1: true);
 			canvas.DrawLine(rpt, lo);
 		} else {

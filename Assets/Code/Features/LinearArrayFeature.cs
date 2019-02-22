@@ -134,7 +134,7 @@ public class LinearArrayFeature : SketchFeature {
 	*/
 	public ExpVector shiftDir {
 		get {
-			var skf = source as SketchFeature;
+			//var skf = source as SketchFeature;
 			return new ExpVector(dx, dy, 0f);
 		}
 	}
@@ -253,9 +253,9 @@ public class LinearArrayFeature : SketchFeature {
 	}
 
 	public void DrawGizmos(Vector3 mouse, Camera camera) {
-		var ray = camera.ScreenPointToRay(mouse);
-		HashSet<int> hits = new HashSet<int>();
 		drawGizmos = true;
+		//HashSet<int> hits = new HashSet<int>();
+		//var ray = camera.ScreenPointToRay(mouse);
 		//FindHits(ray, 0, repeatCount - 1, ref hits);
 		double dist = 0;
 		OnHover(mouse, camera, Matrix4x4.identity, ref dist);

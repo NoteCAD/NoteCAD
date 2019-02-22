@@ -38,7 +38,7 @@ public static class MeshUtils {
 	public static void DrawTriangulation(List<List<Vector3>> polygons, LineCanvas canvas) {
 		foreach(var p in polygons) {
 			var pv = new List<Vector3>(p);
-			var triangles = Triangulation.Triangulate(pv, canvas);
+			/*var triangles = */Triangulation.Triangulate(pv, canvas);
 		}
 	}
 
@@ -177,7 +177,7 @@ public static class MeshUtils {
 		if(!isHelix && Mathf.Abs(angle) > 360f) angle = Mathf.Sign(angle) * 360f;
 		bool inversed = angle < 0f;
 		int subdiv = (int)Mathf.Ceil(Math.Abs(angle) / angleStep);
-		var drot = UnityEngine.Matrix4x4.Translate(origin) * UnityEngine.Matrix4x4.Rotate(Quaternion.AngleAxis(angle / subdiv, axis)) * UnityEngine.Matrix4x4.Translate(-origin);
+		//var drot = UnityEngine.Matrix4x4.Translate(origin) * UnityEngine.Matrix4x4.Rotate(Quaternion.AngleAxis(angle / subdiv, axis)) * UnityEngine.Matrix4x4.Translate(-origin);
 
 		Func<float, Vector3, Vector3> PointOn = (float a, Vector3 point) => {
 			var ax = axis;

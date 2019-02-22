@@ -49,8 +49,8 @@ public class PointsDistance : ValueConstraint {
 	}
 
 	protected override void OnDraw(LineCanvas canvas) {
-		Vector3 p0p = GetPointInPlane(0, null).Eval();
-		Vector3 p1p = GetPointInPlane(1, null).Eval();
+		Vector3 p0p = GetPointPosInPlane(0, null);
+		Vector3 p1p = GetPointPosInPlane(1, null);
 		drawPointsDistance(p0p, p1p, canvas, Camera.main, false, true, true, 0);
 	}
 

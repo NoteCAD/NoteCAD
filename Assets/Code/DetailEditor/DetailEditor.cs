@@ -23,6 +23,9 @@ public class DetailEditor : MonoBehaviour {
 	}
 
 	Detail detail;
+
+	public Detail GetDetail() { return detail; }
+
 	public UndoRedo undoRedo;
 
 	public GameObject labelParent;
@@ -447,12 +450,7 @@ public class DetailEditor : MonoBehaviour {
 		sk.idMapping = null;
 
 		var objs = result.Select(o => sk.GetChild(o.Value)).ToList();
-		foreach(var obj in objs) {
-			var sko = obj as SketchObject;
-			if(sko == null) continue;
-			if(!(sko is Entity) || (sko as Entity).type != IEntityType.Point) continue;
-			sko.Drag(delta);
-		}
+		MoveTool.ShiftObjects(objs, delta);
 
 		return objs.Select(o => o.id).ToList();
 	}

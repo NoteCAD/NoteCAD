@@ -40,6 +40,16 @@ public struct Id {
 		if(second == 0) return value.ToString("X");
 		return value.ToString("X") + ":" + second.ToString("X");
 	}
+
+	public override int GetHashCode() {
+		return (int)value;
+	}
+
+	public override bool Equals(object obj) {
+		var o = (Id)obj;
+		if(o == this) return true;
+		return value == o.value && second == o.second;
+	}
 }
 
 public class IdGenerator {

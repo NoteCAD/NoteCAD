@@ -66,7 +66,7 @@ public class DistanceTool : Tool {
 						e0 = null;
 					} else 
 					if(arc != null && arc.c.IsCoincidentWith(e0)) {
-						var c = SpawnConstraint(() => new Diameter(DetailEditor.instance.currentSketch.GetSketch(), arc));
+						/*var c = */SpawnConstraint(() => new Diameter(DetailEditor.instance.currentSketch.GetSketch(), arc));
 						e0 = null;
 					} else {
 						SpawnConstraint(() => new PointCircleDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));

@@ -240,14 +240,6 @@ public abstract partial class Entity : SketchObject, IEntity {
 		return children.Count;
 	}
 
-	public Id GetChildGuid(int i) {
-		return children[i].guid;
-	}
-
-	public void SetChildGuid(int i, Id guid) {
-		children[i].SetGuid(guid);
-	}
-
 	IEnumerable<ExpVector> IEntity.points {
 		get {
 			for(var it = points.GetEnumerator(); it.MoveNext(); ) {
