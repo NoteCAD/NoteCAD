@@ -45,4 +45,9 @@ public struct BBox {
 
 		return true;
 	}
+
+	public void Include(Vector3 p) {
+		min = new Vector3(Mathf.Min(min.x, p.x), Mathf.Min(min.y, p.y), Mathf.Min(min.z, p.z));
+		max = new Vector3(Mathf.Max(max.x, p.x), Mathf.Max(max.y, p.y), Mathf.Max(max.z, p.z));
+	}
 }

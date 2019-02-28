@@ -210,16 +210,6 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		return basis.TransformPosition(GetExpClone(newt));
 	}
 
-	public override ExpVector TangentAt(Exp t) {
-		Param p = new Param("pOn");
-		var pt = PointOn(p);
-		var result = new ExpVector(pt.x.Deriv(p), pt.y.Deriv(p), pt.z.Deriv(p));
-		result.x.Substitute(p, t);
-		result.y.Substitute(p, t);
-		result.z.Substitute(p, t);
-		return result;
-	}
-	
 	public override Exp Length() {
 		return null;
 	}

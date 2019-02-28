@@ -15,6 +15,9 @@ public class ExpParser {
         { "sign",	Exp.Op.Sign },
         { "acos",	Exp.Op.ACos },
         { "asin",	Exp.Op.Cos },
+        { "exp",	Exp.Op.Exp },
+        { "sinh",	Exp.Op.Sinh },
+        { "cosh",	Exp.Op.Cosh },
     };
     
     Dictionary <char, Exp.Op> operators = new Dictionary<char, Exp.Op> {

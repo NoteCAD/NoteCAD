@@ -309,13 +309,15 @@ public class DetailEditor : MonoBehaviour {
 	}
 
 	void DrawCadObject(ICADObject obj, string style) {
+		var sko = obj as SketchObject;
+		if(sko != null && !sko.isVisible) return;
 		var he = obj as IEntity;
 		canvas.SetStyle((he != null && he.type == IEntityType.Point) ? style + "Points" : style);
 		if(he != null) {
 			canvas.DrawSegments((obj as IEntity).SegmentsInPlane(null));
 		} else
-		if(obj is SketchObject) {
-			(obj as SketchObject).Draw(canvas);
+		if(sko != null) {
+			sko.Draw(canvas);
 		}
 	}
 
@@ -340,6 +342,7 @@ public class DetailEditor : MonoBehaviour {
 		if(activeFeature is SketchFeatureBase) {
 			var sk = activeFeature as SketchFeatureBase;
 			foreach(var c in sk.GetSketch().constraintList) {
+				if(!c.isVisible) continue;
 				if(!(c is ValueConstraint)) continue;
 				var constraint = c as ValueConstraint;
 				if(!constraint.valueVisible) continue;

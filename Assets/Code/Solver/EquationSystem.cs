@@ -8,7 +8,8 @@ public class EquationSystem  {
 	public enum SolveResult {
 		OKAY,
 		DIDNT_CONVEGE,
-		REDUNDANT
+		REDUNDANT,
+		POSTPONE
 	}
 
 	bool isDirty = true;
@@ -88,7 +89,7 @@ public class EquationSystem  {
 			}
 			if(Math.Abs(B[i]) < GaussianMethod.epsilon) continue;
 			if(printNonConverged) {
-				Debug.Log("Not converged: " + equations[i].ToString());
+				//Debug.Log("Not converged: " + equations[i].ToString());
 				continue;
 			}
 			return false;
@@ -273,6 +274,12 @@ public class EquationSystem  {
 		do {
 			bool isDragStep = steps <= dragSteps;
 			Eval(ref B, clearDrag: !isDragStep);
+			/*
+			if(steps > 0) {
+				BackSubstitution(subs);
+				return SolveResult.POSTPONE;
+			}
+			*/
 			if(IsConverged(checkDrag: isDragStep)) {
 				if(steps > 0) {
 					dofChanged = true;

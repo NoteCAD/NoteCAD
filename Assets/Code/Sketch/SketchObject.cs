@@ -44,6 +44,7 @@ public abstract class SketchObject : CADObject, ICADObject {
 	Sketch sk;
 	public Sketch sketch { get { return sk; } }
 	public bool isDestroyed { get; private set; }
+	public bool isVisible = true;
 
 	Id guid_;
 	public override Id guid { get { return guid_; } }
@@ -94,6 +95,7 @@ public abstract class SketchObject : CADObject, ICADObject {
 
 	public virtual void Write(XmlTextWriter xml) {
 		xml.WriteAttributeString("id", guid.ToString());
+		if(isVisible == false) xml.WriteAttributeString("visible", isVisible.ToString());
 		OnWrite(xml);
 	}
 
@@ -103,6 +105,7 @@ public abstract class SketchObject : CADObject, ICADObject {
 
 	public virtual void Read(XmlNode xml) {
 		var newGuid = sketch.idGenerator.Create(xml.Attributes["id"].Value);
+		if(xml.Attributes["visible"] != null) isVisible = Convert.ToBoolean(xml.Attributes["visible"].Value);
 		if(sketch.idMapping != null) {
 			sketch.idMapping[newGuid] = guid_;
 		} else {

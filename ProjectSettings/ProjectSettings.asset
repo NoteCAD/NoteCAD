@@ -592,7 +592,7 @@ PlayerSettings:
   webGLTemplate: PROJECT:NoteCAD2
   webGLAnalyzeBuildSize: 0
   webGLUseEmbeddedResources: 0
-  webGLCompressionFormat: 0
+  webGLCompressionFormat: 1
   webGLLinkerTarget: 2
   webGLThreadsSupport: 0
   scriptingDefineSymbols:

@@ -251,6 +251,7 @@ public class Sketch : CADObject  {
 		SketchObject hoveredObject = null;
 		foreach(var en in entities) {
 			var e = en.Value;
+			if(!e.isVisible) continue;
 			if(!e.isSelectable) continue;
 			var dist = e.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
@@ -262,6 +263,7 @@ public class Sketch : CADObject  {
 
 		Dictionary<Constraint, double> candidates = new Dictionary<Constraint, double>();
 		foreach(var c in constraints.Values) {
+			if(!c.isVisible) continue;
 			if(!c.isSelectable) continue;
 			var dist = c.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
@@ -438,8 +440,6 @@ public class Sketch : CADObject  {
 	public Dictionary<Id, Id> idMapping = null;
 
 	public void Read(XmlNode xml, bool remap = false) {
-		Type[] types = { typeof(Sketch) };
-		object[] param = { this };
 
 		if(remap) {
 			idMapping = new Dictionary<Id, Id>();
@@ -450,7 +450,7 @@ public class Sketch : CADObject  {
 				foreach(XmlNode node in nodeKind.ChildNodes) {
 					if(node.Name != "entity") continue;
 					var type = node.Attributes["type"].Value;
-					var entity = Type.GetType(type).GetConstructor(types).Invoke(param) as Entity;
+					var entity = Entity.New(type, this);
 					entity.Read(node);
 				}
 				var oldEntities = entities.Values.ToList();
@@ -463,12 +463,7 @@ public class Sketch : CADObject  {
 				foreach(XmlNode node in nodeKind.ChildNodes) {
 					if(node.Name != "constraint") continue;
 					var typeName = node.Attributes["type"].Value;
-					var type = Type.GetType(typeName);
-					if(type == null) {
-						Debug.LogError("Can't create constraint of type " + typeName);
-						continue;
-					}
-					var constraint = type.GetConstructor(types).Invoke(param) as Constraint;
+					var constraint = Constraint.New(typeName, this);
 					constraint.Read(node);
 				}
 				var oldConstraints = constraints.Values.ToList();

@@ -55,6 +55,10 @@ public class Exp {
 		Neg,
 		Pos,
 		Drag,
+		Exp,
+		Sinh,
+		Cosh,
+
 		//Pow,
 	}
 
@@ -150,6 +154,9 @@ public class Exp {
 	static public Exp Abs  (Exp x) { return new Exp(Op.Abs,   x, null); }
 	static public Exp Sign (Exp x) { return new Exp(Op.Sign,  x, null); }
 	static public Exp Atan2(Exp x, Exp y) { return new Exp(Op.Atan2, x, y); }
+	static public Exp Expo (Exp x) { return new Exp(Op.Exp,   x, null); }
+	static public Exp Sinh (Exp x) { return new Exp(Op.Sinh,  x, null); }
+	static public Exp Cosh (Exp x) { return new Exp(Op.Cosh,  x, null); }
 	//static public Exp Pow  (Exp x, Exp y) { return new Exp(Op.Pow,   x, y); }
 
 	public Exp Drag(Exp to) {
@@ -183,6 +190,9 @@ public class Exp {
 			case Op.Sign:	return Math.Sign(a.Eval());
 			case Op.Neg:	return -a.Eval();
 			case Op.Pos:	return a.Eval();
+			case Op.Exp:	return Math.Exp(a.Eval());
+			case Op.Sinh:	return Math.Sinh(a.Eval());
+			case Op.Cosh:	return Math.Cosh(a.Eval());
 			//case Op.Pow:	return Math.Pow(a.Eval(), b.Eval());
 		}
 		return 0.0;
@@ -208,6 +218,9 @@ public class Exp {
 			case Op.Sign:
 			case Op.Neg:
             case Op.Pos:
+			case Op.Exp:
+			case Op.Cosh:
+			case Op.Sinh:
 				return true;
 		}
 		return false;
@@ -253,6 +266,9 @@ public class Exp {
 			case Op.Neg:	return "-" + a.Quoted();
 			case Op.Pos:	return "+" + a.Quoted();
 			case Op.Drag:   return a.ToString() + " ≈ " + b.QuotedAdd();
+			case Op.Exp:	return "exp(" + a.ToString() + ")";
+			case Op.Sinh:	return "sinh(" + a.ToString() + ")";
+			case Op.Cosh:	return "cosh(" + a.ToString() + ")";
 			//case Op.Pow:	return Quoted(a) + " ^ " + Quoted(b);
 		}
 		return "";
@@ -292,6 +308,9 @@ public class Exp {
 			case Op.Sign:	return zero;
 			case Op.Neg:    return -a.d(p);
 			case Op.Atan2:	return (b * a.d(p) - a * b.d(p)) / (Sqr(a) + Sqr(b));
+			case Op.Exp:	return a.d(p) * Expo(a);
+			case Op.Sinh:	return a.d(p) * Cosh(a);
+			case Op.Cosh:	return a.d(p) * Sinh(a);
 		}
 		return zero;
 	}

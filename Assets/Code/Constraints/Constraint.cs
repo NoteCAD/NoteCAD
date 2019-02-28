@@ -512,6 +512,16 @@ public class Constraint : SketchObject {
 		return false;
 	}
 
+	public static Constraint New(string typeName, Sketch sk) {
+		Type[] types = { typeof(Sketch) };
+		object[] param = { sk };
+		var type = Type.GetType(typeName);
+		if(type == null) {
+			Debug.LogError("Can't create entity of type " + typeName);
+			return null;
+		}
+		return type.GetConstructor(types).Invoke(param) as Constraint;
+	}
 }
 
 [Serializable]

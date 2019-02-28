@@ -11,7 +11,10 @@ public enum IEntityType {
 	Circle,
 	Helix,
 	Plane,
-	Function
+	Function,
+	Spline,
+	Ellipse,
+	EllipticArc
 }
 
 public interface IEntity : ICADObject {
@@ -256,9 +259,24 @@ public abstract partial class Entity : SketchObject, IEntity {
 		}
 	}
 
+	protected IEnumerable<Vector3> getSegmentsUsingPointOn(int subdiv) {
+		Param pOn = new Param("pOn");
+		var on = PointOn(pOn);
+		for(int i = 0; i <= subdiv; i++) {
+			pOn.value = (double)i / subdiv;
+			yield return on.Eval();
+		}
+	}
+
+	protected IEnumerable<Vector3> getSegments(int subdiv, Func<double, Vector3> pointOn) {
+		for (int i = 0; i <= subdiv; i++) {
+			yield return pointOn((double)i / subdiv);
+		}
+	}
+
 	public abstract ExpVector PointOn(Exp t);
 
-	protected T AddChild<T>(T e) where T : Entity {
+	public T AddChild<T>(T e) where T : Entity {
 		children.Add(e);
 		e.parent = this;
 		return e;
@@ -305,13 +323,18 @@ public abstract partial class Entity : SketchObject, IEntity {
 		base.Read(xml);
 		int i = 0;
 		foreach(XmlNode xmlChild in xml.ChildNodes) {
+			if(children.Count <= i) {
+				var type = xmlChild.Attributes["type"].Value;
+				AddChild(New(type, sketch));
+			}
 			children[i].Read(xmlChild);
 			i++;
 		}
 	}
 
 	public virtual bool IsCrossed(Entity e, ref Vector3 itr) {
-		if(!e.bbox.Overlaps(bbox)) return false;
+		var boxZero = new BBox(Vector3.zero, Vector3.zero);
+		if(!e.bbox.Overlaps(bbox) && !e.bbox.Equals(boxZero) && !bbox.Equals(boxZero)) return false;
 		if(this is ISegmentaryEntity && e is ISegmentaryEntity) {
 			var self = this as ISegmentaryEntity;
 			var entity = e as ISegmentaryEntity;
@@ -325,6 +348,7 @@ public abstract partial class Entity : SketchObject, IEntity {
 					foreach(var ep in entity.segmentPoints) {
 						if(!otherFirst) {
 							if(GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f) == GeomUtils.Cross.INTERSECTION) {
+								if(this as Entity == e && selfPrev == otherPrev && sp == ep) continue;
 								return true;
 							}
 						}
@@ -456,7 +480,15 @@ public abstract partial class Entity : SketchObject, IEntity {
 		});
 	}
 
-	public abstract ExpVector TangentAt(Exp t);
+	public virtual ExpVector TangentAt(Exp t) {
+		Param p = new Param("pOn");
+		var pt = PointOn(p);
+		var result = new ExpVector(pt.x.Deriv(p), pt.y.Deriv(p), pt.z.Deriv(p));
+		result.x.Substitute(p, t);
+		result.y.Substitute(p, t);
+		result.z.Substitute(p, t);
+		return result;
+	}
 
 	public abstract Exp Length();
 	public abstract Exp Radius();
@@ -464,6 +496,18 @@ public abstract partial class Entity : SketchObject, IEntity {
 	public virtual ExpVector Center() {
 		return null;
 	}
+
+	public static Entity New(string typeName, Sketch sk) {
+		Type[] types = { typeof(Sketch) };
+		object[] param = { sk };
+		var type = Type.GetType(typeName);
+		if(type == null) {
+			Debug.LogError("Can't create entity of type " + typeName);
+			return null;
+		}
+		return type.GetConstructor(types).Invoke(param) as Entity;
+	}
+
 }
 
 public interface ISegmentaryEntity {

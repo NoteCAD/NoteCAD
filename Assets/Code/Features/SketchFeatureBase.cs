@@ -109,6 +109,7 @@ public class SketchFeatureBase : Feature {
 		canvas.ClearStyle("constraints");
 		canvas.SetStyle("constraints");
 		foreach(var c in sketch.constraintList) {
+			if(!c.isVisible) continue;
 			c.Draw(canvas);
 		}
 	}
@@ -127,6 +128,7 @@ public class SketchFeatureBase : Feature {
 	
 		canvas.SetStyle("entities");
 		foreach(var e in sketch.entityList) {
+			if(!e.isVisible) continue;
 			e.Draw(canvas);
 		}
 

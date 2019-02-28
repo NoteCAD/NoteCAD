@@ -134,6 +134,13 @@ public class ExpBasis2d {
 		v = new ExpVector(vx, vy, 0.0);
 	}
 
+	public void SetPosParams(Param x, Param y) {
+		px = x;
+		py = y;
+		p.x = px;
+		p.y = py;
+	}
+
 	/*
 	public Matrix4x4 matrix {
 		get {

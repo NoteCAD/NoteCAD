@@ -22,6 +22,16 @@ public class LineCanvas : DraftStroke {
 		}
 	}
 
+	public void DrawSegmentsAsPoints(IEnumerable<Vector3> points) {
+		if(points == null) return;
+		int count = 0;
+		foreach(var ep in points) {
+			DrawPoint(ep);
+			count++;
+		}
+		Debug.Log("count : " + count);
+	}
+
 	public void DrawArc(Vector3 p0, Vector3 p1, Vector3 c, Vector3 vz, int subdiv = 32) {
 
 		float angle = Mathf.Acos(Vector3.Dot((p0 - c).normalized, (p1 - c).normalized)) * Mathf.Rad2Deg;
