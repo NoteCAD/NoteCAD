@@ -58,6 +58,8 @@ public class Exp {
 		Exp,
 		Sinh,
 		Cosh,
+		SFres,
+		CFres,
 
 		//Pow,
 	}
@@ -145,18 +147,69 @@ public class Exp {
 		return new Exp(Op.Neg, a, null);
 	}
 
-	static public Exp Sin  (Exp x) { return new Exp(Op.Sin,   x, null); }
-	static public Exp Cos  (Exp x) { return new Exp(Op.Cos,   x, null); }
-	static public Exp ACos (Exp x) { return new Exp(Op.ACos,  x, null); }
-	static public Exp ASin (Exp x) { return new Exp(Op.ASin,  x, null); }
-	static public Exp Sqrt (Exp x) { return new Exp(Op.Sqrt,  x, null); }
-	static public Exp Sqr  (Exp x) { return new Exp(Op.Sqr,   x, null); }
-	static public Exp Abs  (Exp x) { return new Exp(Op.Abs,   x, null); }
-	static public Exp Sign (Exp x) { return new Exp(Op.Sign,  x, null); }
-	static public Exp Atan2(Exp x, Exp y) { return new Exp(Op.Atan2, x, y); }
-	static public Exp Expo (Exp x) { return new Exp(Op.Exp,   x, null); }
-	static public Exp Sinh (Exp x) { return new Exp(Op.Sinh,  x, null); }
-	static public Exp Cosh (Exp x) { return new Exp(Op.Cosh,  x, null); }
+	// https://www.hindawi.com/journals/mpe/2018/4031793/
+	public static double CFres(double x) {
+		
+		var PI = Math.PI;
+		var ax = Math.Abs(x);
+		var ax2 = ax * ax;
+		var ax3 = ax2 * ax;
+		var x3 = x * x * x;
+		/*
+		return (
+			-Math.Sin(PI * ax2 / 2.0) / 
+			(PI * (x + 20.0 * PI * Math.Exp(-200.0 * PI * Math.Sqrt(ax))))
+
+			+ 8.0 / 25.0 * (1.0 - Math.Exp(-69.0 / 100.0     * PI * x3))
+			+ 2.0 / 25.0 * (1.0 - Math.Exp(-9.0 / 2.0        * PI * ax2))
+			+ 1.0 / 10.0 * (1.0 - Math.Exp(-1.55294068198794 * PI * x ))
+		) * Math.Sign(x);
+		
+		*/
+		return Math.Sign(x) * (
+			 1.0 / 2.0 + ((1 + 0.926 * ax) / (2 + 1.792 * ax + 3.104 * ax2)) * Math.Sin(Math.PI * ax2 / 2)
+			-(1 / (2 + 4.142 * ax + 3.492 * ax2 + 6.67 * ax3)) * Math.Cos(Math.PI * ax2 / 2)
+		);
+	}
+
+	public static double SFres(double x) {
+		
+		var PI = Math.PI;
+		var ax = Math.Abs(x);
+		var ax2 = ax * ax;
+		var ax3 = ax2 * ax;
+
+		/*
+		return (
+			-Math.Cos(PI * ax2 / 2.0) / 
+			(PI * (ax + 16.7312774552827 * PI * Math.Exp(-1.57638860756614 * PI * Math.Sqrt(ax))))
+
+			+ 8.0 / 25.0 * (1.0 - Math.Exp(-0.608707749430681 * PI * ax3))
+			+ 2.0 / 25.0 * (1.0 - Math.Exp(-1.71402838165388  * PI * ax2))
+			+ 1.0 / 10.0 * (1.0 - Math.Exp(-9.0 / 10.0        * PI * ax ))
+		) * Math.Sign(x);
+		*/
+		return Math.Sign(x) * (
+			1.0 / 2.0 - ((1 + 0.926 * ax) / (2 + 1.792 * ax + 3.104 * ax2)) * Math.Cos(Math.PI * ax2 / 2)
+			-(1 / (2 + 4.142 + 3.492 * ax2 + 6.67 * ax3)) * Math.Sin(Math.PI * ax2 / 2)
+		);
+	}
+
+	
+	static public Exp Sin	(Exp x) { return new Exp(Op.Sin,	x, null); }
+	static public Exp Cos	(Exp x) { return new Exp(Op.Cos,	x, null); }
+	static public Exp ACos	(Exp x) { return new Exp(Op.ACos,	x, null); }
+	static public Exp ASin	(Exp x) { return new Exp(Op.ASin,	x, null); }
+	static public Exp Sqrt	(Exp x) { return new Exp(Op.Sqrt,	x, null); }
+	static public Exp Sqr	(Exp x) { return new Exp(Op.Sqr,	x, null); }
+	static public Exp Abs	(Exp x) { return new Exp(Op.Abs,	x, null); }
+	static public Exp Sign	(Exp x) { return new Exp(Op.Sign,	x, null); }
+	static public Exp Atan2	(Exp x, Exp y) { return new Exp(Op.Atan2, x, y); }
+	static public Exp Expo	(Exp x) { return new Exp(Op.Exp,	x, null); }
+	static public Exp Sinh	(Exp x) { return new Exp(Op.Sinh,	x, null); }
+	static public Exp Cosh	(Exp x) { return new Exp(Op.Cosh,	x, null); }
+	static public Exp SFres	(Exp x) { return new Exp(Op.SFres,	x, null); }
+	static public Exp CFres	(Exp x) { return new Exp(Op.CFres,	x, null); }
 	//static public Exp Pow  (Exp x, Exp y) { return new Exp(Op.Pow,   x, y); }
 
 	public Exp Drag(Exp to) {
@@ -193,6 +246,8 @@ public class Exp {
 			case Op.Exp:	return Math.Exp(a.Eval());
 			case Op.Sinh:	return Math.Sinh(a.Eval());
 			case Op.Cosh:	return Math.Cosh(a.Eval());
+			case Op.SFres:	return SFres(a.Eval());
+			case Op.CFres:	return CFres(a.Eval());
 			//case Op.Pow:	return Math.Pow(a.Eval(), b.Eval());
 		}
 		return 0.0;
@@ -217,10 +272,12 @@ public class Exp {
 			case Op.Abs:
 			case Op.Sign:
 			case Op.Neg:
-            case Op.Pos:
+			case Op.Pos:
 			case Op.Exp:
 			case Op.Cosh:
 			case Op.Sinh:
+			case Op.CFres:
+			case Op.SFres:
 				return true;
 		}
 		return false;
@@ -269,6 +326,8 @@ public class Exp {
 			case Op.Exp:	return "exp(" + a.ToString() + ")";
 			case Op.Sinh:	return "sinh(" + a.ToString() + ")";
 			case Op.Cosh:	return "cosh(" + a.ToString() + ")";
+			case Op.SFres:	return "sfres(" + a.ToString() + ")";
+			case Op.CFres:	return "cfres(" + a.ToString() + ")";
 			//case Op.Pow:	return Quoted(a) + " ^ " + Quoted(b);
 		}
 		return "";
@@ -311,6 +370,8 @@ public class Exp {
 			case Op.Exp:	return a.d(p) * Expo(a);
 			case Op.Sinh:	return a.d(p) * Cosh(a);
 			case Op.Cosh:	return a.d(p) * Sinh(a);
+			case Op.SFres:	return a.d(p) * Sin(Math.PI * Sqr(a) / 2.0);
+			case Op.CFres:	return a.d(p) * Cos(Math.PI * Sqr(a) / 2.0);
 		}
 		return zero;
 	}
