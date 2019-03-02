@@ -106,7 +106,7 @@ public class PointEntity : Entity {
 			if(c == null) continue;
 			var p = c.GetOtherPoint(this);
 			PointOn pOn1 = null;
-			if(!p.IsSameAs(exclude) && p is PointEntity && (p as PointEntity).IsCoincidentWithCurve(curve, ref pOn, this)) {
+			if(!p.IsSameAs(exclude) && p is PointEntity && (p as PointEntity).IsCoincidentWithCurve(curve, ref pOn1, this)) {
 				 pOn = pOn1;
 				return true;
 			}
