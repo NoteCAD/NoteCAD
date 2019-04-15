@@ -19,7 +19,7 @@ public class CircleTool : Tool {
 
 		if(DetailEditor.instance.currentSketch == null) return;
 		editor.PushUndo();
-		current = new CircleEntity(DetailEditor.instance.currentSketch.GetSketch());
+		current = SpawnEntity(new CircleEntity(DetailEditor.instance.currentSketch.GetSketch()));
 		current.center.pos = pos;
 		AutoConstrainCoincident(current.center, sko as IEntity);
 
@@ -29,7 +29,7 @@ public class CircleTool : Tool {
 
 	protected override void OnMouseMove(Vector3 pos, ICADObject entity) {
 		if(current != null) {
-			current.radius.value = (current.center.pos - pos).magnitude;
+			current.r.value = (current.center.pos - pos).magnitude;
 			//var itr = new Vector3();
 			canCreate = true;//!current.sketch.IsCrossed(current, ref itr);
 			current.isError = !canCreate;

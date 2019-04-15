@@ -28,7 +28,7 @@ public class EllipseTool : Tool {
 
 		if(DetailEditor.instance.currentSketch == null) return;
 		editor.PushUndo();
-		current = new EllipseEntity(DetailEditor.instance.currentSketch.GetSketch());
+		current = SpawnEntity(new EllipseEntity(DetailEditor.instance.currentSketch.GetSketch()));
 		current.center.pos = pos;
 		AutoConstrainCoincident(current.center, sko as IEntity);
 

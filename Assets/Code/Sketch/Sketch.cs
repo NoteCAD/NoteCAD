@@ -268,17 +268,17 @@ public class Sketch : CADObject  {
 			var dist = c.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
 			if(dist > hoverRadius) continue;
+			candidates.Add(c, dist);
 			if(min >= 0.0 && dist >= min) continue;
 			min = dist;
 			hoveredObject = c;
-			candidates.Add(c, dist);
 		}
 
 		if(hoveredObject is Constraint) {
-			if(candidates.Count > 0) {
+			if(candidates.Count > 1) {
 				for(int i = 0; i < candidates.Count; i++) {
 					var current = candidates.ElementAt(i).Key;
-					if(DetailEditor.instance.selection.All(id => id.ToString() != current.id.ToString())) continue;
+					if(!DetailEditor.instance.IsSelected(current)) continue;
 					var next = candidates.ElementAt((i + 1) % candidates.Count);
 					objDist = next.Value;
 					return next.Key;
@@ -464,6 +464,7 @@ public class Sketch : CADObject  {
 					if(node.Name != "constraint") continue;
 					var typeName = node.Attributes["type"].Value;
 					var constraint = Constraint.New(typeName, this);
+					if(constraint == null) continue;
 					constraint.Read(node);
 				}
 				var oldConstraints = constraints.Values.ToList();

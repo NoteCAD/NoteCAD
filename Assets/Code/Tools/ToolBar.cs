@@ -109,7 +109,7 @@ public class ToolBar : MonoBehaviour {
 	}
 
 	void ActivateTool(Tool tool) {
-		if(tool == activeTool) return;
+		if(!tool.canActivateWhenActive && tool == activeTool) return;
 		if(!tool.CanActivate()) return;
 		if(activeTool != null) {
 			var btn = activeTool.GetComponent<Button>();

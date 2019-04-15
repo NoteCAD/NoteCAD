@@ -172,7 +172,7 @@ public class PointEntity : Entity {
 		return rect.Contains(pp);
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		canvas.SetStyle("points");
 		canvas.DrawPoint(pos);
 	}

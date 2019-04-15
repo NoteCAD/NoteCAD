@@ -45,6 +45,8 @@ public class Equal : ValueConstraint {
 		}
 	}
 
+	public override bool IsDimension { get { return false; } }
+
 	public Equal(Sketch sk, IEntity l0, IEntity l1) : base(sk) {
 		AddEntity(l0);
 		AddEntity(l1);
@@ -68,7 +70,7 @@ public class Equal : ValueConstraint {
 		}
 	}
 
-	void DrawStroke(LineCanvas canvas, IEntity e, int rpt) {
+	void DrawStroke(ICanvas canvas, IEntity e, int rpt) {
 
 		Vector3 dir = e.TangentAtInPlane(0.5, null).Eval();
 		Vector3 perp = Vector3.Cross(dir, Camera.main.transform.forward).normalized * 5f * getPixelSize();
@@ -80,11 +82,11 @@ public class Equal : ValueConstraint {
 		canvas.DrawLine(pos + perp, pos - perp);
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		DrawStroke(canvas, GetEntity(0), 0);
 		DrawStroke(canvas, GetEntity(1), 1);
-		
-		if(DetailEditor.instance.hovered == this) {
+		var det = DetailEditor.instance;
+		if(det.hovered == this || det.selection.Count == 1 && det.IsSelected(this)) {
 			DrawReferenceLink(canvas, Camera.main);
 		}
 	}

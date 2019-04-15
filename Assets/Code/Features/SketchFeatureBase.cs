@@ -105,11 +105,24 @@ public class SketchFeatureBase : Feature {
 		return sketch.IsEntitiesChanged() || sketch.IsConstraintsChanged();
 	}
 
-	public void DrawConstraints(LineCanvas canvas) {
-		canvas.ClearStyle("constraints");
+	public void DrawEntities(ICanvas canvas) {
+		foreach(var e in sketch.entityList) {
+			if(!e.isVisible) continue;
+			if(e.style == null) {
+				canvas.SetStyle("entities");
+			} else {
+				canvas.SetStyle(e.style.stroke);
+			}
+			e.Draw(canvas);
+		}
+	}
+
+	public void DrawConstraints(ICanvas canvas, Func<Constraint, bool> filter = null) {
+		if(canvas is LineCanvas) (canvas as LineCanvas).ClearStyle("constraints");
 		canvas.SetStyle("constraints");
 		foreach(var c in sketch.constraintList) {
 			if(!c.isVisible) continue;
+			if(filter != null && !filter(c)) continue;
 			c.Draw(canvas);
 		}
 	}
@@ -126,11 +139,7 @@ public class SketchFeatureBase : Feature {
 		base.UpdateDirty();
 		go.transform.SetMatrix(transform);
 	
-		canvas.SetStyle("entities");
-		foreach(var e in sketch.entityList) {
-			if(!e.isVisible) continue;
-			e.Draw(canvas);
-		}
+		DrawEntities(canvas);
 
 		sketch.MarkUnchanged();
 		canvas.UpdateDirty();

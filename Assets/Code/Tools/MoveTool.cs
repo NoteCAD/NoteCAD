@@ -46,7 +46,7 @@ public class MoveTool : Tool {
 		if(valueConstraint != null) return;
 		if(sko == null) {
 			rectSelection = true;
-			firstClickCenter = click = Camera.main.WorldToGuiPoint(pos);
+			firstClickCenter = click = Camera.main.WorldToGuiPoint(WorldPlanePos);
 			return;
 		}
 		if(Input.GetKey(KeyCode.LeftShift) && editor.selection.Contains(sko.id)) {
@@ -115,7 +115,7 @@ public class MoveTool : Tool {
 
 	protected override void OnMouseMove(Vector3 pos, ICADObject sko) {
 		if(rectSelection) {
-			click = Camera.main.WorldToGuiPoint(pos);
+			click = Camera.main.WorldToGuiPoint(WorldPlanePos);
 			return;
 		}
 		if(current == null) return;

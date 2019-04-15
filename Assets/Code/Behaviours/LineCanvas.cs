@@ -1,8 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class LineCanvas : DraftStroke {
+public interface ICanvas {
+	void SetStyle(StrokeStyle style);
+	void DrawLine(Vector3 a, Vector3 b);
+	void DrawPoint(Vector3 pt);
+}
+
+public static class ICanvasExt {
+	public static void SetStyle(this ICanvas canvas, string name) {
+		canvas.SetStyle(EntityConfig.instance.styles.styles.First(s => s.name == name));	
+	}
+}
+
+public class LineCanvas : DraftStroke, ICanvas {
 
 	public void DrawSegments(IEnumerable<Vector3> points) {
 		if(points == null) return;
@@ -52,6 +65,4 @@ public class LineCanvas : DraftStroke {
 	public void DrawPoint(Vector3 pos) {
 		DrawLine(pos, pos);
 	}	
-
-
 }

@@ -25,7 +25,7 @@ public class PointCircleDistance : ValueConstraint {
 		}
 	}
 	
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		var point = GetEntity(0);
 		var circle = GetEntity(1);
 		var pPos = point.GetPointAtInPlane(0, null).Eval();

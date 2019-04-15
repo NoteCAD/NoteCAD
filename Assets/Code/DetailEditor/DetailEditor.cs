@@ -13,6 +13,8 @@ public class DetailEditor : MonoBehaviour {
 
 	static DetailEditor instance_;
 
+	public TextAsset newFile;
+
 	public static DetailEditor instance {
 		get {
 			if(instance_ == null) {
@@ -38,6 +40,7 @@ public class DetailEditor : MonoBehaviour {
 	public Mesh selectedMesh;
 	public Solid solid;
 	public RuntimeInspector inspector;
+	public bool toolInspector = false;
 
 	bool meshDirty = true;
 
@@ -290,11 +293,13 @@ public class DetailEditor : MonoBehaviour {
 			DrawCadObject(obj, "selected");
 		}
 
-		if(selection.Count == 1) {
-			var obj = detail.GetObjectById(selection.First());
-			inspector.Inspect(obj);
-		} else {
-			inspector.Inspect(activeFeature);
+		if(!toolInspector) {
+			if(selection.Count == 1) {
+				var obj = detail.GetObjectById(selection.First());
+				inspector.Inspect(obj);
+			} else {
+				inspector.Inspect(activeFeature);
+			}
 		}
 
 		if(activeFeature is SketchFeatureBase) {
@@ -383,14 +388,26 @@ public class DetailEditor : MonoBehaviour {
 		undoRedo.Clear();
 		activeFeature = null;
 		detail = new Detail();
-		var sk = new SketchFeature();
-		sk.shouldHoverWhenInactive = true;
-		new PointEntity(sk.GetSketch());
-		detail.AddFeature(sk);
-		sk = new SketchFeature();
-		detail.AddFeature(sk);
-		UpdateFeatures();
-		ActivateFeature(sk);
+
+		if(newFile != null) {
+			ReadXml(newFile.text);
+		} else {
+			var style = detail.styles.AddStyle();
+			style.stroke.Set(EntityConfig.instance.styles.styles.First(s => s.name == "entities"));
+			style.stroke.name = "Default";
+
+			var sk = new SketchFeature();
+			sk.shouldHoverWhenInactive = true;
+			new PointEntity(sk.GetSketch());
+			detail.AddFeature(sk);
+			sk = new SketchFeature();
+			detail.AddFeature(sk);
+			UpdateFeatures();
+			StylesUI.instance.UpdateStyles();
+			sys.Clear();
+			ActivateFeature(sk);
+		}
+
 	}
 
 	public void ReadXml(string xml, bool readView = true, bool activateLast = true) {
@@ -398,8 +415,9 @@ public class DetailEditor : MonoBehaviour {
 		IdPath active = null;
 		detail.ReadXml(xml, readView, out active);
 		if(active.IsNull()) active = detail.features.Last().id;
-		UpdateFeatures();	
+		UpdateFeatures();
 		ActivateFeature(active);
+		StylesUI.instance.UpdateStyles();
 	}
 
 	public string CopySelection() {

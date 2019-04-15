@@ -144,7 +144,7 @@ public class Tangent : Constraint {
 	}
 
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		var l0 = GetEntity(0);
 		var dir = l0.TangentAt(t0).Eval();
 		dir = l0.plane.DirFromPlane(dir).normalized;

@@ -2,31 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEditor;
 
 public class DraftStroke : MonoBehaviour {
 
-	class DashStyle {
-		float[] dashes;
-	}
-
-	[System.Serializable]
-	public class StrokeStyle {
-		//DashStyle dash;
-		public string name;
-		public Color color = Color.white;
-		public float width = 1f;
-		public int queue = -1;
-		public bool depthTest = true;
-		//float stippleWidth;
-		//bool pixel;
-	}
-
-	public StrokeStyle[] styles = new StrokeStyle[0]; 
+	public StrokeStyles strokeStyles;
 	public GameObject parent;
 
 	struct Line {
 		public Vector3 a;
 		public Vector3 b;
+
+		public void Swap() {
+			Vector3 t = a;
+			a = b;
+			b = t;
+		}
 	}
 
 	class Lines {
@@ -94,6 +85,7 @@ public class DraftStroke : MonoBehaviour {
 			var vertices = new Vector3[curLinesCount * 4];
 			var tangents = new Vector4[curLinesCount * 4];
 			var normals = new Vector3[curLinesCount * 4];
+			var coords = new Vector2[curLinesCount * 4];
 			var indices = new int[curLinesCount * 6];
 			int curV = 0;
 
@@ -101,28 +93,52 @@ public class DraftStroke : MonoBehaviour {
 			var t1 = new Vector4(-1.0f, +1.0f);
 			var t2 = new Vector4(+1.0f, -1.0f);
 			var t3 = new Vector4(+1.0f, +1.0f);
+			float phase = 0f;
 
 			for(int i = 0; i < curLinesCount; i++) {
 				var l = lines[i + lineStartIndex];
+				bool needZeroPhase = false;
+				if(i < curLinesCount - 1) {
+					var nl = lines[i + 1 + lineStartIndex];
+					if(l.b == nl.b) { 
+						nl.Swap();
+						lines[i + 1 + lineStartIndex] = nl;
+					} else 
+					if(l.a == nl.b) {
+						nl.Swap();
+						lines[i + 1 + lineStartIndex] = nl;
+						l.Swap();
+					} else
+					if(l.a == nl.a) {
+						l.Swap();
+					}
+					if(l.b != nl.a) needZeroPhase = true;
+				}
 				var t = l.b - l.a;
 				vertices[curV] = l.a;
 				tangents[curV] = t0;
 				normals[curV] = t;
+				coords[curV] = new Vector2(phase, -1f);
 				curV++;
 
 				vertices[curV] = l.a;
 				tangents[curV] = t1;
 				normals[curV] = t;
+				coords[curV] = new Vector2(phase, 1f);
 				curV++;
+
+				phase += t.magnitude;
 
 				vertices[curV] = l.b;
 				tangents[curV] = t2;
 				normals[curV] = t;
+				coords[curV] = new Vector2(phase, -1f);
 				curV++;
 
 				vertices[curV] = l.b;
 				tangents[curV] = t3;
 				normals[curV] = t;
+				coords[curV] = new Vector2(phase, 1f);
 				curV++;
 
 				indices[i * 6 + 0] = i * 4 + 0;
@@ -132,11 +148,18 @@ public class DraftStroke : MonoBehaviour {
 				indices[i * 6 + 3] = i * 4 + 3;
 				indices[i * 6 + 4] = i * 4 + 2;
 				indices[i * 6 + 5] = i * 4 + 1;
+
+				if(needZeroPhase) {
+					//Debug.LogFormat("clear phase {0} {1}", l.b.ToStr(), nl.a.ToStr());
+					phase = 0f;
+				}
+
 			}
 			var mesh = CreateMesh(li, li.style);
 			mesh.vertices = vertices;
 			mesh.tangents = tangents;
 			mesh.normals = normals;
+			mesh.uv = coords;
 			mesh.SetIndices(indices, MeshTopology.Triangles, 0, true);
 			//mesh.RecalculateBounds();
 			lineStartIndex += curLinesCount;
@@ -174,8 +197,11 @@ public class DraftStroke : MonoBehaviour {
 				material.SetFloat("_Pixel", (float)pixel);
 				material.SetVector("_CamDir", dir);
 				material.SetVector("_CamRight", right);
-				material.SetFloat("_Width", style.width);
+				material.SetFloat("_Width", (float)(style.width * style.scale));
+				material.SetFloat("_StippleWidth", (float)(style.scale));
+				material.SetFloat("_PatternLength", style.GetPatternLength());
 				material.SetColor("_Color", style.color);
+				material.SetTexture("_MainTex", DashAtlas.GetAtlas(style.dashes));
 				material.renderQueue = style.queue;
 			}
 		}
@@ -185,11 +211,12 @@ public class DraftStroke : MonoBehaviour {
 	Lines currentLines = null;
 
 	public StrokeStyle GetStyle(string name) {
-		return styles.First(s => s.name == name);
+		return strokeStyles.styles.First(s => s.name == name);
 	}
 
-	public void SetStyle(string name) {
-		currentStyle = styles.First(s => s.name == name);
+	public void SetStyle(StrokeStyle style) {
+		currentStyle = style;
+		//currentStyle = strokeStyles.styles.First(s => s.name == name);
 		if(!lines.ContainsKey(currentStyle)) {
 			lines[currentStyle] = new Lines(currentStyle);
 		}

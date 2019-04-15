@@ -27,6 +27,7 @@ public interface IEntity : ICADObject {
 	ExpVector Center();
 	IPlane plane { get; }
 	IEntityType type { get; }
+	//Style style { get; }
 }
 
 public static class IEntityUtils {
@@ -194,7 +195,7 @@ public static class IEntityUtils {
 		return result;
 	}
 
-	public static void DrawParamRange(this IEntity e, LineCanvas canvas, double offset, double begin, double end, double step, IPlane plane) {
+	public static void DrawParamRange(this IEntity e, ICanvas canvas, double offset, double begin, double end, double step, IPlane plane) {
 		Vector3 prev = Vector3.zero;
 		bool first = true;
 		int count = (int)Math.Ceiling(Math.Abs(end - begin) / step);
@@ -211,7 +212,7 @@ public static class IEntityUtils {
 		}
 	}
 
-	public static void DrawExtend(this IEntity e, LineCanvas canvas, double t, double step) {
+	public static void DrawExtend(this IEntity e, ICanvas canvas, double t, double step) {
 		if(t < 0.0) {
 			e.DrawParamRange(canvas, 0.0, t, 0.0, step, null);
 		} else
@@ -467,12 +468,15 @@ public abstract partial class Entity : SketchObject, IEntity {
 		return wholeObject && whole || !wholeObject && any;
 	}
 
-
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		if(isError) {
 			canvas.SetStyle("error");
 		} else {
-			canvas.SetStyle("entities");
+			if(style == null) {
+				canvas.SetStyle("entities");
+			} else {
+				canvas.SetStyle(style.stroke);
+			}
 		}
 		ForEachSegment((a, b) => {
 			canvas.DrawLine(a, b);

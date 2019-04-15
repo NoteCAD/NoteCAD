@@ -26,7 +26,7 @@ public class Length : ValueConstraint {
 		return GetEntity(0).GetPointAtInPlane(i, plane);
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 
 		var e = GetEntity(0);
 		Vector3 p0 = e.PointOnInPlane(0.0, null).Eval();

@@ -11,6 +11,7 @@ public class Tool : MonoBehaviour {
 	public bool ctrl;
 	public string text;
 	public Sprite icon;
+	public bool canActivateWhenActive = false;
 
 	public DetailEditor editor { get { return DetailEditor.instance; } }
 
@@ -42,6 +43,10 @@ public class Tool : MonoBehaviour {
 
 	public void Deactivate() {
 		OnDeactivate();
+		if(editor.toolInspector) {
+			editor.toolInspector = false;
+			editor.inspector.Inspect(null);
+		}
 	}
 
 	public void DoUpdate() {
@@ -130,12 +135,18 @@ public class Tool : MonoBehaviour {
 		if(with == null) return false;
 		if(with.type == IEntityType.Point) {
 			new PointsCoincident(point.sketch, point, with);
-			point.SetPosition(with.GetPointAtInPlane(0, point.sketch.plane).Eval());
+			point.pos = with.GetPointAtInPlane(0, point.sketch.plane).Eval();
 		} else {
-			new PointOn(point.sketch, point, with);
+			var pOn = new PointOn(point.sketch, point, with);
+			point.pos = pOn.GetPointOnInPlane(point.sketch.plane);
 			return false;
 		}
 		return true;
+	}
+
+	protected T SpawnEntity<T>(T entity) where T: Entity {
+		entity.style = StylesUI.instance.selectedStyle;
+		return entity;
 	}
 
 	public string GetDescription() {
@@ -175,6 +186,11 @@ public class Tool : MonoBehaviour {
 		var closeColor = "</color>";
 		if(index < 0 || ctrl) return text + " [" + openColor + (ctrl ? "Ctrl+" : "") + hk  + closeColor + "]";
 		return text.Substring(0, index) + openColor + text[index] + closeColor + text.Substring(index + 1, text.Length - index - 1);
+	}
+
+	protected void Inspect(object obj) {
+		editor.toolInspector = true;
+		editor.inspector.Inspect(obj);
 	}
 
 }

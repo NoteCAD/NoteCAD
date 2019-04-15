@@ -62,7 +62,7 @@ public class CirclesDistance : ValueConstraint {
 		}
 	}
 	
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		var c0 = GetEntity(0);
 		var c1 = GetEntity(1);
 		var c0c = c0.CenterInPlane(null).Eval();

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-16"?>
+<detail id="0" viewPos="-0.04241788 1.30294 0" viewRot="0 0 0 1" viewSize="20" activeFeature="2">
+	<styles>
+		<style name="Solid" id="1" width="0" depth="True" inPixels="False" queue="2002" r="0.7352941" g="0.7352941" b="0.7352941" a="1" pen="1" dashes="" />
+		<style name="Dash" id="2" width="0" depth="True" inPixels="False" queue="2002" r="0.03921569" g="0.5254902" b="0.01960784" a="1" pen="2" dashes="2 2" />
+		<style name="Dash-Dot" id="3" width="0" depth="True" inPixels="False" queue="2002" r="0.8862745" g="0.09411765" b="0.09411765" a="1" pen="0" dashes="2 0.5 0.5 0.5" />
+		<style name="Dotted" id="4" width="0" depth="True" inPixels="False" queue="2002" r="1" g="0.8823529" b="0.007843138" a="1" pen="0" dashes="0.25 0.25" />
+		<style name="Center" id="5" width="0" depth="True" inPixels="False" queue="2002" r="0" g="0.007843138" b="0.5647059" a="1" pen="0" dashes="1 0.2 0.5 0.2 1" />
+		<style name="Offset" id="6" width="0" depth="True" inPixels="False" queue="2002" r="0.007843138" g="1" b="0.945098" a="1" pen="0" dashes="1 0.5 0.5 0.5 1 1" />
+		<style name="Construction" id="7" width="0" depth="True" inPixels="False" queue="2002" r="0.9647059" g="0.007843138" b="0.8039216" a="1" pen="0" dashes="0.15 0.15" />
+		<style name="Dimension" id="8" width="0" depth="True" inPixels="False" queue="2002" r="0.1019608" g="0.03529412" b="0.9647059" a="0.6627451" pen="0" dashes="" />
+		<style name="Dimension-Text" id="9" width="0" depth="True" inPixels="False" queue="2002" r="0.007843138" g="0.01176471" b="1" a="1" pen="0" dashes="" />
+		<style name="Text" id="A" width="0" depth="True" inPixels="False" queue="2002" r="0.08235294" g="0.5019608" b="0.7843137" a="1" pen="0" dashes="" />
+	</styles>
+	<feature type="SketchFeature" id="1" solveParent="False" alwaysHover="True" />
+	<feature type="SketchFeature" id="2" solveParent="False" />
+</detail>

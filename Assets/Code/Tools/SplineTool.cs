@@ -26,11 +26,12 @@ public class SplineTool : Tool {
 		}
 		if(DetailEditor.instance.currentSketch == null) return;
 		editor.PushUndo();
-		var newEntity = new SplineEntity(DetailEditor.instance.currentSketch.GetSketch());
+		var newEntity = SpawnEntity(new SplineEntity(DetailEditor.instance.currentSketch.GetSketch()));
 		foreach(var p in newEntity.p) p.pos = pos;
 		if(current == null) {
 			AutoConstrainCoincident(newEntity.p[0], sko as IEntity);
 		} else {
+			current.p[3].pos = newEntity.p[0].pos;
 			new PointsCoincident(current.sketch, current.p[3], newEntity.p[0]);
 		}
 

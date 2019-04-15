@@ -6,6 +6,8 @@ using UnityEngine;
 [Serializable]
 public class EqualValue : ValueConstraint {
 
+	public override bool IsDimension { get { return false; } }
+
 	public EqualValue(Sketch sk) : base(sk) {
 	}
 
@@ -33,7 +35,7 @@ public class EqualValue : ValueConstraint {
 		}
 	}
 
-	void DrawStroke(LineCanvas canvas, ValueConstraint c, int rpt) {
+	void DrawStroke(ICanvas canvas, ValueConstraint c, int rpt) {
 
 		ref_points[rpt] = c.pos;
 		if(rpt == 0) {
@@ -42,11 +44,12 @@ public class EqualValue : ValueConstraint {
 		}
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		DrawStroke(canvas, GetConstraint(0) as ValueConstraint, 0);
 		DrawStroke(canvas, GetConstraint(1) as ValueConstraint, 1);
 		
-		if(DetailEditor.instance.hovered == this) {
+		var det = DetailEditor.instance;
+		if(det.hovered == this || det.selection.Count == 1 && det.IsSelected(this)) {
 			DrawReferenceLink(canvas, Camera.main);
 		}
 	}

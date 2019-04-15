@@ -35,7 +35,7 @@ public static class MeshUtils {
 
 	}
 
-	public static void DrawTriangulation(List<List<Vector3>> polygons, LineCanvas canvas) {
+	public static void DrawTriangulation(List<List<Vector3>> polygons, ICanvas canvas) {
 		foreach(var p in polygons) {
 			var pv = new List<Vector3>(p);
 			/*var triangles = */Triangulation.Triangulate(pv, canvas);

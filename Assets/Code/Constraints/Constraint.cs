@@ -28,6 +28,7 @@ public class Constraint : SketchObject {
 	}
 
 	protected virtual Enum optionInternal { get { return Option.Default; } set { } }
+	public virtual bool IsDimension { get { return false; } }
 
 	protected void AddEntity<T>(T e) where T : IEntity {
 		if(e is Entity) (e as Entity).AddConstraint(this);
@@ -225,7 +226,7 @@ public class Constraint : SketchObject {
 		return (float)DraftStroke.getPixelSize();
 	}
 	
-	public void DrawReferenceLink(LineCanvas renderer, Camera camera) {
+	public void DrawReferenceLink(ICanvas renderer, Camera camera) {
 		float pix = getPixelSize();
 		float size = 12f * pix;
 		var ref_points = this.ref_points.Select(p => sketch.plane.FromPlane(p)).ToArray();
@@ -243,7 +244,7 @@ public class Constraint : SketchObject {
 		return Quaternion.AxisAngle(axis, angle) * v;
 	}
 
-	protected void drawDottedLine(Vector3 p0, Vector3 p1, LineCanvas renderer, float step) {
+	protected void drawDottedLine(Vector3 p0, Vector3 p1, ICanvas renderer, float step) {
 		if(step == 0f) {
 			renderer.DrawLine(p0, p1);
 			return;
@@ -269,7 +270,7 @@ public class Constraint : SketchObject {
 		}
 	}
 	
-	protected void drawAngleArc(LineCanvas renderer, Vector3 p0, Vector3 c, float angle, Vector3 vz, bool dash = false, float step = 0f) {
+	protected void drawAngleArc(ICanvas renderer, Vector3 p0, Vector3 c, float angle, Vector3 vz, bool dash = false, float step = 0f) {
 		float subdiv = 32f;
 		if(step > 0f) {
 			float len = length(p0 - c) * angle;
@@ -292,7 +293,7 @@ public class Constraint : SketchObject {
 		}
 	}
 	
-	protected void drawArc(LineCanvas renderer, Vector3 p0, Vector3 p1, Vector3 c, Vector3 vz, bool dash = false, float step = 0f) {
+	protected void drawArc(ICanvas renderer, Vector3 p0, Vector3 p1, Vector3 c, Vector3 vz, bool dash = false, float step = 0f) {
 		float angle = Mathf.Acos(Vector3.Dot(normalize(p0 - c), normalize(p1 - c)));
 		float subdiv = 32f;
 		
@@ -319,7 +320,7 @@ public class Constraint : SketchObject {
 		}
 	}
 	
-    void drawArcExtend(LineCanvas renderer, Vector3 p0, Vector3 p1,
+    void drawArcExtend(ICanvas renderer, Vector3 p0, Vector3 p1,
                                  Vector3 c, Vector3 to, Vector3 vz,
                                  bool dash, float step) {
 		float dd0 = Vector3.Dot(Vector3.Cross(p0 - c, p1 - c), vz);
@@ -340,7 +341,7 @@ public class Constraint : SketchObject {
 		drawArc(renderer, from, to, c, vz, dash, step);
 	}
 	
-	bool drawLineExtend(LineCanvas renderer, Vector3 p0, Vector3 p1, Vector3 to, float step, float salient, bool from_to) {
+	bool drawLineExtend(ICanvas renderer, Vector3 p0, Vector3 p1, Vector3 to, float step, float salient, bool from_to) {
 		Vector3 dir = p1 - p0;
 		float k = Vector3.Dot(dir, to - p0) / Vector3.Dot(dir, dir);
 		Vector3 pt_on_line = p0 + dir * k;
@@ -366,7 +367,7 @@ public class Constraint : SketchObject {
 		return false;
 	}
 	
-	protected bool drawLineExtendInPlane(IPlane plane, LineCanvas renderer, Vector3 p0, Vector3 p1, Vector3 to, float step, float salient = 0f, bool from_to = false) {
+	protected bool drawLineExtendInPlane(IPlane plane, ICanvas renderer, Vector3 p0, Vector3 p1, Vector3 to, float step, float salient = 0f, bool from_to = false) {
 		Vector3 dir = p1 - p0;
 		if(plane != null) {
 			dir = plane.projectVectorInto(p1) - plane.projectVectorInto(p0);
@@ -395,14 +396,14 @@ public class Constraint : SketchObject {
 		return false;
 	}
 	
-	void drawTangentCross(LineCanvas renderer, Vector3 pos, Vector3 dir, Vector3 pn, float pix) {
+	void drawTangentCross(ICanvas renderer, Vector3 pos, Vector3 dir, Vector3 pn, float pix) {
 		float size = 10f * pix;
 		Vector3 perp = Vector3.Cross(dir, pn);
 		renderer.DrawLine(pos - perp * size, pos + perp * size);
 		renderer.DrawLine(pos - dir * size, pos + dir * size);
 	}
 	
-	protected void drawCameraCircle(LineCanvas renderer, Camera camera, Vector3 pos, float size, int num_segments = 32) {
+	protected void drawCameraCircle(ICanvas renderer, Camera camera, Vector3 pos, float size, int num_segments = 32) {
 		float angle = 2f * Mathf.PI / (float)num_segments;
 		Vector3 r0 = camera.transform.right * size;
 		for(int i=0; i<num_segments; i++) {
@@ -412,7 +413,7 @@ public class Constraint : SketchObject {
 		}
 	}
 	
-	void drawGrounding(LineCanvas renderer, Camera camera, Vector3 pos, float size) {
+	void drawGrounding(ICanvas renderer, Camera camera, Vector3 pos, float size) {
 		Vector3 x = camera.transform.right * size;
 		Vector3 y = -camera.transform.up * size;
 		
@@ -429,7 +430,7 @@ public class Constraint : SketchObject {
 		// renderer.DrawLine(pos + y * 11f + x * 1f, pos + y * 11f - x * 1f);
 	}
 	
-	protected Vector3 drawPointProjection(LineCanvas renderer, Vector3 point, float step) {
+	protected Vector3 drawPointProjection(ICanvas renderer, Vector3 point, float step) {
 		IPlane plane = getPlane();
 		if(plane == null) return point;
 		Vector3 proj = plane.projectVectorInto(point);
@@ -552,6 +553,8 @@ public class ValueConstraint : Constraint {
 	public virtual bool valueVisible { get { return true; } }
 
 	protected bool selectByRefPoints = false;
+
+	public override bool IsDimension { get { return true; } }
 	
 	[SerializeField]
 	public Vector3 pos {
@@ -566,7 +569,6 @@ public class ValueConstraint : Constraint {
 				position_.z = 0;
 			}
 			changed = true;
-			//behaviour.Update();
 		}
 	}
 
@@ -698,7 +700,7 @@ public class ValueConstraint : Constraint {
 	}
 
 
-	protected void drawPointLineDistance(Vector3 lip0_, Vector3 lip1_, Vector3 p0_, LineCanvas renderer, Camera camera) {
+	protected void drawPointLineDistance(Vector3 lip0_, Vector3 lip1_, Vector3 p0_, ICanvas renderer, Camera camera) {
 		
 		float pix = getPixelSize();
 		
@@ -802,7 +804,7 @@ public class ValueConstraint : Constraint {
 		return pos;
 	}
 
-	protected void drawPointsDistance(Vector3 pp0, Vector3 pp1, LineCanvas renderer, Camera camera, bool label = false, bool arrow0 = true, bool arrow1 = true, int style = 0) {
+	protected void drawPointsDistance(Vector3 pp0, Vector3 pp1, ICanvas renderer, Camera camera, bool label = false, bool arrow0 = true, bool arrow1 = true, int style = 0) {
 		float pix = getPixelSize();
 		
 		Vector3 p0 = drawPointProjection(renderer, pp0, R_DASH * pix);
@@ -916,7 +918,7 @@ public class ValueConstraint : Constraint {
 		//if(label) drawLabel(renderer, camera);
 	}
 
-	protected void drawBasis(LineCanvas canvas) {
+	protected void drawBasis(ICanvas canvas) {
 		var basis = GetBasis();
 		var pix = getPixelSize();
 		Vector3 vx = basis.GetColumn(0);
@@ -927,12 +929,12 @@ public class ValueConstraint : Constraint {
 		canvas.DrawLine(p, p + vy * 10f * pix);
 	}
 
-	public override void Draw(LineCanvas canvas) {
+	public override void Draw(ICanvas canvas) {
 		base.Draw(canvas);
 		//drawBasis(canvas);
 	}
 
-	protected void drawArrow(LineCanvas canvas, Vector3 pos, Vector3 dir, bool stroke = false) {
+	protected void drawArrow(ICanvas canvas, Vector3 pos, Vector3 dir, bool stroke = false) {
 		dir = dir.normalized;
 		var f = getVisualPlaneDir(Camera.main.transform.forward);
 		var n = Vector3.Cross(dir, f).normalized;

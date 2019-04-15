@@ -54,7 +54,7 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 		var ce = c.Center;
 		CircleEntity circle = new CircleEntity(DetailEditor.instance.currentSketch.GetSketch());
 		circle.c.SetPosition(new UnityEngine.Vector3((float)ce.X, (float)ce.Y, (float)ce.Z));
-		circle.radius.value = c.Radius;
+		circle.r.value = c.Radius;
 		AutoConstrain(circle);
 	}
 

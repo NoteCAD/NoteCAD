@@ -24,13 +24,14 @@ public class ArcTool : Tool {
 		}
 		if(DetailEditor.instance.currentSketch == null) return;
 		editor.PushUndo();
-		var newEntity = new ArcEntity(DetailEditor.instance.currentSketch.GetSketch());
+		var newEntity = SpawnEntity(new ArcEntity(DetailEditor.instance.currentSketch.GetSketch()));
 		newEntity.p0.pos = pos;
 		newEntity.p1.pos = pos;
 		newEntity.c.pos = pos;
 		if(current == null) {
 			AutoConstrainCoincident(newEntity.p0, sko as IEntity);
 		} else {
+			newEntity.p0.pos = current.p1.pos;
 			new PointsCoincident(current.sketch, current.p1, newEntity.p0);
 		}
 

@@ -16,15 +16,14 @@ public class FunctionTool : Tool {
 			current.p0.isSelectable = true;
 			current.c.isSelectable = true;
 			current.isSelectable = true;
-			if(AutoConstrainCoincident(current.p1, sko as IEntity)) {
-			}
+			AutoConstrainCoincident(current.p1, sko as IEntity);
 			current = null;
 			StopTool();
 			return;
 		}
 		if(DetailEditor.instance.currentSketch == null) return;
 		editor.PushUndo();
-		var newEntity = new FunctionEntity(DetailEditor.instance.currentSketch.GetSketch());
+		var newEntity = SpawnEntity(new FunctionEntity(DetailEditor.instance.currentSketch.GetSketch()));
 		newEntity.p0.pos = pos;
 		newEntity.p1.pos = pos;
 		newEntity.c.pos = pos;

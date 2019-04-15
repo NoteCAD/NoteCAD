@@ -8,6 +8,8 @@ using UnityEngine;
 
 public class Detail : Feature {
 
+	public Styles styles = new Styles();
+
 	public List<Feature> features = new List<Feature>();
 
 	public override GameObject gameObject {
@@ -97,6 +99,10 @@ public class Detail : Feature {
 		}
 
 		foreach(XmlNode node in xml.DocumentElement) {
+			if(node.Name == "styles") {
+				styles.Read(node);
+				continue;
+			}
 			if(node.Name != "feature") continue;
 			var type = node.Attributes["type"].Value;
 			var item = Type.GetType(type).GetConstructor(new Type[0]).Invoke(new object[0]) as Feature;
@@ -118,7 +124,7 @@ public class Detail : Feature {
 		xml.WriteAttributeString("viewRot", Camera.main.transform.rotation.ToStr());
 		xml.WriteAttributeString("viewSize", Camera.main.orthographicSize.ToStr());
 		xml.WriteAttributeString("activeFeature", DetailEditor.instance.activeFeature.id.ToString());
-
+		styles.Write(xml);
 		foreach(var f in features) {
 			f.Write(xml);
 		}

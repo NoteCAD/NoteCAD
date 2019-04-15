@@ -32,7 +32,7 @@ public class PointLineDistance : ValueConstraint {
 		}
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		
 		var lip0 = lineP0Pos;
 		var lip1 = lineP1Pos;

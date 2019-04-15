@@ -70,6 +70,11 @@ public class IdGenerator {
 		return new Id(id);
 	}
 
+	public static Id Parse(string str) {
+		long id = long.Parse(str, NumberStyles.HexNumber);
+		return new Id(id);
+	}
+
 	public void Clear() {
 		maxId = 0;
 	}

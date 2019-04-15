@@ -33,7 +33,7 @@ public class Diameter : ValueConstraint {
 		return showAsRadius ? value * 2.0 : value;
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		var p = GetEntity(0).CenterInPlane(null).Eval();
 		var lo = getPlane().projectVectorInto(getLabelOffset());
 		var dir = (lo - p).normalized;

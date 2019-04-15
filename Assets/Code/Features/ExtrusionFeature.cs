@@ -69,7 +69,10 @@ class ExtrudedEntity : IEntity {
 	}
 
 	public ExpVector Center() {
-		return entity.Center();
+		var center = entity.Center();
+		if(center == null) return null;
+		var shift = extrusion.extrusionDir * index;
+		return entity.plane.FromPlane(entity.Center()) + shift;
 	}
 }
 

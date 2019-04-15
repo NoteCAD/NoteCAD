@@ -99,7 +99,7 @@ public class AngleConstraint : ValueConstraint {
 		return p;
 	}
 
-	protected override void OnDraw(LineCanvas renderer) {
+	protected override void OnDraw(ICanvas renderer) {
 		
 		//drawBasis(renderer);
 		var basis = GetBasis();

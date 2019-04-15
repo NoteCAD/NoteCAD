@@ -270,35 +270,39 @@ public class EquationSystem  {
 		dofChanged = false;
 		UpdateDirty();
 		StoreParams();
-		int steps = 0;
-		do {
-			bool isDragStep = steps <= dragSteps;
-			Eval(ref B, clearDrag: !isDragStep);
-			/*
-			if(steps > 0) {
-				BackSubstitution(subs);
-				return SolveResult.POSTPONE;
-			}
-			*/
-			if(IsConverged(checkDrag: isDragStep)) {
+		try {
+			int steps = 0;
+			do {
+				bool isDragStep = steps <= dragSteps;
+				Eval(ref B, clearDrag: !isDragStep);
+				/*
 				if(steps > 0) {
-					dofChanged = true;
-					Debug.Log(String.Format("solved {0} equations with {1} unknowns in {2} steps", equations.Count, currentParams.Count, steps));
+					BackSubstitution(subs);
+					return SolveResult.POSTPONE;
 				}
-				stats = String.Format("eqs:{0}\nunkn: {1}", equations.Count, currentParams.Count);
-				BackSubstitution(subs);
-				return SolveResult.OKAY;
+				*/
+				if(IsConverged(checkDrag: isDragStep)) {
+					if(steps > 0) {
+						dofChanged = true;
+						Debug.Log(String.Format("solved {0} equations with {1} unknowns in {2} steps", equations.Count, currentParams.Count, steps));
+					}
+					stats = String.Format("eqs:{0}\nunkn: {1}", equations.Count, currentParams.Count);
+					BackSubstitution(subs);
+					return SolveResult.OKAY;
+				}
+				EvalJacobian(J, ref A, clearDrag: !isDragStep);
+				SolveLeastSquares(A, B, ref X);
+				for(int i = 0; i < currentParams.Count; i++) {
+					currentParams[i].value -= X[i];
+				}
+			} while(steps++ <= maxSteps);
+			IsConverged(checkDrag: false, printNonConverged: true);
+			if(revertWhenNotConverged) {
+				RevertParams();
+				dofChanged = false;
 			}
-			EvalJacobian(J, ref A, clearDrag: !isDragStep);
-			SolveLeastSquares(A, B, ref X);
-			for(int i = 0; i < currentParams.Count; i++) {
-				currentParams[i].value -= X[i];
-			}
-		} while(steps++ <= maxSteps);
-		IsConverged(checkDrag: false, printNonConverged: true);
-		if(revertWhenNotConverged) {
-			RevertParams();
-			dofChanged = false;
+		} catch (Exception e) {
+			Debug.LogError(e.Message);
 		}
 		return SolveResult.DIDNT_CONVEGE;
 	}

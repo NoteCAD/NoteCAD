@@ -1045,6 +1045,8 @@
     <Compile Include="Assets\Code\Tools\PerpendicularTool.cs" />
     <Compile Include="Assets\Code\Tools\PointsCoincidentTool.cs" />
     <Compile Include="Assets\Code\Tools\PointTool.cs" />
+    <Compile Include="Assets\Code\Tools\PolygonTool.cs" />
+    <Compile Include="Assets\Code\Tools\RectTool.cs" />
     <Compile Include="Assets\Code\Tools\RedoTool.cs" />
     <Compile Include="Assets\Code\Tools\RemoveTool.cs" />
     <Compile Include="Assets\Code\Tools\RevolveTool.cs" />

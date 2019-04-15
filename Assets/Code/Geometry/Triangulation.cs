@@ -20,7 +20,7 @@ public static class Triangulation {
 		return Vector3.Cross(a - b, c - b).z > 0f;
 	}
 
-	public static List<Vector3> Triangulate(List<Vector3> points, LineCanvas canvas = null) {
+	public static List<Vector3> Triangulate(List<Vector3> points, ICanvas canvas = null) {
 		List<Vector3> result = new List<Vector3>();
 		bool processed = true;
 		while(points.Count > 2 && processed) {
@@ -39,7 +39,7 @@ public static class Triangulation {
 						break;
 					}
 					if(!contains) {
-						if(canvas) {
+						if(canvas != null) {
 							canvas.DrawLine(a, b);
 							canvas.DrawLine(b, c);
 							canvas.DrawLine(c, a);

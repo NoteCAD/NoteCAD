@@ -11,7 +11,9 @@ public class PointOn : ValueConstraint {
 
 	public ExpVector pointExp { get { return point.PointExpInPlane(sketch.plane); } }
 	public Vector3 pointPos { get { return point.PointExpInPlane(null).Eval(); } }
+
 	public override bool valueVisible { get { return !reference; } }
+	public override bool IsDimension { get { return false; } }
 
 	public PointOn(Sketch sk) : base(sk) {
 		selectByRefPoints = true;
@@ -28,6 +30,7 @@ public class PointOn : ValueConstraint {
 
 	protected override bool OnSatisfy() {
 		EquationSystem sys = new EquationSystem();
+		sys.revertWhenNotConverged = false;
 		sys.AddParameters(parameters);
 		var exprs = equations.ToList();
 		sys.AddEquations(equations);
@@ -57,13 +60,13 @@ public class PointOn : ValueConstraint {
 		}
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		var p0 = pointPos;
 		drawCameraCircle(canvas, Camera.main, p0, R_CIRLE_R * getPixelSize());
 		if(!reference) {
-			pos = on.OffsetAt(value.value, 20f * getPixelSize()).Eval();
+			pos = sketch.plane.FromPlane(on.OffsetAt(value.value, 20f * getPixelSize()).Eval());
 		} else {
-			pos = on.PointOn(value.value).Eval();
+			pos = sketch.plane.FromPlane(on.PointOn(value.value).Eval());
 		}
 		ref_points[0] = ref_points[1] = sketch.plane.ToPlane(p0);
 		//on.DrawExtend(canvas, value.value, 0.05);
@@ -93,5 +96,9 @@ public class PointOn : ValueConstraint {
 				return value * 180.0 / Math.PI;
 		}
 		return base.ValueToLabel(value);
+	}
+
+	public Vector3 GetPointOnInPlane(IPlane plane) {
+		return on.PointOnInPlane(value.value, plane).Eval();
 	}
 }

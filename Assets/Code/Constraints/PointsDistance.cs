@@ -48,7 +48,7 @@ public class PointsDistance : ValueConstraint {
 		return Vector3.zero;
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		Vector3 p0p = GetPointPosInPlane(0, null);
 		Vector3 p1p = GetPointPosInPlane(1, null);
 		drawPointsDistance(p0p, p1p, canvas, Camera.main, false, true, true, 0);

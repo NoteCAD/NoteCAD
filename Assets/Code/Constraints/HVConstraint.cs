@@ -54,7 +54,7 @@ public class HVConstraint : Constraint {
 		}
 	}
 
-	void DrawStroke(LineCanvas canvas, Vector3 p0, Vector3 p1, int rpt) {
+	void DrawStroke(ICanvas canvas, Vector3 p0, Vector3 p1, int rpt) {
 		float len = (p1 - p0).magnitude;
 		float size = Mathf.Min(len, 20f * getPixelSize());
 		Vector3 dir = (p1 - p0).normalized * size / 2f;
@@ -63,7 +63,7 @@ public class HVConstraint : Constraint {
 		canvas.DrawLine(pos + dir, pos - dir);
 	}
 
-	void DrawPointStroke(LineCanvas canvas, Vector3 p0, Vector3 p1, int rpt) {
+	void DrawPointStroke(ICanvas canvas, Vector3 p0, Vector3 p1, int rpt) {
 		if(rpt == 1) {
 			var t = p0;
 			p0 = p1;
@@ -75,7 +75,7 @@ public class HVConstraint : Constraint {
 		canvas.DrawLine(p0, p0 + dir);
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		var p0 = GetPointInPlane(0, null).Eval();
 		var p1 = GetPointInPlane(1, null).Eval();
 
@@ -85,7 +85,8 @@ public class HVConstraint : Constraint {
 		} else {
 			DrawPointStroke(canvas, p0, p1, 0);
 			DrawPointStroke(canvas, p0, p1, 1);
-			if(DetailEditor.instance.hovered == this) {
+			var det = DetailEditor.instance;
+			if(det.hovered == this || det.selection.Count == 1 && det.IsSelected(this)) {
 				DrawReferenceLink(canvas, Camera.main);
 			}
 		}

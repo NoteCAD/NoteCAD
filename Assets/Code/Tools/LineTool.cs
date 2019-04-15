@@ -24,12 +24,13 @@ public class LineTool : Tool {
 		var sk = DetailEditor.instance.currentSketch;
 		if(sk == null) return;
 		editor.PushUndo();
-		var newLine = new LineEntity(sk.GetSketch());
+		var newLine = SpawnEntity(new LineEntity(sk.GetSketch()));
 		newLine.p0.SetPosition(pos);
 		newLine.p1.SetPosition(pos);
 		if(current == null) {
 			AutoConstrainCoincident(newLine.p0, sko as IEntity);
 		} else {
+			newLine.p0.pos = current.p1.pos;
 			new PointsCoincident(current.sketch, current.p1, newLine.p0);
 		}
 

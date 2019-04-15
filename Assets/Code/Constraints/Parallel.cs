@@ -39,7 +39,7 @@ public class Parallel : Constraint {
 		}
 	}
 
-	void DrawStroke(LineCanvas canvas, IEntity line, int rpt) {
+	void DrawStroke(ICanvas canvas, IEntity line, int rpt) {
 		var p0 = line.GetPointAtInPlane(0, null).Eval();
 		var p1 = line.GetPointAtInPlane(1, null).Eval();
 		float len = (p1 - p0).magnitude;
@@ -52,12 +52,13 @@ public class Parallel : Constraint {
 		canvas.DrawLine(pos + dir - perp, pos - dir - perp);
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		var l0 = GetEntityOfType(IEntityType.Line, 0);
 		var l1 = GetEntityOfType(IEntityType.Line, 1);
 		DrawStroke(canvas, l0, 0);
 		DrawStroke(canvas, l1, 1);
-		if(DetailEditor.instance.hovered == this) {
+		var det = DetailEditor.instance;
+		if(det.hovered == this || det.selection.Count == 1 && det.IsSelected(this)) {
 			DrawReferenceLink(canvas, Camera.main);
 		}
 	}
