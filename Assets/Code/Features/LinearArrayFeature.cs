@@ -42,11 +42,11 @@ class ArrayEntity : IEntity {
 		}
 	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<IEnumerable<Vector3>> segments {
 		get {
 			var shift = feature.shiftDir.Eval() * index;
-			foreach(var p in (entity as IEntity).SegmentsInPlane(null)) {
-				yield return p + shift;
+			foreach(var lp in (entity as IEntity).SegmentsInPlane(null)) {
+				yield return lp.Select(p => p + shift);
 			}
 		}
 	}

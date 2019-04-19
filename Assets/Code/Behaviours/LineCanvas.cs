@@ -11,11 +11,17 @@ public interface ICanvas {
 
 public static class ICanvasExt {
 	public static void SetStyle(this ICanvas canvas, string name) {
-		canvas.SetStyle(EntityConfig.instance.styles.styles.First(s => s.name == name));	
+		canvas.SetStyle(EntityConfig.instance.styles.styles.First(s => s.name == name));
 	}
 }
 
 public class LineCanvas : DraftStroke, ICanvas {
+
+	public void DrawSegments(IEnumerable<IEnumerable<Vector3>> loops) {
+		foreach(var lp in loops) {
+			DrawSegments(lp);
+		}
+	}
 
 	public void DrawSegments(IEnumerable<Vector3> points) {
 		if(points == null) return;
@@ -42,7 +48,6 @@ public class LineCanvas : DraftStroke, ICanvas {
 			DrawPoint(ep);
 			count++;
 		}
-		Debug.Log("count : " + count);
 	}
 
 	public void DrawArc(Vector3 p0, Vector3 p1, Vector3 c, Vector3 vz, int subdiv = 32) {

@@ -47,9 +47,9 @@ public class EllipseEntity : Entity, ILoopEntity {
 	}
 
 	public PointEntity center { get { return c; } }
-	public IEnumerable<Vector3> loopPoints {
+	public IEnumerable<IEnumerable<Vector3>> loopPoints {
 		get {
-			return getSegmentsUsingPointOn(36);
+			yield return getSegmentsUsingPointOn(36);
 		}
 	}
 

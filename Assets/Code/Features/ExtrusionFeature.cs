@@ -42,11 +42,11 @@ class ExtrudedEntity : IEntity {
 		}
 	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<IEnumerable<Vector3>> segments {
 		get {
 			var shift = extrusion.extrusionDir.Eval() * index;
-			foreach(var p in (entity as IEntity).SegmentsInPlane(null)) {
-				yield return p + shift;
+			foreach(var lp in (entity as IEntity).SegmentsInPlane(null)) {
+				yield return lp.Select(p => p + shift);
 			}
 		}
 	}
@@ -108,8 +108,14 @@ class ExtrudedPointEntity : IEntity {
 			yield return exp + extrusion.extrusionDir;
 		}
 	}
+	
+	public IEnumerable<IEnumerable<Vector3>> segments {
+		get {
+			yield return seg;
+		}
+	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<Vector3> seg {
 		get {
 			var pos = entity.plane.FromPlane(entity.pos);
 			yield return pos;

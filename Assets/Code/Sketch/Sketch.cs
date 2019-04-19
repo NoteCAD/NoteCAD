@@ -379,32 +379,51 @@ public class Sketch : CADObject  {
 			for(int i = 0; i < loop.Count; i++) {
 				if(loop[i] is ISegmentaryEntity) {
 					var cur = loop[i] as ISegmentaryEntity;
+					var segmentPoints = cur.segmentPoints.First();
 					var next = loop[(i + 1) % loop.Count] as ISegmentaryEntity;
 					if(!next.begin.IsCoincidentWith(cur.begin) && !next.end.IsCoincidentWith(cur.begin)) {
-						AddToPolygon(cur.segmentPoints, loop[i]);
+						AddToPolygon(segmentPoints, loop[i]);
 					} else 
 					if(!next.begin.IsCoincidentWith(cur.end) && !next.end.IsCoincidentWith(cur.end)) {
-						AddToPolygon(cur.segmentPoints.Reverse(), loop[i]);
+						AddToPolygon(segmentPoints.Reverse(), loop[i]);
 					} else if(next.begin.IsCoincidentWith(cur.end)) {
-						AddToPolygon(cur.segmentPoints, loop[i]);
+						AddToPolygon(segmentPoints, loop[i]);
 					} else
 					if(i % 2 == 0) {
-						AddToPolygon(cur.segmentPoints, loop[i]);
+						AddToPolygon(segmentPoints, loop[i]);
 					} else {
-						AddToPolygon(cur.segmentPoints.Reverse(), loop[i]);
+						AddToPolygon(segmentPoints.Reverse(), loop[i]);
 					}
 				} else
 				if(loop[i] is ILoopEntity) {
 					var cur = loop[i] as ILoopEntity;
-					AddToPolygon(cur.loopPoints, loop[i]);
+					foreach(var lp in cur.loopPoints) {
+						polygon = new List<Vector3>();
+						if(ids != null) idPolygon = new List<Id>();
+						AddToPolygon(lp, loop[i]);
+						if(polygon.Count > 0) {
+							polygon.RemoveAt(polygon.Count - 1);
+							if(idPolygon != null) idPolygon.RemoveAt(idPolygon.Count - 1);
+						}
+						if(polygon.Count < 3) continue;
+						if(!Triangulation.IsClockwise(polygon)) {
+							polygon.Reverse();
+							if(idPolygon != null) idPolygon.Reverse();
+						}
+						result.Add(polygon);
+						if(ids != null) ids.Add(idPolygon);
+					}
+					polygon = null;
+					continue;
 				} else {
 					continue;
 				}
-				if(polygon.Count > 0) {
+				if(polygon != null && polygon.Count > 0) {
 					polygon.RemoveAt(polygon.Count - 1);
 					if(idPolygon != null) idPolygon.RemoveAt(idPolygon.Count - 1);
 				}
 			}
+			if(polygon == null) continue;
 			if(polygon.Count < 3) continue;
 			if(!Triangulation.IsClockwise(polygon)) {
 				polygon.Reverse();
@@ -553,7 +572,7 @@ public class Sketch : CADObject  {
 	}
 
 	public Bounds calculateBounds() {
-		var points = entities.SelectMany(e => e.Value.SegmentsInPlane(null)).ToArray();
+		var points = entities.SelectMany(e => e.Value.SegmentsInPlane(null).SelectMany(p => p)).ToArray();
 		if(points.Length == 0) return new Bounds();
 		return GeometryUtility.CalculateBounds(points, Matrix4x4.identity);
 	}

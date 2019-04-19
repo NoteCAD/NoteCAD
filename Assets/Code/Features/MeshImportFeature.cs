@@ -48,7 +48,13 @@ class MeshEdgeEntity : IEntity {
 		}
 	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<IEnumerable<Vector3>> segments {
+		get {
+			yield return segs;
+		}
+	}
+	
+	public IEnumerable<Vector3> segs {
 		get {
 			yield return feature.transform.MultiplyPoint3x4(feature.hitMesh.Mesh.GetVertex(v0).ToVector3());
 			yield return feature.transform.MultiplyPoint3x4(feature.hitMesh.Mesh.GetVertex(v1).ToVector3());
@@ -107,9 +113,9 @@ class MeshVertexEntity : IEntity {
 		}
 	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<IEnumerable<Vector3>> segments {
 		get {
-			yield return feature.transform.MultiplyPoint3x4(feature.hitMesh.Mesh.GetVertex(v0).ToVector3());
+			yield return Enumerable.Repeat(feature.transform.MultiplyPoint3x4(feature.hitMesh.Mesh.GetVertex(v0).ToVector3()), 1);
 		}
 	}
 

@@ -36,9 +36,9 @@ public class PointEntity : Entity {
 		if(is3d) z.value = pos.z;
 	}
 
-	public override IEnumerable<Vector3> segments {
+	public override IEnumerable<IEnumerable<Vector3>> segments {
 		get {
-			yield return pos;
+			yield return Enumerable.Repeat(pos, 1);
 		}
 	}
 

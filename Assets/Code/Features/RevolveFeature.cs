@@ -41,10 +41,10 @@ class RevolvedEntity : IEntity {
 		}
 	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<IEnumerable<Vector3>> segments {
 		get {
-			foreach(var p in (entity as IEntity).SegmentsInPlane(null)) {
-				yield return feature.Transform(p, index);
+			foreach(var pts in (entity as IEntity).SegmentsInPlane(null)) {
+				yield return pts.Select(p => feature.Transform(p, index));
 			}
 		}
 	}
@@ -105,7 +105,7 @@ class RevolvedPointEntity : IEntity {
 		}
 	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<Vector3> segs {
 		get {
 			var point = entity.plane.FromPlane(entity.pos);
 			int subdiv = (int)Mathf.Ceil(Mathf.Abs((float)feature.angle.value / Mathf.PI * 180f) / (float)feature.meshAngleStep);
@@ -125,6 +125,12 @@ class RevolvedPointEntity : IEntity {
 				var res = ExpVector.RotateAround(rot, ax, o, a);
 				yield return res + axn * t * (float)feature.step.value;
 			}
+		}
+	}
+
+	public IEnumerable<IEnumerable<Vector3>> segments {
+		get {
+			yield return segs;
 		}
 	}
 
@@ -359,14 +365,16 @@ public class RevolveFeature : MeshFeature {
 		if(!axisDirectionFound) {
 			foreach(var e in sk.entityList) {
 				if(e.type == IEntityType.Point) continue;
-				foreach(var pos in e.SegmentsInPlane(null)) {
-					var prj = ExpVector.ProjectPointToLine(pos, o, o + ax);
-					if((prj - pos).magnitude < 1e-6) continue;
+				foreach(var pts in e.SegmentsInPlane(null)) {
+					foreach(var pos in pts) {
+						var prj = ExpVector.ProjectPointToLine(pos, o, o + ax);
+						if((prj - pos).magnitude < 1e-6) continue;
 
-					var ax1 = Vector3.Cross(sourceSketch.plane.n, pos - prj);
-					shouldInvertAxis = (Vector3.Dot(ax, ax1) > 0f);
-					axisDirectionFound = true;
-					break;
+						var ax1 = Vector3.Cross(sourceSketch.plane.n, pos - prj);
+						shouldInvertAxis = (Vector3.Dot(ax, ax1) > 0f);
+						axisDirectionFound = true;
+						break;
+					}
 				}
 			}
 		}

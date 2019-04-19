@@ -49,16 +49,21 @@ public class CircleEntity : Entity, ILoopEntity {
 	}
 
 	public PointEntity center { get { return c; } }
-	public IEnumerable<Vector3> loopPoints {
+	
+	IEnumerable<Vector3> CirclePoints() {
+		var cp = center.pos;
+		var rv = Vector3.left * Mathf.Abs((float)r.value);
+		int subdiv = 36;
+		var vz = Vector3.forward;
+		for(int i = 0; i < subdiv; i++) {
+			var nrv = Quaternion.AngleAxis((float)a.value + 360.0f / (subdiv - 1) * i, vz) * rv;
+			yield return nrv + cp;
+		}
+	}
+
+	public IEnumerable<IEnumerable<Vector3>> loopPoints {
 		get {
-			var cp = center.pos;
-			var rv = Vector3.left * Mathf.Abs((float)r.value);
-			int subdiv = 36;
-			var vz = Vector3.forward;
-			for(int i = 0; i < subdiv; i++) {
-				var nrv = Quaternion.AngleAxis((float)a.value + 360.0f / (subdiv - 1) * i, vz) * rv;
-				yield return nrv + cp;
-			}
+			yield return CirclePoints();
 		}
 	}
 

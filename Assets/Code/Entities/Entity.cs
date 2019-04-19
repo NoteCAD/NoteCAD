@@ -19,7 +19,7 @@ public enum IEntityType {
 
 public interface IEntity : ICADObject {
 	IEnumerable<ExpVector> points { get; }			// enough for dragging
-	IEnumerable<Vector3> segments { get; }			// enough for drawing
+	IEnumerable<IEnumerable<Vector3>> segments { get; }			// enough for drawing
 	ExpVector PointOn(Exp t);						// enough for constraining
 	ExpVector TangentAt(Exp t);
 	Exp Length();
@@ -89,8 +89,10 @@ public static class IEntityUtils {
 		}
 	}
 
-	public static IEnumerable<Vector3> SegmentsInPlane(this IEntity entity, IPlane plane) {
-		return plane.ToFrom(entity.segments, entity.plane);
+	public static IEnumerable<IEnumerable<Vector3>> SegmentsInPlane(this IEntity entity, IPlane plane) {
+		foreach(var lp in entity.segments) {
+			yield return plane.ToFrom(lp, entity.plane);
+		}
 	}
 
 	public static ExpVector PointOnInPlane(this IEntity entity, Exp t, IPlane plane) {
@@ -151,19 +153,20 @@ public static class IEntityUtils {
 
 	}
 
-	public static void ForEachSegment(this IEntity entity, Action<Vector3, Vector3> action) {
-		IEnumerable<Vector3> points = null;
-		if(entity is ISegmentaryEntity) points = (entity as ISegmentaryEntity).segmentPoints;
-		if(entity is ILoopEntity) points = (entity as ILoopEntity).loopPoints;
-		if(points == null) points = entity.segments;
-		Vector3 prev = Vector3.zero;
+	public static void ForEachSegment(IEnumerable<Vector3> points, Action<Vector3, Vector3> action) {
 		bool first = true;
+		Vector3 prev = Vector3.zero;
 		foreach(var ep in points) {
 			if(!first) {
 				action(prev, ep);
 			}
 			first = false;
 			prev = ep;
+		}
+	}
+	public static void ForEachSegment(this IEntity entity, Action<Vector3, Vector3> action) {
+		foreach(var lp in entity.segments) {
+			ForEachSegment(lp, action);
 		}
 	}
 
@@ -252,11 +255,11 @@ public abstract partial class Entity : SketchObject, IEntity {
 		}
 	}
 
-	public virtual IEnumerable<Vector3> segments {
+	public virtual IEnumerable<IEnumerable<Vector3>> segments {
 		get {
 			if(this is ISegmentaryEntity) return (this as ISegmentaryEntity).segmentPoints;
 			if(this is ILoopEntity) return (this as ILoopEntity).loopPoints;
-			return Enumerable.Empty<Vector3>();
+			return Enumerable.Empty<IEnumerable<Vector3>>();
 		}
 	}
 
@@ -342,19 +345,21 @@ public abstract partial class Entity : SketchObject, IEntity {
 
 			Vector3 selfPrev = Vector3.zero;
 			bool selfFirst = true;
-			foreach(var sp in self.segmentPoints) {
+			foreach(var spl in self.segmentPoints) foreach(var sp in spl) {
 				if(!selfFirst) {
 					Vector3 otherPrev = Vector3.zero;
 					bool otherFirst = true;
-					foreach(var ep in entity.segmentPoints) {
-						if(!otherFirst) {
-							if(GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f) == GeomUtils.Cross.INTERSECTION) {
-								if(this as Entity == e && selfPrev == otherPrev && sp == ep) continue;
-								return true;
+					foreach(var lp in entity.segmentPoints) {
+						foreach(var ep in lp) {
+							if(!otherFirst) {
+								if(GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f) == GeomUtils.Cross.INTERSECTION) {
+									if(this as Entity == e && selfPrev == otherPrev && sp == ep) continue;
+									return true;
+								}
 							}
+							otherFirst = false;
+							otherPrev = ep;
 						}
-						otherFirst = false;
-						otherPrev = ep;
 					}
 				}
 				selfFirst = false;
@@ -363,23 +368,28 @@ public abstract partial class Entity : SketchObject, IEntity {
 		}
 		return false;
 	}
+	
+	public bool ForEachSegment(Func<Vector3, Vector3, bool> action) {
+		foreach(var lp in segments) {
+			if(!ForEachSegment(lp, action)) return false;
+		}
+		return true;
+	}
 
-	public void ForEachSegment(Func<Vector3, Vector3, bool> action) {
-		IEnumerable<Vector3> points = null;
-		if(this is ISegmentaryEntity) points = (this as ISegmentaryEntity).segmentPoints;
-		if(this is ILoopEntity) points = (this as ILoopEntity).loopPoints;
-		if(points == null) return;
+	public static bool ForEachSegment(IEnumerable<Vector3> points, Func<Vector3, Vector3, bool> action) {
+		if(points == null) return true;
 		Vector3 prev = Vector3.zero;
 		bool first = true;
 		foreach(var ep in points) {
 			if(!first) {
 				if(!action(prev, ep)) {
-					return;
+					return false;
 				}
 			}
 			first = false;
 			prev = ep;
 		}
+		return true;
 	}
 
 	public bool IsEnding(PointEntity p) {
@@ -517,9 +527,9 @@ public abstract partial class Entity : SketchObject, IEntity {
 public interface ISegmentaryEntity {
 	PointEntity begin { get; }
 	PointEntity end { get; }
-	IEnumerable<Vector3> segmentPoints { get; }
+	IEnumerable<IEnumerable<Vector3>> segmentPoints { get; }
 }
 
 public interface ILoopEntity {
-	IEnumerable<Vector3> loopPoints { get; }
+	IEnumerable<IEnumerable<Vector3>> loopPoints { get; }
 }
