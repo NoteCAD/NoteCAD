@@ -4,3 +4,5 @@
 /.vs
 /*.sdf
 Files
+/*.csproj
+/obj
