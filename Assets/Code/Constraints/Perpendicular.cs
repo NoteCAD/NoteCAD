@@ -16,6 +16,7 @@ public class Perpendicular : Constraint {
 	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }
 
 	public Perpendicular(Sketch sk) : base(sk) { }
+	public Perpendicular(Sketch sk, Id id) : base(sk, id) { }
 
 	public Perpendicular(Sketch sk, IEntity l0, IEntity l1) : base(sk) {
 		AddEntity(l0);

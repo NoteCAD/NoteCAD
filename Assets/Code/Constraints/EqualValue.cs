@@ -8,8 +8,8 @@ public class EqualValue : ValueConstraint {
 
 	public override bool IsDimension { get { return false; } }
 
-	public EqualValue(Sketch sk) : base(sk) {
-	}
+	public EqualValue(Sketch sk) : base(sk) { }
+	public EqualValue(Sketch sk, Id id) : base(sk, id) { }
 
 	protected override bool OnSatisfy() {
 		var c0 = GetConstraint(0) as ValueConstraint;

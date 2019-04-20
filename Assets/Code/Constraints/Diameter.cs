@@ -7,6 +7,7 @@ using System.Xml;
 public class Diameter : ValueConstraint {
 
 	public Diameter(Sketch sk) : base(sk) { }
+	public Diameter(Sketch sk, Id id) : base(sk, id) { }
 
 	public bool showAsRadius = false;
 

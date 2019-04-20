@@ -7,6 +7,7 @@ using UnityEngine;
 public class Equal : ValueConstraint {
 
 	public Equal(Sketch sk) : base(sk) { selectByRefPoints = true; }
+	public Equal(Sketch sk, Id id) : base(sk, id) { selectByRefPoints = true; }
 
 	[Serializable]
 	public enum LengthType {

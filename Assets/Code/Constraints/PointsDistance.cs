@@ -10,6 +10,7 @@ public class PointsDistance : ValueConstraint {
 	public ExpVector p1exp { get { return GetPointInPlane(1, sketch.plane); } }
 
 	public PointsDistance(Sketch sk) : base(sk) { }
+	public PointsDistance(Sketch sk, Id id) : base(sk, id) { }
 
 	public PointsDistance(Sketch sk, IEntity p0, IEntity p1) : base(sk) {
 		AddEntity(p0);

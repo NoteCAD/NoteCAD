@@ -34,6 +34,7 @@ public class HVConstraint : Constraint {
 	public HVOrientation orientation = HVOrientation.OX;
 
 	public HVConstraint(Sketch sk) : base(sk) { }
+	public HVConstraint(Sketch sk, Id id) : base(sk, id) { }
 
 	public HVConstraint(Sketch sk, IEntity p0, IEntity p1) : base(sk) {
 		AddEntity(p0);

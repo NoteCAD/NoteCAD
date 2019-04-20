@@ -10,6 +10,7 @@ public class Length : ValueConstraint {
 	public ExpVector p1exp { get { return GetPointInPlane(1, sketch.plane); } }
 
 	public Length(Sketch sk) : base(sk) { }
+	public Length(Sketch sk, Id id) : base(sk, id) { }
 
 	public Length(Sketch sk, IEntity e) : base(sk) {
 		AddEntity(e);

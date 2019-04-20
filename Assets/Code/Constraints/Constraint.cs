@@ -49,6 +49,10 @@ public class Constraint : SketchObject {
 		sk.AddConstraint(this);
 	}
 
+	public Constraint(Sketch sk, Id guid) : base(sk, guid) {
+		sk.AddConstraint(this);
+	}
+
 	public override void Destroy() {
 		if(isDestroyed) return;
 		while(usedInConstraints.Count > 0) {
@@ -513,9 +517,9 @@ public class Constraint : SketchObject {
 		return false;
 	}
 
-	public static Constraint New(string typeName, Sketch sk) {
-		Type[] types = { typeof(Sketch) };
-		object[] param = { sk };
+	public static Constraint New(string typeName, Sketch sk, Id guid) {
+		Type[] types = { typeof(Sketch), typeof(Id) };
+		object[] param = { sk, guid };
 		var type = Type.GetType(typeName);
 		if(type == null) {
 			Debug.LogError("Can't create entity of type " + typeName);
@@ -573,6 +577,7 @@ public class ValueConstraint : Constraint {
 	}
 
 	public ValueConstraint(Sketch sk) : base(sk) {}
+	public ValueConstraint(Sketch sk, Id id) : base(sk, id) {}
 
 	public override IEnumerable<Param> parameters {
 		get {

@@ -16,6 +16,7 @@ public class Parallel : Constraint {
 	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }
 
 	public Parallel(Sketch sk) : base(sk) { }
+	public Parallel(Sketch sk, Id id) : base(sk, id) { }
 
 	public Parallel(Sketch sk, IEntity l0, IEntity l1) : base(sk) {
 		AddEntity(l0);

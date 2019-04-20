@@ -18,6 +18,7 @@ public class CirclesDistance : ValueConstraint {
 	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }
 
 	public CirclesDistance(Sketch sk) : base(sk) { }
+	public CirclesDistance(Sketch sk, Id id) : base(sk, id) { }
 
 	public CirclesDistance(Sketch sk, IEntity c0, IEntity c1) : base(sk) {
 		AddEntity(c0);

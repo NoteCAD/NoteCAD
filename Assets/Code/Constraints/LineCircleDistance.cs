@@ -25,8 +25,10 @@ public class LineCircleDistance : ValueConstraint {
 	Option option_;
 	public Option option { get { return option_; } set { option_ = value; sketch.MarkDirtySketch(topo:true); } }
 
-	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }	public LineCircleDistance(Sketch sk) : base(sk) { }
-
+	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }
+	
+	public LineCircleDistance(Sketch sk) : base(sk) { }
+	public LineCircleDistance(Sketch sk, Id id) : base(sk, id) { }
 
 	public LineCircleDistance(Sketch sk, IEntity line, IEntity circle) : base(sk) {
 		AddEntity(line);

@@ -18,6 +18,7 @@ public class PointLineDistance : ValueConstraint {
 	public Vector3 lineP1Pos { get { return line.PointsInPlane(null).ToArray()[1].Eval(); } }
 
 	public PointLineDistance(Sketch sk) : base(sk) { }
+	public PointLineDistance(Sketch sk, Id id) : base(sk, id) { }
 
 	public PointLineDistance(Sketch sk, IEntity p0, IEntity p1) : base(sk) {
 		AddEntity(p0);

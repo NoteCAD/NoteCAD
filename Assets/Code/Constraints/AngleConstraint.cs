@@ -25,6 +25,7 @@ public class AngleConstraint : ValueConstraint {
 	}
 
 	public AngleConstraint(Sketch sk) : base(sk) { }
+	public AngleConstraint(Sketch sk, Id id) : base(sk, id) { }
 
 	public AngleConstraint(Sketch sk, IEntity[] points) : base(sk) {
 		foreach(var p in points) {

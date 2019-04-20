@@ -6,6 +6,7 @@ using System;
 public class PointCircleDistance : ValueConstraint {
 
 	public PointCircleDistance(Sketch sk) : base(sk) { }
+	public PointCircleDistance(Sketch sk, Id id) : base(sk, id) { }
 
 	public PointCircleDistance(Sketch sk, IEntity pt, IEntity c) : base(sk) {
 		AddEntity(pt);

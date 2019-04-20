@@ -35,6 +35,7 @@ public class Tangent : Constraint {
 	}
 
 	public Tangent(Sketch sk) : base(sk) { }
+	public Tangent(Sketch sk, Id id) : base(sk, id) { }
 
 	public Tangent(Sketch sk, IEntity l0, IEntity l1) : base(sk) {
 		AddEntity(l0);

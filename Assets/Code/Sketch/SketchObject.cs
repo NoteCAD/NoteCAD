@@ -62,6 +62,11 @@ public abstract class SketchObject : CADObject, ICADObject {
 		return null;
 	}
 
+	public SketchObject(Sketch sketch, Id guid) {
+		sk = sketch;
+		guid_ = guid;
+	}
+
 	public SketchObject(Sketch sketch) {
 		sk = sketch;
 		guid_ = sketch.idGenerator.New();

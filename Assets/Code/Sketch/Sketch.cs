@@ -482,14 +482,10 @@ public class Sketch : CADObject  {
 				foreach(XmlNode node in nodeKind.ChildNodes) {
 					if(node.Name != "constraint") continue;
 					var typeName = node.Attributes["type"].Value;
-					var constraint = Constraint.New(typeName, this);
+					var guid = idGenerator.Create(node.Attributes["id"].Value);
+					var constraint = Constraint.New(typeName, this, guid);
 					if(constraint == null) continue;
 					constraint.Read(node);
-				}
-				var oldConstraints = constraints.Values.ToList();
-				constraints.Clear();
-				foreach(var c in oldConstraints) {
-					constraints.Add(c.guid, c);
 				}
 			}
 		}

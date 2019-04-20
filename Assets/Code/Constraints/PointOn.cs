@@ -15,9 +15,8 @@ public class PointOn : ValueConstraint {
 	public override bool valueVisible { get { return !reference; } }
 	public override bool IsDimension { get { return false; } }
 
-	public PointOn(Sketch sk) : base(sk) {
-		selectByRefPoints = true;
-	}
+	public PointOn(Sketch sk) : base(sk) { selectByRefPoints = true; }
+	public PointOn(Sketch sk, Id id) : base(sk, id) { selectByRefPoints = true; }
 
 	public PointOn(Sketch sk, IEntity point, IEntity on) : base(sk) {
 		reference = true;
