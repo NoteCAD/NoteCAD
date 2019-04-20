@@ -7,6 +7,14 @@ public class EqualTool : Tool {
 	IEntity l0;
 	ValueConstraint c0;
 
+	[System.Serializable]
+	class Options { 
+		public bool preserveRatio = false;
+	}
+
+	Options options = new Options();
+
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		var vc = sko as AngleConstraint;
 		if(vc != null) {
@@ -27,11 +35,16 @@ public class EqualTool : Tool {
 		if(entity.Radius() == null && entity.Length() == null) return;
 		if(l0 != null) {
 			editor.PushUndo();
-			new Equal(DetailEditor.instance.currentSketch.GetSketch(), l0, entity);
+			var c = new Equal(DetailEditor.instance.currentSketch.GetSketch(), l0, entity);
+			if(options.preserveRatio) c.Satisfy();
 			l0 = null;
 		} else {
 			l0 = entity;
 		}
+	}
+
+	protected override void OnActivate() {
+		Inspect(options);
 	}
 
 	protected override void OnDeactivate() {
