@@ -69,16 +69,12 @@ public class Equal : ValueConstraint {
 			yield return len[0] - len[1] * value;
 		}
 	}
-
 	void DrawStroke(ICanvas canvas, IEntity e, int rpt) {
 
 		Vector3 dir = e.TangentAtInPlane(0.5, null).Eval();
 		Vector3 perp = Vector3.Cross(dir, Camera.main.transform.forward).normalized * 5f * getPixelSize();
 		Vector3 pos = e.PointOnInPlane(0.5, null).Eval();
 		ref_points[rpt] = sketch.plane.ToPlane(pos);
-		if(rpt == 0) {
-			this.pos = e.OffsetAtInPlane(0.5, 20f * getPixelSize(), null).Eval();
-		}
 		canvas.DrawLine(pos + perp, pos - perp);
 	}
 
@@ -96,7 +92,8 @@ public class Equal : ValueConstraint {
 	}
 
 	protected override Matrix4x4 OnGetBasis() {
-		return sketch.plane.GetTransform();
+		var pos = GetEntity(0).OffsetAtInPlane(0.5, 20f * getPixelSize(), sketch.plane).Eval();
+ 		return sketch.plane.GetTransform() * Matrix4x4.Translate(pos);
 	}
 
 	protected override void OnWriteValueConstraint(XmlTextWriter xml) {
