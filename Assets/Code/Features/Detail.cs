@@ -8,6 +8,7 @@ using UnityEngine;
 
 public class Detail : Feature {
 
+	public string name = "";
 	public Styles styles = new Styles();
 
 	public List<Feature> features = new List<Feature>();
@@ -80,6 +81,11 @@ public class Detail : Feature {
 			guid_ = idGenerator.Create(0);
 		}
 
+		name = "";
+		if(xml.DocumentElement.Attributes["name"] != null) {
+			name = xml.DocumentElement.Attributes["name"].Value;
+		}
+
 		if(readView) {
 			if(xml.DocumentElement.Attributes["viewPos"] != null) {
 				Camera.main.transform.position = xml.DocumentElement.Attributes["viewPos"].Value.ToVector3();
@@ -120,6 +126,7 @@ public class Detail : Feature {
 		xml.WriteStartDocument();
 		xml.WriteStartElement("detail");
 		xml.WriteAttributeString("id", guid.ToString());
+		xml.WriteAttributeString("name", name);
 		xml.WriteAttributeString("viewPos", Camera.main.transform.position.ToStr());
 		xml.WriteAttributeString("viewRot", Camera.main.transform.rotation.ToStr());
 		xml.WriteAttributeString("viewSize", Camera.main.orthographicSize.ToStr());

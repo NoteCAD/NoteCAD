@@ -32,6 +32,7 @@ public class DetailEditor : MonoBehaviour {
 
 	public GameObject labelParent;
 	public Text resultText;
+	public Text detailName;
 	public GameObject featuresContent;
 	public FeatureUI featureUIPrefab;
 	public List<FeatureUI> featuresUI;
@@ -222,6 +223,7 @@ public class DetailEditor : MonoBehaviour {
 			//result += sys.stats;
 			resultText.text = result.ToString();
 		}
+		detailName.text = detail.name;
 
 		detail.UpdateUntil(activeFeature);
 		//detail.Update();
