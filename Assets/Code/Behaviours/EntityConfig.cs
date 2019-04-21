@@ -10,6 +10,7 @@ public class EntityConfig : MonoBehaviour {
 	public Material meshMaterial;
 	public Material loopMaterial;
 	public LineCanvas lineCanvas;
+	public StrokeStyles styles;
 
 	void Start () {
 		instance = this;
