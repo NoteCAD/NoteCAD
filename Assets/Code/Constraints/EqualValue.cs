@@ -24,6 +24,9 @@ public class EqualValue : ValueConstraint {
 		AddConstraint(c0);
 		AddConstraint(c1);
 		value.value = 1.0;
+		var c = GetConstraint(0) as ValueConstraint;
+		Vector3 up = c.GetBasis().GetColumn(1);
+		pos = c.pos + up.normalized * getPixelSize() * 30f;
 		Satisfy();
 	}
 
@@ -36,12 +39,7 @@ public class EqualValue : ValueConstraint {
 	}
 
 	void DrawStroke(ICanvas canvas, ValueConstraint c, int rpt) {
-
 		ref_points[rpt] = c.pos;
-		if(rpt == 0) {
-			Vector3 up = c.GetBasis().GetColumn(1);
-			pos = c.pos + up.normalized * getPixelSize() * 30f;
-		}
 	}
 
 	protected override void OnDraw(ICanvas canvas) {
@@ -59,6 +57,6 @@ public class EqualValue : ValueConstraint {
 	}
 
 	protected override Matrix4x4 OnGetBasis() {
-		return sketch.plane.GetTransform();
+		return (GetConstraint(0) as ValueConstraint).GetBasis();
 	}
 }
