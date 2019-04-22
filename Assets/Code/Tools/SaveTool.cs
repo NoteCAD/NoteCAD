@@ -38,6 +38,8 @@ public class SaveTool : Tool {
 		if(editor.GetDetail().name == "") {
 			options.specifyFilename = "";
 			Inspect(options);
+		} else {
+			Save();
 		}
 	}
 }
