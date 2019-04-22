@@ -482,8 +482,14 @@ public class Sketch : CADObject  {
 				foreach(XmlNode node in nodeKind.ChildNodes) {
 					if(node.Name != "constraint") continue;
 					var typeName = node.Attributes["type"].Value;
-					var guid = idGenerator.Create(node.Attributes["id"].Value);
-					var constraint = Constraint.New(typeName, this, guid);
+					Id id;
+					// if remapping, we need to allocate new guid
+					if(idMapping != null) {
+						id = idGenerator.New();
+					} else {
+						id = idGenerator.Create(node.Attributes["id"].Value);
+					}
+					var constraint = Constraint.New(typeName, this, id);
 					if(constraint == null) continue;
 					constraint.Read(node);
 				}
