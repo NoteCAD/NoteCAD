@@ -112,7 +112,7 @@ public class AngleConstraint : ValueConstraint {
 		
 		var plane = getPlane();
 		var value = GetValue();
-		var offset = labelPos;
+		var offset = localPos;
 
 		if(Math.Abs(value) > EPSILON) {
 			Vector3[] pts = GetPointsInPlane(null);
@@ -176,8 +176,8 @@ public class AngleConstraint : ValueConstraint {
 			
 			Vector3 refp = offset;
 			refp.z = 0f;
-			refp = basis * refp;
-			setRefPoint(p + normalize(refp - p) * (size + 15f * pix));
+			refp = basis.MultiplyPoint3x4(refp);
+			SetLabelPos(p + normalize(refp - p) * (size + 15f * pix));
 		}
 		//drawLabel(renderer, camera);
 	}

@@ -543,9 +543,14 @@ public class ValueConstraint : Constraint {
 			sketch.MarkDirtySketch(constraints:true);
 		}
 	}
+	
+	public virtual bool valueVisible { get { return true; } }
+	public override bool IsDimension { get { return true; } }
+	protected bool selectByRefPoints = false;
+
 	Vector3 position_;
 
-	public Vector3 labelPos {
+	public Vector3 localPos {
 		get {
 			return position_;
 		}
@@ -553,12 +558,6 @@ public class ValueConstraint : Constraint {
 	public float labelX { get { return position_.x; } set { position_.x = value; } }
 	public float labelY { get { return position_.y; } set { position_.y = value; } }
 	public float labelZ { get { return position_.z; } set { position_.z = value; } }
-
-	public virtual bool valueVisible { get { return true; } }
-
-	protected bool selectByRefPoints = false;
-
-	public override bool IsDimension { get { return true; } }
 	
 	[SerializeField]
 	public Vector3 pos {
@@ -648,8 +647,18 @@ public class ValueConstraint : Constraint {
 		return result;
 	}
 
-	protected void setRefPoint(Vector3 pos) {
-		ref_points[0] = sketch.plane.ToPlane(pos);
+	bool labelPosWasSet = false;
+	protected void SetLabelPos(Vector3 pos) {
+		ref_points[0] = ref_points[1] = sketch.plane.ToPlane(pos);
+		selectByRefPoints = true;
+		labelPosWasSet = true;
+	}
+
+	public Vector3 GetLabelPos() {
+		if(labelPosWasSet) {
+			return sketch.plane.FromPlane(ref_points[0]);
+		}
+		return pos;
 	}
 
 	protected sealed override void OnWrite(XmlTextWriter xml) {
@@ -797,9 +806,9 @@ public class ValueConstraint : Constraint {
 			
 			// opposite arrow line
 			/*if(da1)*/ renderer.DrawLine(lv1, lv1 - normalize(dir) * 21f * pix);
-			setRefPoint(lv0 + normalize(dir) * (len + 16f * pix));
+			SetLabelPos(lv0 + normalize(dir) * (len + 16f * pix));
 		} else {
-			setRefPoint(basis.MultiplyPoint(offset) + vy * sy * 13f * pix);
+			SetLabelPos(basis.MultiplyPoint(offset) + vy * sy * 13f * pix);
 		}
 		
 		//drawLabel(renderer, camera);
@@ -914,9 +923,9 @@ public class ValueConstraint : Constraint {
 			
 			// opposite arrow line
 			if(da1) renderer.DrawLine(lv1, lv1 - normalize(dir) * 21f * pix);
-			setRefPoint(lv0 + normalize(dir) * (len + 16f * pix));
+			SetLabelPos(lv0 + normalize(dir) * (len + 16f * pix));
 		} else {
-			setRefPoint(basis.MultiplyPoint(offset) + vy * sy * 13f * pix);
+			SetLabelPos(basis.MultiplyPoint(offset) + vy * sy * 13f * pix);
 		}
 		
 		//drawCameraCircle(renderer, camera, getLabelOffset(), 3f * pix);

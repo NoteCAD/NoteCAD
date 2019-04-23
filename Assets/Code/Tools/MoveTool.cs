@@ -170,7 +170,7 @@ public class MoveTool : Tool {
 
 	void UpdateInputPosition() {
 		if(valueConstraint != null) {
-			input.gameObject.transform.position = Camera.main.WorldToScreenPoint(valueConstraint.pos);
+			input.gameObject.transform.position = Camera.main.WorldToScreenPoint(valueConstraint.GetLabelPos());
 		}
 	}
 

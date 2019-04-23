@@ -354,7 +354,7 @@ public class DetailEditor : MonoBehaviour {
 				var constraint = c as ValueConstraint;
 				if(!constraint.valueVisible) continue;
 				if(MoveTool.instance.IsConstraintEditing(constraint)) continue;
-				var pos = constraint.pos;
+				var pos = constraint.GetLabelPos();
 				pos = Camera.main.WorldToScreenPoint(pos);
 				var txt = constraint.GetLabel();
 				var rect = new Rect(pos.x, Camera.main.pixelHeight - pos.y, 0, 0);
