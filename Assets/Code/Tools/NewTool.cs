@@ -12,12 +12,14 @@ public class NewTool : Tool {
 		public Options(Tool t) {
 			tool = t;
 		}
-		public string newFilename;
+		public string newFilename = "";
 		[RuntimeInspectorNamespace.RuntimeInspectorButton("Create", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
 		void Create() {
-			tool.StopTool();
-			tool.editor.New();
-			tool.editor.GetDetail().name = newFilename;
+			if(newFilename != "") {
+				tool.StopTool();
+				tool.editor.New();
+				tool.editor.GetDetail().name = newFilename;
+			}
 		}
 	}
 
@@ -27,6 +29,7 @@ public class NewTool : Tool {
 	}
 
 	protected override void OnActivate() {
+		options.newFilename = "";
 		Inspect(options);
 	}
 }
