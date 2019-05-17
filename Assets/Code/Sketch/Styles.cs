@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Xml;
+using System.Linq;
 
-public class Style
-{
+public class Style {
+
 	public Id guid { get; internal set; }
 	public StrokeStyle stroke = new StrokeStyle();
 
@@ -56,6 +57,9 @@ public class Styles {
 	Dictionary<Id, Style> styles = new Dictionary<Id, Style>();
 	IdGenerator idGenerator = new IdGenerator();
 
+	public Style GetStyle(string name) {
+		return styles.Values.FirstOrDefault(s => s.stroke.name == name);
+	}
 	public Style AddStyle() {
 		var s = new Style();
 		s.guid = idGenerator.New();

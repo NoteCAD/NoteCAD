@@ -14,7 +14,8 @@ public enum IEntityType {
 	Function,
 	Spline,
 	Ellipse,
-	EllipticArc
+	EllipticArc,
+	Sketch
 }
 
 public interface IEntity : ICADObject {
@@ -482,6 +483,9 @@ public abstract partial class Entity : SketchObject, IEntity {
 		if(isError) {
 			canvas.SetStyle("error");
 		} else {
+			if(construction && sketch.feature.detail.styles.GetStyle("Construction") != null) {
+				canvas.SetStyle(sketch.feature.detail.styles.GetStyle("Construction").stroke);
+			} else
 			if(style == null) {
 				canvas.SetStyle("entities");
 			} else {

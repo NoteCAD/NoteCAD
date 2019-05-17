@@ -317,7 +317,7 @@ public class Sketch : CADObject  {
 	}
 
 	public List<List<Entity>> GenerateLoops() {
-		var all = entities.Values.OfType<ISegmentaryEntity>().ToList();
+		var all = entities.Values.Where(e => !e.construction).OfType<ISegmentaryEntity>().ToList();
 		var first = all.FirstOrDefault();
 		var current = first;
 		PointEntity prevPoint = null;
@@ -337,6 +337,7 @@ public class Sketch : CADObject  {
 					.Where(p => p != null && p != prevPoint)
 					.Where(p => p.parent != null && p.parent.IsEnding(p))
 					.Select(p => p.parent)
+					.Where(e => !e.construction)
 					.OfType<ISegmentaryEntity>();
 				if(connected.Any()) {
 					current = connected.First() as ISegmentaryEntity;
@@ -355,7 +356,7 @@ public class Sketch : CADObject  {
 				continue;
 			}
 		}
-		loops.AddRange(entities.Values.OfType<ILoopEntity>().Select(e => Enumerable.Repeat(e as Entity, 1).ToList()));
+		loops.AddRange(entities.Values.Where(e => !e.construction).OfType<ILoopEntity>().Select(e => Enumerable.Repeat(e as Entity, 1).ToList()));
 		return loops;
 	}
 

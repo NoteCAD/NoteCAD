@@ -4,6 +4,7 @@ using System.Linq;
 using System.Xml;
 using System;
 
+[Serializable]
 public class PointEntity : Entity {
 
 	public Param x = new Param("x");

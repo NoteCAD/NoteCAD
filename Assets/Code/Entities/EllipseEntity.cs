@@ -7,7 +7,9 @@ using UnityEngine;
 [Serializable]
 public class EllipseEntity : Entity, ILoopEntity {
 
+	[NonSerialized]
 	public PointEntity c;
+
 	public Param r0 = new Param("r0");
 	public Param r1 = new Param("r1");
 	ExpBasis2d basis = new ExpBasis2d();

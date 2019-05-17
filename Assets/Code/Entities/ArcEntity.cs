@@ -3,10 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class ArcEntity : Entity, ISegmentaryEntity {
 
+	[NonSerialized]
 	public PointEntity p0;
+
+	[NonSerialized]
 	public PointEntity p1;
+
+	[NonSerialized]
 	public PointEntity c;
 
 	public ArcEntity(Sketch sk) : base(sk) {

@@ -7,8 +7,13 @@ using System.Xml;
 [Serializable]
 public class FunctionEntity : Entity, ISegmentaryEntity {
 
+	[NonSerialized]
 	public PointEntity p0;
+
+	[NonSerialized]
 	public PointEntity p1;
+
+	[NonSerialized]
 	public PointEntity c;
 
 	string function_x;

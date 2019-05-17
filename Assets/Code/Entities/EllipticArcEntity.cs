@@ -3,10 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class EllipticArcEntity : Entity, ISegmentaryEntity {
 
+	[NonSerialized]
 	public PointEntity p0;
+
+	[NonSerialized]
 	public PointEntity p1;
+
+	[NonSerialized]
 	public PointEntity c;
 
 	public EllipticArcEntity(Sketch sk) : base(sk) {

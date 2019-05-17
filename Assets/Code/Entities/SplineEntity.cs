@@ -4,8 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
+[Serializable]
 public class SplineEntity : Entity, ISegmentaryEntity {
 
+	[NonSerialized]
 	public PointEntity[] p = new PointEntity[4];
 
 	public SplineEntity(Sketch sk) : base(sk) {

@@ -7,7 +7,9 @@ using UnityEngine;
 [Serializable]
 public class CircleEntity : Entity, ILoopEntity {
 
+	[NonSerialized]
 	public PointEntity c;
+
 	public Param r = new Param("r");
 	Param a = new Param("a");
 	

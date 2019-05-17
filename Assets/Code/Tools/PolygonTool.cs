@@ -38,6 +38,7 @@ public class PolygonTool : Tool {
 			editor.PushUndo();
 			click = pos;
 			circle = new CircleEntity(sk.GetSketch());
+			circle.construction = true;
 			circle.center.pos = pos;
 			circle.angleFixed = false;
 			lines = new LineEntity[options.corners];

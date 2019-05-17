@@ -44,7 +44,23 @@ public abstract class SketchObject : CADObject, ICADObject {
 	Sketch sk;
 	public Sketch sketch { get { return sk; } }
 	public bool isDestroyed { get; private set; }
+
+	[NonSerialized]
 	public bool isVisible = true;
+
+	bool construction_ = false;
+
+	public bool construction {
+		get {
+			return construction_;
+		}
+
+		set {
+			if(construction_ == value) return;
+			construction_ = value;
+			sketch.MarkDirtySketch(entities: true, topo: true);
+		}
+	}
 	
 	public Style style_ = null;
 	public Style style { get { return style_; } set { style_ = value; sketch.MarkDirtySketch(entities: true); } }
@@ -105,6 +121,7 @@ public abstract class SketchObject : CADObject, ICADObject {
 		xml.WriteAttributeString("id", guid.ToString());
 		if(style != null) xml.WriteAttributeString("style", style.guid.ToString());
 		if(isVisible == false) xml.WriteAttributeString("visible", isVisible.ToString());
+		if(construction == true) xml.WriteAttributeString("construction", construction.ToString());
 		OnWrite(xml);
 	}
 
@@ -115,6 +132,7 @@ public abstract class SketchObject : CADObject, ICADObject {
 	public virtual void Read(XmlNode xml) {
 		var newGuid = sketch.idGenerator.Create(xml.Attributes["id"].Value);
 		if(xml.Attributes["visible"] != null) isVisible = Convert.ToBoolean(xml.Attributes["visible"].Value);
+		if(xml.Attributes["construction"] != null) construction_ = Convert.ToBoolean(xml.Attributes["construction"].Value);
 		if(xml.Attributes["style"] != null) style = sketch.feature.detail.styles.GetStyle(IdGenerator.Parse(xml.Attributes["style"].Value));
 		if(sketch.idMapping != null) {
 			sketch.idMapping[newGuid] = guid_;
