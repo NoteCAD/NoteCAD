@@ -136,7 +136,7 @@ public class Tool : MonoBehaviour {
 		if(with.type == IEntityType.Point) {
 			new PointsCoincident(point.sketch, point, with);
 			point.pos = with.GetPointAtInPlane(0, point.sketch.plane).Eval();
-		} else {
+		} else if(with.PointOn(0.0) != null) {
 			var pOn = new PointOn(point.sketch, point, with);
 			point.pos = pOn.GetPointOnInPlane(point.sketch.plane);
 			return false;

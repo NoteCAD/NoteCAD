@@ -18,11 +18,14 @@ public class PointsCoincidentTool : Tool {
 					editor.PushUndo();
 					new PointsCoincident(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
 				}
-			} else {
+				p0 = null;
+				return;
+			} else if(entity.PointOn(0.0) != null) {
 				editor.PushUndo();
 				new PointOn(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
+				p0 = null;
+				return;
 			}
-			p0 = null;
 		} else if(entity.type == IEntityType.Point) {
 			p0 = entity;
 		}
