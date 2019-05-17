@@ -227,7 +227,8 @@ public class DetailEditor : MonoBehaviour {
 
 		detail.UpdateUntil(activeFeature);
 		//detail.Update();
-		meshDirty = meshDirty | detail.features.OfType<MeshFeature>().Any(f => f.dirty);
+
+		meshDirty = meshDirty | detail.features.Take(detail.features.IndexOf(activeFeature) + 1).OfType<MeshFeature>().Any(f => f.dirty);
 		detail.MarkDirty();
 		detail.UpdateDirtyUntil(activeFeature);
 		if(meshDirty && !suppressCombine) {
@@ -340,7 +341,7 @@ public class DetailEditor : MonoBehaviour {
 
 	private void LateUpdate() {
 		detail.Draw(UnityEngine.Matrix4x4.identity);
-		GC.Collect();
+		GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
 	}
 
 	private void OnGUI() {
