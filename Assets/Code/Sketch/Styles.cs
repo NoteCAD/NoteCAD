@@ -14,6 +14,11 @@ public class Style {
 		//stroke.stippleWidth = xml.Attributes["stipple"].Value.ToFloat();
 		stroke.depthTest = Convert.ToBoolean(xml.Attributes["depth"].Value);
 		stroke.inPixels = Convert.ToBoolean(xml.Attributes["inPixels"].Value);
+		if(xml.Attributes["dashesInPixels"] != null) {
+			stroke.dashesInPixels = Convert.ToBoolean(xml.Attributes["dashesInPixels"].Value);
+		} else {
+			stroke.dashesInPixels = stroke.inPixels;
+		}
 		stroke.queue = Convert.ToInt32(xml.Attributes["queue"].Value);
 		stroke.color.r = xml.Attributes["r"].Value.ToFloat();
 		stroke.color.g = xml.Attributes["g"].Value.ToFloat();
@@ -36,6 +41,7 @@ public class Style {
 		//xml.WriteAttributeString("stipple", stroke.stippleWidth.ToStr());
 		xml.WriteAttributeString("depth", stroke.depthTest.ToString());
 		xml.WriteAttributeString("inPixels", stroke.inPixels.ToString());
+		xml.WriteAttributeString("dashesInPixels", stroke.dashesInPixels.ToString());
 		xml.WriteAttributeString("queue", stroke.queue.ToString());
 		xml.WriteAttributeString("r", stroke.color.r.ToStr());
 		xml.WriteAttributeString("g", stroke.color.g.ToStr());

@@ -134,7 +134,7 @@ public class ExportSTLTool : Tool {
 					if(style.dashes.Length > 1) {
 						Vector3 pos = l.a;
 						while(len > 0f) {
-							var delta = (style.dashes[dash] - phase) * (float)style.scaleMm;
+							var delta = (style.dashes[dash] - phase) * (float)style.dashesScaleMm;
 							if(delta > len) {
 								phase = len;
 								delta = len;

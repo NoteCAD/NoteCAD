@@ -198,7 +198,7 @@ public class DraftStroke : MonoBehaviour {
 				material.SetVector("_CamDir", dir);
 				material.SetVector("_CamRight", right);
 				material.SetFloat("_Width", (float)(style.width * style.scale));
-				material.SetFloat("_StippleWidth", (float)(style.scale));
+				material.SetFloat("_StippleWidth", (float)(style.dashesScale));
 				material.SetFloat("_PatternLength", style.GetPatternLength());
 				material.SetColor("_Color", style.color);
 				material.SetTexture("_MainTex", DashAtlas.GetAtlas(style.dashes));

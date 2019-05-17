@@ -15,13 +15,25 @@ public class StrokeStyle {
 		}
 	}
 
+	public double dashesScale {
+		get { 
+			return (dashesInPixels) ? 1.0 : 1.0 / DraftStroke.getPixelSize();
+		}
+	}
+
 	public double scaleMm {
 		get { 
 			return (inPixels) ? DraftStroke.getPixelSize() : 1.0;
 		}
 	}
 
-	public double widthMm { get { return width * scaleMm; } }
+	public double dashesScaleMm {
+		get { 
+			return (dashesInPixels) ? DraftStroke.getPixelSize() : 1.0;
+		}
+	}
+
+	//public double widthMm { get { return width * scaleMm; } }
 
 	//[HideInInspector]
 	//public float stippleWidth = 1f;
@@ -30,6 +42,8 @@ public class StrokeStyle {
 	public bool depthTest = true;
 
 	public bool inPixels = true;
+
+	public bool dashesInPixels = true;
 	
 	[HideInInspector]
 	public int queue = 2002;
@@ -44,6 +58,7 @@ public class StrokeStyle {
 			width = takeWidthAndStipple.width,
 			//stippleWidth = takeWidthAndStipple.stippleWidth,
 			inPixels = takeWidthAndStipple.inPixels,
+			dashesInPixels = takeWidthAndStipple.dashesInPixels,
 			depthTest = depthTest,
 			queue = queue,
 			color = color,
@@ -58,6 +73,7 @@ public class StrokeStyle {
 		//stippleWidth = style.stippleWidth;
 		depthTest = style.depthTest;
 		inPixels = style.inPixels;
+		dashesInPixels = style.dashesInPixels;
 		queue = style.queue;
 		color = style.color;
 		pen = style.pen;
@@ -71,6 +87,7 @@ public class StrokeStyle {
 			//a.stippleWidth == b.stippleWidth &&
 			a.depthTest == b.depthTest &&
 			a.inPixels == b.inPixels &&
+			a.dashesInPixels == b.dashesInPixels &&
 			a.queue == b.queue &&
 			a.color == b.color &&
 			a.pen == b.pen &&
@@ -91,6 +108,7 @@ public class StrokeStyle {
 		//if(a.stippleWidth != b.stippleWidth) return a.stippleWidth < b.stippleWidth;
 		if(a.depthTest != b.depthTest) return a.depthTest == false;
 		if(a.inPixels != b.inPixels) return a.inPixels == false;
+		if(a.dashesInPixels != b.dashesInPixels) return a.dashesInPixels == false;
 		if(a.queue != b.queue) return a.queue < b.queue;
 		if(a.color.r != b.color.r) return a.color.r < b.color.r;
 		if(a.color.g != b.color.g) return a.color.g < b.color.g;
