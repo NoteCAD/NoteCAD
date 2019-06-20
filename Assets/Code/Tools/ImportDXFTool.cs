@@ -6,18 +6,66 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using netDxf;
 using System.IO;
+using System;
+using System.Text;
 
 public class ImportDXFTool : Tool, IPointerDownHandler {
 
+	enum FileType {
+		Dxf,
+		Hpgl
+	};
+
+	[Serializable]
+	class Settings {
+		ImportDXFTool tool;
+		public FileType fileType;
+		public bool autoconstrain = true;
+		[NonSerialized]
+		public bool activated = false;
+
+		public Settings(ImportDXFTool t) {
+			tool = t;
+		}
+
+		[RuntimeInspectorNamespace.RuntimeInspectorButton("Import", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
+		public void Export() {
+			activated = true;
+		}
+
+	}
+
+	Settings settings;
+
+	ImportDXFTool() {
+		settings = new Settings(this);
+	}
+
 	protected override void OnActivate() {
+		Inspect(settings);
+	}
+
+	public void LateUpdate() {
+		if(!settings.activated) return;
+		settings.activated = false;
 		StopTool();
+		switch(settings.fileType) {
+			case FileType.Dxf: {
+				NoteCADJS.LoadBinaryData(DxfDataLoaded, "dxf");
+				break;
+			}
+			case FileType.Hpgl: {
+				NoteCADJS.LoadBinaryData(HpglDataLoaded, "hpgl");
+				break;
+			}
+		}
 	}
 
 	public void OnPointerDown(PointerEventData eventData) {
-		NoteCADJS.LoadBinaryData(DataLoaded, "dxf");
 	}
 
 	void AutoConstrain(Entity e) {
+		if(!settings.autoconstrain) return;
 		foreach(var p in e.points) {
 			var other = p.sketch.GetOtherPointByPoint(p, 1e-4f);
 			if(other == null) continue;
@@ -57,8 +105,38 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 		circle.r.value = c.Radius;
 		AutoConstrain(circle);
 	}
+	
+	void HpglDataLoaded(byte[] data) {
+		editor.PushUndo();
+		var str = Encoding.UTF8.GetString(data, 0, data.Length);
+		var sep = new char[] { ';', '\n', '\r' };
+		var sep1 = new char[] { ',' };
+		var commands = str.Split(sep, StringSplitOptions.RemoveEmptyEntries);
+		UnityEngine.Vector3 pos = UnityEngine.Vector3.zero;
+		foreach(var com in commands) {
+			if(com.StartsWith("PU")) {
+				var pu = com.Replace("PU", "");
+				var coord = pu.Split(sep1);
+				pos = new UnityEngine.Vector3(coord[0].ToFloat(), coord[1].ToFloat(), 0f) / 40f;
+			}
+			if(com.StartsWith("PD")) {
+				var pd = com.Replace("PD", "");
+				var coord = pd.Split(sep1);
+				var newPos = new UnityEngine.Vector3(coord[0].ToFloat(), coord[1].ToFloat(), 0f) / 40f;
+				AddLine(pos, newPos);
+				pos = newPos;
+			}
+		}
+	}
 
-	void DataLoaded(byte[] data) {
+	void AddLine(UnityEngine.Vector3 p0, UnityEngine.Vector3 p1) {
+		LineEntity line = new LineEntity(DetailEditor.instance.currentSketch.GetSketch());
+		line.p0.SetPosition(p0);
+		line.p1.SetPosition(p1);
+		AutoConstrain(line);
+	}
+
+	void DxfDataLoaded(byte[] data) {
 		MemoryStream stream = new MemoryStream(data);
 		DxfDocument doc = DxfDocument.Load(stream);
 		editor.PushUndo();

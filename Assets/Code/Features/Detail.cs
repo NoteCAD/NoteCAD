@@ -6,6 +6,33 @@ using System.Xml;
 using System.Linq;
 using UnityEngine;
 
+
+public enum LengthMeasurementSystem {
+	Millimetre,
+	Centimetre,
+	Metre,
+	Inch
+}
+
+[Serializable]
+public class DetailSettings {
+	public LengthMeasurementSystem lengthMeasurement = LengthMeasurementSystem.Millimetre;
+	
+	public void Write(XmlTextWriter xml) {
+		xml.WriteStartElement("settings");
+		xml.WriteAttributeString("lengthMeasurement", lengthMeasurement.ToString());
+		xml.WriteEndElement();
+	}
+
+	public void Read(XmlNode xml) {
+		foreach(XmlNode xmlChild in xml.ChildNodes) {
+			if(xmlChild.Name != "settings") continue;
+			xmlChild.Attributes["lengthMeasurement"].Value.ToEnum(ref lengthMeasurement);
+		}
+	}
+
+}
+
 public class Detail : Feature {
 
 	public string name = "";
@@ -13,10 +40,16 @@ public class Detail : Feature {
 
 	public List<Feature> features = new List<Feature>();
 
+	public DetailSettings settings { get; private set; }
+
 	public override GameObject gameObject {
 		get {
 			return null;
 		}
+	}
+
+	public Detail() {
+		settings = new DetailSettings();
 	}
 
 	public override ICADObject GetChild(Id guid) {
@@ -103,7 +136,7 @@ public class Detail : Feature {
 		} else {
 			active = null;
 		}
-
+		settings.Read(xml.DocumentElement);
 		foreach(XmlNode node in xml.DocumentElement) {
 			if(node.Name == "styles") {
 				styles.Read(node);
@@ -131,6 +164,7 @@ public class Detail : Feature {
 		xml.WriteAttributeString("viewRot", Camera.main.transform.rotation.ToStr());
 		xml.WriteAttributeString("viewSize", Camera.main.orthographicSize.ToStr());
 		xml.WriteAttributeString("activeFeature", DetailEditor.instance.activeFeature.id.ToString());
+		settings.Write(xml);
 		styles.Write(xml);
 		foreach(var f in features) {
 			f.Write(xml);

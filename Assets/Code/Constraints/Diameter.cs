@@ -26,12 +26,14 @@ public class Diameter : ValueConstraint {
 		}
 	}
 
-	public override double LabelToValue(double label) {
-		return showAsRadius ? label / 2.0 : label;
+	public override ValueUnits units => ValueUnits.LENGTH;
+
+	protected override double LabelToValue(double label) {
+		return showAsRadius ? label * 2.0 : label;
 	}
 
-	public override double ValueToLabel(double value) {
-		return showAsRadius ? value * 2.0 : value;
+	protected override double ValueToLabel(double value) {
+		return showAsRadius ? value / 2.0 : value;
 	}
 
 	protected override void OnDraw(ICanvas canvas) {

@@ -111,7 +111,7 @@ public class SketchFeatureBase : Feature {
 			if(e.style == null) {
 				canvas.SetStyle("entities");
 			} else {
-				canvas.SetStyle(e.style.stroke);
+				canvas.SetStyle(e.style);
 			}
 			e.Draw(canvas);
 		}

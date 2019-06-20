@@ -70,6 +70,9 @@ public class Equal : ValueConstraint {
 			yield return len[0] - len[1] * value;
 		}
 	}
+
+	public override ValueUnits units => ValueUnits.FRACTION;
+
 	void DrawStroke(ICanvas canvas, IEntity e, int rpt) {
 
 		Vector3 dir = e.TangentAtInPlane(0.5, null).Eval();

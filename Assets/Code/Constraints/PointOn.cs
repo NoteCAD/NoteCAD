@@ -59,6 +59,8 @@ public class PointOn : ValueConstraint {
 		}
 	}
 
+	public override ValueUnits units => ValueUnits.FRACTION;
+
 	protected override void OnDraw(ICanvas canvas) {
 		var p0 = pointPos;
 		drawCameraCircle(canvas, Camera.main, p0, R_CIRLE_R * getPixelSize());
@@ -77,7 +79,7 @@ public class PointOn : ValueConstraint {
 		return getPlane().GetTransform() * Matrix4x4.Translate(p0);
 	}
 
-	public override double LabelToValue(double label) {
+	protected override double LabelToValue(double label) {
 		switch(on.type) {
 			//case IEntityType.Arc:
 			//case IEntityType.Circle:
@@ -87,7 +89,7 @@ public class PointOn : ValueConstraint {
 		return base.LabelToValue(label);
 	}
 
-	public override double ValueToLabel(double value) {
+	protected override double ValueToLabel(double value) {
 		switch(on.type) {
 			//case IEntityType.Arc:
 			//case IEntityType.Circle:

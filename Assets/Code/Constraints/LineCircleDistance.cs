@@ -47,6 +47,8 @@ public class LineCircleDistance : ValueConstraint {
 		}
 	}
 
+	public override ValueUnits units => ValueUnits.LENGTH;
+
 	protected override void OnDraw(ICanvas canvas) {
 		
 		var lip0 = sketch.plane.projectVectorInto(lineP0Pos);

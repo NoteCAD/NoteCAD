@@ -57,6 +57,8 @@ public class AngleConstraint : ValueConstraint {
 		}
 	}
 
+	public override ValueUnits units => ValueUnits.ANGLE;
+
 	Vector3[] GetPointsInPlane(IPlane plane) {
 		return GetPointsExp(plane).Select(pe => pe.Eval()).ToArray();
 	}
@@ -202,11 +204,11 @@ public class AngleConstraint : ValueConstraint {
 		return getPlane().GetTransform() * result;
 	}
 
-	public override double LabelToValue(double label) {
+	protected override double LabelToValue(double label) {
 		return label * Math.PI / 180.0;
 	}
 
-	public override double ValueToLabel(double value) {
+	protected override double ValueToLabel(double value) {
 		return value / Math.PI * 180.0;
 	}
 

@@ -4,14 +4,19 @@ using System.Linq;
 using UnityEngine;
 
 public interface ICanvas {
-	void SetStyle(StrokeStyle style);
+	void SetStyle(Style style);
 	void DrawLine(Vector3 a, Vector3 b);
 	void DrawPoint(Vector3 pt);
 }
 
 public static class ICanvasExt {
+	static Dictionary <string, Style> styles = new Dictionary<string, Style>();
 	public static void SetStyle(this ICanvas canvas, string name) {
-		canvas.SetStyle(EntityConfig.instance.styles.styles.First(s => s.name == name));
+		if(!styles.ContainsKey(name)) {
+			var stroke = EntityConfig.instance.styles.styles.First(s => s.name == name);
+			styles.Add(name, new Style { stroke = stroke });
+		}
+		canvas.SetStyle(styles[name]);
 	}
 }
 
@@ -69,5 +74,9 @@ public class LineCanvas : DraftStroke, ICanvas {
 
 	public void DrawPoint(Vector3 pos) {
 		DrawLine(pos, pos);
-	}	
+	}
+
+	public void SetStyle(Style style) {
+		SetStyle(style.stroke);
+	}
 }

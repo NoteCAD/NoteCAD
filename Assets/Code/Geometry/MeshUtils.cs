@@ -115,8 +115,8 @@ public static class MeshUtils {
 		mesh.RecalculateTangents();
 	}
 
-	public static Solid CreateSolidExtrusion(List<List<Entity>> entitiyLoops, float extrude, UnityEngine.Matrix4x4 tf, IdPath feature) {
-		var ids = new List<List<Id>>();
+	public static Solid CreateSolidExtrusion(List<List<IEntity>> entitiyLoops, float extrude, UnityEngine.Matrix4x4 tf, IdPath feature) {
+		var ids = new List<List<IdPath>>();
 		var polygons = Sketch.GetPolygons(entitiyLoops, ref ids);
 		bool inversed = extrude < 0f;
 		
@@ -149,7 +149,7 @@ public static class MeshUtils {
 				shift = extrudeVector;
 			}
 
-			Dictionary<Id, IdPath> paths = new Dictionary<Id, IdPath>();
+			Dictionary<IdPath, IdPath> paths = new Dictionary<IdPath, IdPath>();
 			for(int i = 0; i < p.Count; i++) {
 				var polygonVertices = new List<Vertex>();
 				polygonVertices.Add(TF(p[i]).ToVertex());
@@ -159,7 +159,7 @@ public static class MeshUtils {
 				if(!inversed) polygonVertices.Reverse();
 				IdPath curPath = null;
 				if(!paths.ContainsKey(pid[i])) {
-					curPath = feature.With(pid[i]);
+					//curPath = feature.With(pid[i]);
 					paths.Add(pid[i], curPath);
 				} else {
 					curPath = paths[pid[i]];
@@ -170,8 +170,8 @@ public static class MeshUtils {
 		return Solid.FromPolygons(polys);
 	}
 
-	public static Solid CreateSolidRevolve(List<List<Entity>> entitiyLoops, float angle, float helixStep, Vector3 axis, Vector3 origin,  float angleStep, UnityEngine.Matrix4x4 tf, IdPath feature) {
-		var ids = new List<List<Id>>();
+	public static Solid CreateSolidRevolve(List<List<IEntity>> entitiyLoops, float angle, float helixStep, Vector3 axis, Vector3 origin,  float angleStep, UnityEngine.Matrix4x4 tf, IdPath feature) {
+		var ids = new List<List<IdPath>>();
 		var polygons = Sketch.GetPolygons(entitiyLoops, ref ids);
 		bool isHelix = (Math.Abs(helixStep) > 1e-6);
 		if(!isHelix && Mathf.Abs(angle) > 360f) angle = Mathf.Sign(angle) * 360f;
@@ -220,7 +220,7 @@ public static class MeshUtils {
 				}
 			}
 
-			Dictionary<Id, IdPath> paths = new Dictionary<Id, IdPath>();
+			Dictionary<IdPath, IdPath> paths = new Dictionary<IdPath, IdPath>();
 			for(int i = 0; i < p.Count; i++) {
 				float a = 0f;
 				float da = angle / subdiv;
@@ -234,7 +234,7 @@ public static class MeshUtils {
 					if(!inversed) polygonVertices.Reverse();
 					IdPath curPath = null;
 					if(!paths.ContainsKey(pid[i])) {
-						curPath = feature.With(pid[i]);
+						//curPath = feature.With(pid[i]);
 						paths.Add(pid[i], curPath);
 					} else {
 						curPath = paths[pid[i]];

@@ -238,6 +238,12 @@ public abstract partial class Entity : SketchObject, IEntity {
 	public virtual BBox bbox { get { return new BBox(Vector3.zero, Vector3.zero); } }
 	public abstract IEntityType type { get; }
 
+	public bool isConstruction {
+		get {
+			return style == null ? false : style.construction;
+		}
+	}
+
 	public IPlane plane {
 		get {
 			return sketch.plane;
@@ -483,13 +489,10 @@ public abstract partial class Entity : SketchObject, IEntity {
 		if(isError) {
 			canvas.SetStyle("error");
 		} else {
-			if(construction && sketch.feature.detail.styles.GetStyle("Construction") != null) {
-				canvas.SetStyle(sketch.feature.detail.styles.GetStyle("Construction").stroke);
-			} else
 			if(style == null) {
 				canvas.SetStyle("entities");
 			} else {
-				canvas.SetStyle(style.stroke);
+				canvas.SetStyle(style);
 			}
 		}
 		ForEachSegment((a, b) => {

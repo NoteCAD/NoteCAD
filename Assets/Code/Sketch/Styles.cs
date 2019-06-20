@@ -2,11 +2,28 @@
 using System.Collections.Generic;
 using System.Xml;
 using System.Linq;
+using RuntimeInspectorNamespace;
 
+[Serializable]
 public class Style {
 
 	public Id guid { get; internal set; }
+
+	public string name {
+		get {
+			return stroke.name;
+		}
+
+		set {
+			stroke.name = value;
+		}
+	}
+
+	public bool construction = false;
+	public bool export = true;
+	public int pen = 0;
 	public StrokeStyle stroke = new StrokeStyle();
+
 
 	public void Read(XmlNode xml) {
 		stroke.name = xml.Attributes["name"].Value;
@@ -24,7 +41,9 @@ public class Style {
 		stroke.color.g = xml.Attributes["g"].Value.ToFloat();
 		stroke.color.b = xml.Attributes["b"].Value.ToFloat();
 		stroke.color.a = xml.Attributes["a"].Value.ToFloat();
-		if(xml.Attributes["pen"] != null) stroke.pen = Convert.ToInt32(xml.Attributes["pen"].Value);
+		if(xml.Attributes["pen"] != null) pen = Convert.ToInt32(xml.Attributes["pen"].Value);
+		if(xml.Attributes["construction"] != null) construction = Convert.ToBoolean(xml.Attributes["construction"].Value);
+		if(xml.Attributes["export"] != null) export = Convert.ToBoolean(xml.Attributes["export"].Value);
 		var sep = new char[1] { ' ' };
 		var dashes = xml.Attributes["dashes"].Value.Split(sep, StringSplitOptions.RemoveEmptyEntries);
 		stroke.dashes = new float[dashes.Length];
@@ -47,7 +66,9 @@ public class Style {
 		xml.WriteAttributeString("g", stroke.color.g.ToStr());
 		xml.WriteAttributeString("b", stroke.color.b.ToStr());
 		xml.WriteAttributeString("a", stroke.color.a.ToStr());
-		xml.WriteAttributeString("pen", stroke.pen.ToString());
+		xml.WriteAttributeString("pen", pen.ToString());
+		xml.WriteAttributeString("construction", construction.ToString());
+		xml.WriteAttributeString("export", export.ToString());
 		string dashes = "";
 		for(int i = 0; i < stroke.dashes.Length; i++) {
 			if(i != 0) dashes += " ";

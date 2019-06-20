@@ -142,6 +142,8 @@ public class TextEntity : Entity, ILoopEntity {
 			var box = GetCBox(glyph);
 			fontRenderer.charHeight = box.size.y;
 		}
+		var text = this.text;
+		if(text.Length == 0) text = " ";
 		for(int i = 0; i < text.Length; i++) {
 			var cur = new CodePoint(text[i]);
 			var glyph = font.GetUnhitedGlyph(cur, 1f);

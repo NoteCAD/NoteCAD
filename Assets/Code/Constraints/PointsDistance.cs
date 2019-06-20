@@ -28,7 +28,9 @@ public class PointsDistance : ValueConstraint {
 			yield return (p1exp - p0exp).Magnitude() - value.exp;
 		}
 	}
-	
+
+	public override ValueUnits units => ValueUnits.LENGTH;
+
 	ExpVector GetPointInPlane(int i, IPlane plane) {
 		if(HasEntitiesOfType(IEntityType.Line, 1)) {
 			return GetEntityOfType(IEntityType.Line, 0).GetPointAtInPlane(i, plane);

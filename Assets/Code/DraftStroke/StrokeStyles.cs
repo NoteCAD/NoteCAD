@@ -33,36 +33,26 @@ public class StrokeStyle {
 		}
 	}
 
-	//public double widthMm { get { return width * scaleMm; } }
-
-	//[HideInInspector]
-	//public float stippleWidth = 1f;
-
-	[HideInInspector]
 	public bool depthTest = true;
 
 	public bool inPixels = true;
 
 	public bool dashesInPixels = true;
 	
-	[HideInInspector]
 	public int queue = 2002;
 
 	public Color color = Color.white;
-	public int pen = 0;
 	public float[] dashes = new float[0];
 
 	public StrokeStyle WithWidthAndStippleFrom(StrokeStyle takeWidthAndStipple) {
 		return new StrokeStyle {
 			name = name + "_" + takeWidthAndStipple.name,
 			width = takeWidthAndStipple.width,
-			//stippleWidth = takeWidthAndStipple.stippleWidth,
 			inPixels = takeWidthAndStipple.inPixels,
 			dashesInPixels = takeWidthAndStipple.dashesInPixels,
 			depthTest = depthTest,
 			queue = queue,
 			color = color,
-			pen = pen,
 			dashes = takeWidthAndStipple.dashes
 		};
 	}
@@ -76,7 +66,6 @@ public class StrokeStyle {
 		dashesInPixels = style.dashesInPixels;
 		queue = style.queue;
 		color = style.color;
-		pen = style.pen;
 		dashes = style.dashes;
 	}
 
@@ -90,7 +79,6 @@ public class StrokeStyle {
 			a.dashesInPixels == b.dashesInPixels &&
 			a.queue == b.queue &&
 			a.color == b.color &&
-			a.pen == b.pen &&
 			a.dashes.SequenceEqual(b.dashes);
 	}
 
@@ -113,7 +101,6 @@ public class StrokeStyle {
 		if(a.color.r != b.color.r) return a.color.r < b.color.r;
 		if(a.color.g != b.color.g) return a.color.g < b.color.g;
 		if(a.color.b != b.color.b) return a.color.b < b.color.b;
-		if(a.pen != b.pen) return a.pen < b.pen;
 		if(!a.dashes.SequenceEqual(b.dashes)) {
 			if(a.dashes.Length != b.dashes.Length) return a.dashes.Length < b.dashes.Length;
 			for(int i = 0; i < a.dashes.Length; i++) {

@@ -62,7 +62,9 @@ public class CirclesDistance : ValueConstraint {
 			}
 		}
 	}
-	
+
+	public override ValueUnits units => ValueUnits.LENGTH;
+
 	protected override void OnDraw(ICanvas canvas) {
 		var c0 = GetEntity(0);
 		var c1 = GetEntity(1);

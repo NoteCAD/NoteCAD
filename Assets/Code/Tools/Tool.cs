@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -144,8 +145,12 @@ public class Tool : MonoBehaviour {
 		return true;
 	}
 
-	protected T SpawnEntity<T>(T entity) where T: Entity {
-		entity.style = StylesUI.instance.selectedStyle;
+	protected T SpawnEntity<T>(T entity, bool construction = false) where T: Entity {
+		if(construction) {
+			entity.style = editor.GetDetail().styles.GetStyles().FirstOrDefault(s => s.construction);
+		} else {
+			entity.style = StylesUI.instance.selectedStyle;
+		}
 		return entity;
 	}
 

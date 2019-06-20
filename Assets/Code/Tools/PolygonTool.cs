@@ -37,8 +37,7 @@ public class PolygonTool : Tool {
 		} else {
 			editor.PushUndo();
 			click = pos;
-			circle = new CircleEntity(sk.GetSketch());
-			circle.construction = true;
+			circle = SpawnEntity(new CircleEntity(sk.GetSketch()), construction: true);
 			circle.center.pos = pos;
 			circle.angleFixed = false;
 			lines = new LineEntity[options.corners];

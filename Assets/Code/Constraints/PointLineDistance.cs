@@ -33,6 +33,8 @@ public class PointLineDistance : ValueConstraint {
 		}
 	}
 
+	public override ValueUnits units => ValueUnits.LENGTH;
+
 	protected override void OnDraw(ICanvas canvas) {
 		
 		var lip0 = lineP0Pos;

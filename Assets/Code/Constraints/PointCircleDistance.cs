@@ -25,7 +25,9 @@ public class PointCircleDistance : ValueConstraint {
 			yield return (pPos - cCen).Magnitude() - cRad - value.exp;
 		}
 	}
-	
+
+	public override ValueUnits units => ValueUnits.LENGTH;
+
 	protected override void OnDraw(ICanvas canvas) {
 		var point = GetEntity(0);
 		var circle = GetEntity(1);

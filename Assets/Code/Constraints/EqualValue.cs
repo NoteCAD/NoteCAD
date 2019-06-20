@@ -38,6 +38,8 @@ public class EqualValue : ValueConstraint {
 		}
 	}
 
+	public override ValueUnits units => ValueUnits.FRACTION;
+
 	void DrawStroke(ICanvas canvas, ValueConstraint c, int rpt) {
 		ref_points[rpt] = c.pos;
 	}

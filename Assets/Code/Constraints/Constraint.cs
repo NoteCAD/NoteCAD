@@ -530,7 +530,15 @@ public class Constraint : SketchObject {
 }
 
 [Serializable]
-public class ValueConstraint : Constraint {
+public abstract class ValueConstraint : Constraint {
+
+	public enum ValueUnits {
+		ANGLE,
+		LENGTH,
+		FRACTION,
+	}
+
+	public abstract ValueUnits units { get; }
 
 	protected Param value = new Param("value");
 	bool reference_;
@@ -599,8 +607,32 @@ public class ValueConstraint : Constraint {
 		return Matrix4x4.identity;
 	}
 
+	public double LengthToLabel(double length) {
+		switch(sketch.feature.detail.settings.lengthMeasurement) {
+			case LengthMeasurementSystem.Millimetre:	return length;
+			case LengthMeasurementSystem.Centimetre:	return length / 10.0;
+			case LengthMeasurementSystem.Metre:			return length / 1000.0;
+			case LengthMeasurementSystem.Inch:			return length / 25.4;
+			default:									return length;
+		}
+	}
+
+	public double LabelToLength(double label) {
+		switch(sketch.feature.detail.settings.lengthMeasurement) {
+			case LengthMeasurementSystem.Millimetre:	return label;
+			case LengthMeasurementSystem.Centimetre:	return label * 10.0;
+			case LengthMeasurementSystem.Metre:			return label * 1000.0;
+			case LengthMeasurementSystem.Inch:			return label * 25.4;
+			default:									return label;
+		}
+	}
+
 	public double GetValue() {
-		return ValueToLabel(value.value);
+		var label = ValueToLabel(value.value);
+		switch(units) {
+			case ValueUnits.LENGTH: return LengthToLabel(label);
+			default: return label;
+		}
 	}
 
 	protected virtual string OnGetLabelValue() {
@@ -609,11 +641,18 @@ public class ValueConstraint : Constraint {
 
 	public string GetLabel() {
 		var v = OnGetLabelValue();
+		if(units == ValueUnits.LENGTH && sketch.feature.detail.settings.lengthMeasurement == LengthMeasurementSystem.Inch) {
+			v += "\"";
+		}
 		if(reference) v = "<" + v + ">";
 		return v;
 	}
 
 	public void SetValue(double v) {
+		switch(units) {
+			case ValueUnits.LENGTH: v = LabelToLength(v); break;
+			default: break;
+		}
 		value.value = LabelToValue(v);
 	}
 
@@ -623,11 +662,11 @@ public class ValueConstraint : Constraint {
 
 	public double dimension { get { return GetValue(); } set { SetValue(value); } }
 
-	public virtual double ValueToLabel(double value) {
+	protected virtual double ValueToLabel(double value) {
 		return value;
 	}
 
-	public virtual double LabelToValue(double label) {
+	protected virtual double LabelToValue(double label) {
 		return label;
 	}
 

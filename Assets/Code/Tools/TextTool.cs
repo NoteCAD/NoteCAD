@@ -5,6 +5,13 @@ using UnityEngine;
 public class TextTool : Tool {
 
 	TextEntity txt;
+	
+	[System.Serializable]
+	class Options { 
+		public string text;
+	}
+
+	Options options = new Options();
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		if(txt != null) {
@@ -13,12 +20,12 @@ public class TextTool : Tool {
 			foreach(var p in txt.p) p.isSelectable = true;
 			txt = null;
 			StopTool();
-		} else {
+		} else if(options.text != "") {
 			editor.PushUndo();
 			var sk = DetailEditor.instance.currentSketch;
 			if(sk == null) return;
 			txt = SpawnEntity(new TextEntity(sk.GetSketch()));
-			txt.text = "Text";
+			txt.text = options.text;
 			txt.p[0].pos = pos;
 			txt.UpdatePoints();
 			AutoConstrainCoincident(txt.p[0], sko as IEntity);
@@ -44,6 +51,11 @@ public class TextTool : Tool {
 
 	protected override string OnGetDescription() {
 		return "click where you want to create text";
+	}
+
+	protected override void OnActivate() {
+		options.text = "";
+		Inspect(options);
 	}
 
 }

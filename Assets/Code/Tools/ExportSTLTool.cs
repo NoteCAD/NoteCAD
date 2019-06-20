@@ -42,7 +42,6 @@ public class ExportSTLTool : Tool {
 
 	}
 
-
 	class HpglCanvas : ICanvas {
 		struct Line {
 			public Vector3 a;
@@ -53,9 +52,9 @@ public class ExportSTLTool : Tool {
 				b = t;
 			}
 		}
-		Dictionary<StrokeStyle, List<Line>> allLines = new Dictionary<StrokeStyle, List<Line>>();
+		Dictionary<Style, List<Line>> allLines = new Dictionary<Style, List<Line>>();
 
-		StrokeStyle currrentStyle;
+		Style currrentStyle;
 		List<Line> currentLines;
 		
 		public void DrawLine(Vector3 a, Vector3 b) {
@@ -65,7 +64,7 @@ public class ExportSTLTool : Tool {
 		public void DrawPoint(Vector3 pt) {
 		}
 
-		public void SetStyle(StrokeStyle style) {
+		public void SetStyle(Style style) {
 			if(!allLines.ContainsKey(style)) {
 				allLines[style] = new List<Line>();
 			}
@@ -85,7 +84,7 @@ public class ExportSTLTool : Tool {
 			return ToHpgl(v0.x) == ToHpgl(v1.x) && ToHpgl(v0.y) == ToHpgl(v1.y);
 		}
 
-		void SP(StringBuilder builder, StrokeStyle style) {
+		void SP(StringBuilder builder, Style style) {
 			builder.Append("SP" + style.pen.ToString() + ";\n");
 			//builder.Append("PW" + style.widthMm.ToStr() + ";\n");
 		}
@@ -104,6 +103,7 @@ public class ExportSTLTool : Tool {
 			builder.Append("IN;\nPA0,0;\n");
 
 			foreach(var style in allLines.Keys) {
+				if(!style.export) continue;
 				var lines = allLines[style];
 				SP(builder, style);
 				float phase = 0f;
@@ -131,10 +131,10 @@ public class ExportSTLTool : Tool {
 					var dir = t.normalized;
 					var len = t.magnitude;
 
-					if(style.dashes.Length > 1) {
+					if(style.stroke.dashes.Length > 1) {
 						Vector3 pos = l.a;
 						while(len > 0f) {
-							var delta = (style.dashes[dash] - phase) * (float)style.dashesScaleMm;
+							var delta = (style.stroke.dashes[dash] - phase) * (float)style.stroke.dashesScaleMm;
 							if(delta > len) {
 								phase = len;
 								delta = len;
@@ -146,7 +146,7 @@ public class ExportSTLTool : Tool {
 							if(dash % 2 == 0) PD(builder, pos);
 							len -= delta;
 							if(phase == 0f) {
-								dash = (dash + 1) % style.dashes.Length;
+								dash = (dash + 1) % style.stroke.dashes.Length;
 							}
 						}
 					} else {

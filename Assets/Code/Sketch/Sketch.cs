@@ -317,7 +317,11 @@ public class Sketch : CADObject  {
 	}
 
 	public List<List<Entity>> GenerateLoops() {
-		var all = entities.Values.Where(e => !e.construction).OfType<ISegmentaryEntity>().ToList();
+		return GenerateLoops(entities.Values);
+	}
+
+	public static List<List<Entity>> GenerateLoops(IEnumerable<Entity> entities) {
+		var all = entities.Where(e => !e.isConstruction).OfType<ISegmentaryEntity>().ToList();
 		var first = all.FirstOrDefault();
 		var current = first;
 		PointEntity prevPoint = null;
@@ -337,7 +341,7 @@ public class Sketch : CADObject  {
 					.Where(p => p != null && p != prevPoint)
 					.Where(p => p.parent != null && p.parent.IsEnding(p))
 					.Select(p => p.parent)
-					.Where(e => !e.construction)
+					.Where(e => !e.isConstruction)
 					.OfType<ISegmentaryEntity>();
 				if(connected.Any()) {
 					current = connected.First() as ISegmentaryEntity;
@@ -356,24 +360,24 @@ public class Sketch : CADObject  {
 				continue;
 			}
 		}
-		loops.AddRange(entities.Values.Where(e => !e.construction).OfType<ILoopEntity>().Select(e => Enumerable.Repeat(e as Entity, 1).ToList()));
+		loops.AddRange(entities.Where(e => !e.isConstruction).OfType<ILoopEntity>().Select(e => Enumerable.Repeat(e as Entity, 1).ToList()));
 		return loops;
 	}
 
-	public static List<List<Vector3>> GetPolygons(List<List<Entity>> loops, ref List<List<Id>> ids) {
+	public static List<List<Vector3>> GetPolygons(List<List<IEntity>> loops, ref List<List<IdPath>> ids) {
 		if(ids != null) ids.Clear();
 		var result = new List<List<Vector3>>();
 		if(loops == null) return result;
 
 		foreach(var loop in loops) {
 			var polygon = new List<Vector3>();
-			List<Id> idPolygon = null;
-			if(ids != null) idPolygon = new List<Id>();
+			List<IdPath> idPolygon = null;
+			if(ids != null) idPolygon = new List<IdPath>();
 
-			Action<IEnumerable<Vector3>, Entity> AddToPolygon = (points, entity) => {
+			Action<IEnumerable<Vector3>, IEntity> AddToPolygon = (points, entity) => {
 				polygon.AddRange(points);
 				if(idPolygon != null) {
-					idPolygon.AddRange(Enumerable.Repeat(entity.guid, points.Count()));
+					idPolygon.AddRange(Enumerable.Repeat(entity.id, points.Count()));
 				}
 			};
 
@@ -400,7 +404,7 @@ public class Sketch : CADObject  {
 					var cur = loop[i] as ILoopEntity;
 					foreach(var lp in cur.loopPoints) {
 						polygon = new List<Vector3>();
-						if(ids != null) idPolygon = new List<Id>();
+						if(ids != null) idPolygon = new List<IdPath>();
 						AddToPolygon(lp, loop[i]);
 						if(polygon.Count > 0) {
 							polygon.RemoveAt(polygon.Count - 1);

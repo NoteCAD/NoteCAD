@@ -11,7 +11,7 @@ public class StyleAddTool : Tool {
 		style.stroke.name = "New style " + style.guid.ToString();
 		StylesUI.instance.UpdateStyles();
 		StylesUI.instance.SelectStyle(style);
-		Inspect(style.stroke);
+		Inspect(style);
 	}
 
 	protected override void OnDeactivate() {

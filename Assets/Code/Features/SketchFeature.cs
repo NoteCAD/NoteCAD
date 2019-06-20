@@ -7,7 +7,7 @@ using UnityEngine;
 
 [Serializable]
 public class SketchFeature : SketchFeatureBase, IPlane {
-	List<List<Entity>> loops = new List<List<Entity>>();
+	List<List<IEntity>> loops = new List<List<IEntity>>();
 	Mesh mainMesh;
 	GameObject loopObj;
 
@@ -106,13 +106,17 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		mr.material = EntityConfig.instance.loopMaterial;
 	}
 
+	protected virtual List<List<IEntity>> OnGenerateLoops() {
+		return sketch.GenerateLoops().Select(el => el.Select(e => e as IEntity).ToList()).ToList();
+	}
+
 	protected override void OnUpdateDirty() {
 		transformDirty = true;
 		if(sketch.topologyChanged) {
-			loops = sketch.GenerateLoops();
+			loops = OnGenerateLoops();
 		}
 
-		var loopsChanged = loops.Any(l => l.Any(e => e.IsChanged()));
+		var loopsChanged = loops.Any(l => l.OfType<Entity>().Any(e => e.IsChanged()));
 		if(loopsChanged || sketch.topologyChanged) {
 			CreateLoops();
 		}
@@ -121,7 +125,8 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 
 	void CreateLoops() {
 		var itr = new Vector3();
-		foreach(var loop in loops) {
+		foreach(var l in loops) {
+			var loop = l.OfType<Entity>();
 			loop.ForEach(e => e.isError = false);
 			foreach(var e0 in loop) {
 				foreach(var e1 in loop) {
@@ -131,8 +136,8 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 				}
 			}
 		}
-		List<List<Id>> ids = null;
-		var polygons = Sketch.GetPolygons(loops.Where(l => l.All(e => !e.isError)).ToList(), ref ids);
+		List<List<IdPath>> ids = null;
+		var polygons = Sketch.GetPolygons(loops.Where(l => l.All(e => !(e is Entity) || !(e as Entity).isError)).ToList(), ref ids);
 		mainMesh.Clear();
 		MeshUtils.CreateMeshRegion(polygons, ref mainMesh);
 	}
@@ -160,7 +165,7 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		}
 	}
 
-	public List<List<Entity>> GetLoops() {
+	public List<List<IEntity>> GetLoops() {
 		return loops;
 	}
 
@@ -173,9 +178,11 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 	}
 
 	public void DrawTriangulation(ICanvas canvas) {
+		/*
 		var ids = new List<List<Id>>();
 		var polygons = Sketch.GetPolygons(loops.Where(l => l.All(e => !e.isError)).ToList(), ref ids);
 		MeshUtils.DrawTriangulation(polygons, canvas);
+		*/
 	}
 
 }

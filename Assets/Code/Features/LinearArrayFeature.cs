@@ -109,6 +109,16 @@ public class LinearArrayFeature : SketchFeature {
 		dy.changed = false;
 	}
 
+	protected override List<List<IEntity>> OnGenerateLoops() {
+		var result = new List<List<IEntity>>();
+		var loops = sourceSketch.GenerateLoops();
+		for(int i = 0; i < repeatCount; i++) {
+			result.AddRange(loops.Select(el => el.Select(e => new ArrayEntity(e, this, i) as IEntity).ToList()));
+		}
+		result.AddRange(base.OnGenerateLoops());
+		return result;
+	}
+
 	protected override void OnDraw(Matrix4x4 tf) {
 		
 		var sk = source as SketchFeature;		

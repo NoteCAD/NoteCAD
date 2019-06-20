@@ -12,7 +12,7 @@ public class StyleEditTool : Tool {
 			return;
 		}
 		editor.PushUndo();
-		Inspect(selected.stroke);
+		Inspect(selected);
 	}
 
 	protected override void OnDeactivate() {

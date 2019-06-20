@@ -22,7 +22,9 @@ public class Length : ValueConstraint {
 			yield return GetEntity(0).Length() - value;
 		}
 	}
-	
+
+	public override ValueUnits units => ValueUnits.LENGTH;
+
 	ExpVector GetPointInPlane(int i, IPlane plane) {
 		return GetEntity(0).GetPointAtInPlane(i, plane);
 	}
