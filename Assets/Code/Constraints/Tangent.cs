@@ -19,6 +19,9 @@ public class Tangent : Constraint {
 	public Option option { get { return option_; } set { option_ = value; sketch.MarkDirtySketch(topo:true); } }
 	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }
 
+	bool perpendicular_;
+	public bool perpendicular  { get { return perpendicular_; } set { perpendicular_ = value; sketch.MarkDirtySketch(topo:true); } }
+
 	public override IEnumerable<Param> parameters {
 		get {
 			double tv0 = 0.0;
@@ -37,7 +40,8 @@ public class Tangent : Constraint {
 	public Tangent(Sketch sk) : base(sk) { }
 	public Tangent(Sketch sk, Id id) : base(sk, id) { }
 
-	public Tangent(Sketch sk, IEntity l0, IEntity l1) : base(sk) {
+	public Tangent(Sketch sk, IEntity l0, IEntity l1, bool perpendicular = false) : base(sk) {
+		perpendicular_ = perpendicular;
 		AddEntity(l0);
 		AddEntity(l1);
 		Satisfy();
@@ -102,7 +106,12 @@ public class Tangent : Constraint {
 			var l1 = GetEntity(1);
 
 			ExpVector dir0 = l0.TangentAt(t0);
-			ExpVector dir1 = l1.TangentAt(t1);
+			ExpVector dir1 = null;
+			if(perpendicular) {
+				dir1 = l1.NormalAt(t1);
+			} else {
+				dir1 = l1.TangentAt(t1);
+			}
 
 			dir0 = l0.plane.DirFromPlane(dir0);
 			dir0 = sketch.plane.DirToPlane(dir0);
@@ -168,11 +177,15 @@ public class Tangent : Constraint {
 	protected override void OnWrite(XmlTextWriter xml) {
 		xml.WriteAttributeString("t0", t0.value.ToStr());
 		xml.WriteAttributeString("t1", t1.value.ToStr());
+		if(perpendicular) xml.WriteAttributeString("perpendicular", perpendicular_.ToString());
 	}
 
 	protected override void OnRead(XmlNode xml) {
 		t0.value = xml.Attributes["t0"].Value.ToDouble();
 		t1.value = xml.Attributes["t1"].Value.ToDouble();
+		if(xml.Attributes["perpendicular"] != null) {
+			perpendicular_ = Convert.ToBoolean(xml.Attributes["perpendicular"].Value);
+		}
 	}
 
 }
