@@ -920,7 +920,7 @@ public abstract class ValueConstraint : Constraint {
 		if(Mathf.Abs(offset.x) > half_dist) sx = -1f;
 		
 		// if label ourside distance area or sceren distance not too small, draw arrows
-		if((sx < 0f || length(lp0 - lp1) > (R_ARROW_W * 2f + 1f) * pix) && style != 1) {
+		if((sx < 0f || length(lp0 - lp1) > (R_ARROW_W * 2f + 1f) * pix || !arrow0 || !arrow1) && style != 1) {
 			// arrow lp0
 			if(arrow0) {
 				renderer.DrawLine(lp0, lp0 - vy * R_ARROW_H * pix + vx * R_ARROW_W * pix * sx);
@@ -934,10 +934,14 @@ public abstract class ValueConstraint : Constraint {
 			}
 		} else {
 			// stroke lp0
-			renderer.DrawLine(lp0 - vy * R_ARROW_H * pix + vx * R_ARROW_H * pix, lp0 + vy * R_ARROW_H * pix - vx * R_ARROW_H * pix);
+			if(arrow0) {
+				renderer.DrawLine(lp0 - vy * R_ARROW_H * pix + vx * R_ARROW_H * pix, lp0 + vy * R_ARROW_H * pix - vx * R_ARROW_H * pix);
+			}
 			
 			// stroke lp1
-			renderer.DrawLine(lp1 - vy * R_ARROW_H * pix + vx * R_ARROW_H * pix, lp1 + vy * R_ARROW_H * pix - vx * R_ARROW_H * pix);
+			if(arrow1) {
+				renderer.DrawLine(lp1 - vy * R_ARROW_H * pix + vx * R_ARROW_H * pix, lp1 + vy * R_ARROW_H * pix - vx * R_ARROW_H * pix);
+			}
 		}
 		
 		Vector3 lv0 = lp0;
