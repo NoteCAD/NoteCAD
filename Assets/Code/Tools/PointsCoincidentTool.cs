@@ -6,6 +6,19 @@ public class PointsCoincidentTool : Tool {
 
 	IEntity p0;
 
+	PointsCoincidentTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		if(p0 == null) return e.type == IEntityType.Point;
+		return CanConstrainCoincident(e) && !e.IsSameAs(p0);
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject ico) {
 		IEntity entity = ico as IEntity;
 		if(entity == null) return;

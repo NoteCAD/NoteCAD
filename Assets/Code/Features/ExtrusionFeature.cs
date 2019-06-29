@@ -278,23 +278,29 @@ public class ExtrusionFeature : MeshFeature {
 		}
 	}
 
-	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, HoverFilter filter, ref double dist) {
 		var sk = source as SketchFeature;
 
 		double d0 = -1;
-		var r0 = sk.Hover(mouse, camera, tf, ref d0);
+		var r0 = sk.Hover(mouse, camera, tf, filter, ref d0);
 		if(!(r0 is Entity)) r0 = null;
 
 		UnityEngine.Matrix4x4 move = UnityEngine.Matrix4x4.Translate(Vector3.forward * (float)extrude.value);
 		double d1 = -1;
-		var r1 = sk.Hover(mouse, camera, tf * move, ref d1);
+		var r1 = sk.Hover(mouse, camera, tf * move, filter, ref d1);
 		if(!(r1 is Entity)) r1 = null;
 
 		if(r1 != null && (r0 == null || d1 < d0)) {
-			r0 = new ExtrudedEntity(r1 as Entity, this, 1);
-			d0 = d1;
+			var e = new ExtrudedEntity(r1 as Entity, this, 1);
+			if(filter == null || filter(e)) {
+				r0 = e;
+				d0 = d1;
+			}
 		} else if(r0 != null) {
-			r0 = new ExtrudedEntity(r0 as Entity, this, 0);
+			var e = new ExtrudedEntity(r0 as Entity, this, 0);
+			if(filter == null || filter(e)) {
+				r0 = e;
+			}
 		}
 
 		var points = sk.GetSketch().entityList.OfType<PointEntity>();
@@ -314,8 +320,11 @@ public class ExtrusionFeature : MeshFeature {
 		}
 
 		if(hover != null && (r0 == null || d0 > min)) {
-			dist = min;
-			return new ExtrudedPointEntity(hover, this);
+			var result = new ExtrudedPointEntity(hover, this);
+			if(filter == null || filter(result)) {
+				dist = min;
+				return result;
+			}
 		}
 
 		if(r0 != null) {

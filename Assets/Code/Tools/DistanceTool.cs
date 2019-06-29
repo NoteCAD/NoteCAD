@@ -9,6 +9,14 @@ public class DistanceTool : Tool {
 	ValueConstraint constraint;
 	Vector3 click;
 
+	DistanceTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
 	T SpawnConstraint<T>(Func<T> create) where T: ValueConstraint {
 		if(constraint != null) {
 			constraint.Destroy();

@@ -9,6 +9,18 @@ public class HVTool : Tool {
 	//Vector3 click;
 	public bool vertical = false;
 
+	HVTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		return p0 == null && e.type == IEntityType.Line || e.type == IEntityType.Point && !e.IsSameAs(p0);
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		//click = pos;
 		var entity = sko as IEntity;

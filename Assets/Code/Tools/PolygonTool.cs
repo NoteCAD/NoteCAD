@@ -17,6 +17,19 @@ public class PolygonTool : Tool {
 
 	PolygonOptions options = new PolygonOptions();
 
+	PolygonTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		if(lines == null) return CanConstrainCoincident(e);
+		return false;
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		var sk = DetailEditor.instance.currentSketch;
 		if(sk == null) return;
@@ -92,7 +105,7 @@ public class PolygonTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "click where you want to create points of the rect";
+		return "click where you want to create center of polygon then you can control size of polygon by moving mouse cursor.";
 	}
 
 }

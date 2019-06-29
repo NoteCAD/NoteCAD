@@ -157,11 +157,11 @@ public abstract class Feature : CADObject {
 	public virtual void MarqueeSelect(Rect rect, bool wholeObject, Camera camera, UnityEngine.Matrix4x4 tf, ref List<ICADObject> result) {
 	}
 
-	public virtual ICADObject Hover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
-		return OnHover(mouse, camera, tf, ref dist);
+	public virtual ICADObject Hover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, HoverFilter filter, ref double dist) {
+		return OnHover(mouse, camera, tf, filter, ref dist);
 	}
 
-	protected virtual ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
+	protected virtual ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, HoverFilter filter, ref double dist) {
 		return null;
 	}
 

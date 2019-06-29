@@ -105,7 +105,7 @@ public class SketchFeatureBase : Feature {
 		return sketch.IsEntitiesChanged() || sketch.IsConstraintsChanged();
 	}
 
-	public void DrawEntities(ICanvas canvas) {
+	public virtual void DrawEntities(ICanvas canvas) {
 		foreach(var e in sketch.entityList) {
 			if(!e.isVisible) continue;
 			if(e.style == null) {
@@ -151,12 +151,12 @@ public class SketchFeatureBase : Feature {
 		sketch.MarqueeSelect(rect, wholeObject, camera, resTf, ref result);
 	}
 
-	public override ICADObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
+	public override ICADObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, HoverFilter filter, ref double objDist) {
 		double dist = -1;
 		var resTf = GetTransform() * tf;
-		var result1 = sketch.Hover(mouse, camera, resTf, ref objDist);
+		var result1 = sketch.Hover(mouse, camera, resTf, filter, ref objDist);
 		if(result1 is IEntity && (result1 as IEntity).type == IEntityType.Point) return result1;
-		var result = base.Hover(mouse, camera, resTf, ref dist);
+		var result = base.Hover(mouse, camera, resTf, filter, ref dist);
 		if(result != null && result1 != null) {
 			if(dist < objDist) {
 				objDist = dist;

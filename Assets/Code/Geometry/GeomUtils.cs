@@ -205,6 +205,12 @@ public static class GeomUtils {
  
         return new Bounds { center = center, extents = extents };
     }
+
+	public static double ParallelEps = 1e-6;
+	public static bool IsVectorsParallel(Vector3 v0, Vector3 v1) {
+		var cross = Vector3.Cross(v0, v1);
+		return cross.sqrMagnitude < ParallelEps * ParallelEps;
+	}
 	
 }
 

@@ -13,6 +13,18 @@ public class TextTool : Tool {
 
 	Options options = new Options();
 
+	TextTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		return CanConstrainCoincident(e);
+	}
+	
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		if(txt != null) {
 			AutoConstrainCoincident(txt.p[3], sko as IEntity);
@@ -50,7 +62,7 @@ public class TextTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "click where you want to create text";
+		return "enter text in option window and then click where you want to create text entity";
 	}
 
 	protected override void OnActivate() {

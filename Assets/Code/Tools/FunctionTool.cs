@@ -7,6 +7,18 @@ public class FunctionTool : Tool {
 	FunctionEntity current;
 	bool canCreate = true;
 
+	FunctionTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		return CanConstrainCoincident(e);
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
 		if(current != null) {
@@ -60,7 +72,7 @@ public class FunctionTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "click where you want to create the beginning and the ending points of the arc";
+		return "click where you want to create the beginning and the ending points of the segment defined by arbitrary equations";
 	}
 
 }

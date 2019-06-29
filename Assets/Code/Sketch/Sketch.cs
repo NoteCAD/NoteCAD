@@ -246,13 +246,14 @@ public class Sketch : CADObject  {
 	}
 
 	public static double hoverRadius = 5.0;
-	public SketchObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
+	public SketchObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, HoverFilter filter, ref double objDist) {
 		double min = -1.0;
 		SketchObject hoveredObject = null;
 		foreach(var en in entities) {
 			var e = en.Value;
 			if(!e.isVisible) continue;
 			if(!e.isSelectable) continue;
+			if(filter != null && !filter(e)) continue;
 			var dist = e.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
 			if(dist > hoverRadius) continue;
@@ -265,6 +266,7 @@ public class Sketch : CADObject  {
 		foreach(var c in constraints.Values) {
 			if(!c.isVisible) continue;
 			if(!c.isSelectable) continue;
+			if(filter != null && !filter(c)) continue;
 			var dist = c.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
 			if(dist > hoverRadius) continue;

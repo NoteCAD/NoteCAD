@@ -14,6 +14,9 @@ public class Tool : MonoBehaviour {
 	public Sprite icon;
 	public bool canActivateWhenActive = false;
 
+	[System.NonSerialized]
+	public bool enableHoverFilter = false;
+
 	public DetailEditor editor { get { return DetailEditor.instance; } }
 
 	public bool shouldStop { get; private set; }
@@ -39,6 +42,9 @@ public class Tool : MonoBehaviour {
 
 	public void Activate() {
 		shouldStop = false;
+		if(enableHoverFilter) {
+			editor.hoverFilter = HoverFilter;
+		}
 		OnActivate();
 	}
 
@@ -48,6 +54,7 @@ public class Tool : MonoBehaviour {
 			editor.toolInspector = false;
 			editor.inspector.Inspect(null);
 		}
+		editor.hoverFilter = null;
 	}
 
 	public void DoUpdate() {
@@ -132,6 +139,23 @@ public class Tool : MonoBehaviour {
 		shouldStop = true;
 	}
 
+	protected bool CanConstrainCoincident(IEntity with) {
+		if(with == null) return false;
+		switch(with.type) {
+			case IEntityType.Arc:
+			case IEntityType.Circle:
+			case IEntityType.Ellipse:
+			case IEntityType.EllipticArc:
+			case IEntityType.Function:
+			case IEntityType.Helix:
+			case IEntityType.Line:
+			case IEntityType.Point:
+			case IEntityType.Spline:
+				return true;
+		}
+		return false;
+	}
+	
 	protected bool AutoConstrainCoincident(PointEntity point, IEntity with) {
 		if(with == null) return false;
 		if(with.type == IEntityType.Point) {
@@ -180,6 +204,20 @@ public class Tool : MonoBehaviour {
 
 	protected virtual string OnGetTooltip() {
 		return "";
+	}
+
+	protected virtual bool OnTryHover(IEntity e) {
+		return true;
+	}
+
+	protected virtual bool OnTryHover(Constraint c) {
+		return true;
+	}
+
+	bool HoverFilter(ICADObject o) {
+		if(o is IEntity e) return OnTryHover(e);
+		if(o is Constraint c) return OnTryHover(c);
+		return true;
 	}
 
 	public string GetRichText() {

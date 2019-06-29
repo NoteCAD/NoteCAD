@@ -142,7 +142,9 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		MeshUtils.CreateMeshRegion(polygons, ref mainMesh);
 	}
 
-	protected override void OnWriteSketchFeatureBase(XmlTextWriter xml) {
+	protected virtual void OnWriteSketchFeature(XmlTextWriter xml) { }
+	protected override sealed void OnWriteSketchFeatureBase(XmlTextWriter xml) {
+		OnWriteSketchFeature(xml);
 		if(uId.Empty() && vId.Empty() && pId.Empty()) return;
 		xml.WriteStartElement("references");
 		uId.Write(xml, "u");
@@ -151,7 +153,8 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		xml.WriteEndElement();
 	}
 
-	protected override void OnReadSketchFeatureBase(XmlNode xml) {
+	protected virtual void OnReadSketchFeature(XmlNode xml) { }
+	protected override sealed void OnReadSketchFeatureBase(XmlNode xml) {
 		foreach(XmlNode nodeKind in xml.ChildNodes) {
 			if(nodeKind.Name != "references") continue;
 			foreach(XmlNode idNode in nodeKind.ChildNodes) {
@@ -163,6 +166,7 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 				}
 			}
 		}
+		OnReadSketchFeature(xml);
 	}
 
 	public List<List<IEntity>> GetLoops() {

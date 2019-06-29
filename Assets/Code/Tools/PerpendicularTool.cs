@@ -6,6 +6,18 @@ public class PerpendicularTool : Tool {
 
 	IEntity l0;
 
+	PerpendicularTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		return e.type != IEntityType.Point && CanConstrainCoincident(e) && e.TangentAt(0.0) != null && !e.IsSameAs(l0);
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		var entity = sko as IEntity;
 		if(entity == null) return;

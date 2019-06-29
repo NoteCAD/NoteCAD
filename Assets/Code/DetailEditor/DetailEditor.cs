@@ -9,6 +9,8 @@ using RuntimeInspectorNamespace;
 using System.IO;
 using System.Xml;
 
+public delegate bool HoverFilter(ICADObject co);
+
 public class DetailEditor : MonoBehaviour {
 
 	static DetailEditor instance_;
@@ -49,6 +51,8 @@ public class DetailEditor : MonoBehaviour {
 	EquationSystem sys = new EquationSystem();
 	public HashSet<IdPath> selection = new HashSet<IdPath>();
 
+	public HoverFilter hoverFilter = null;
+	
 	ICADObject hovered_;
 	public ICADObject hovered {
 		get {
@@ -169,18 +173,23 @@ public class DetailEditor : MonoBehaviour {
 		}
 		ActivateFeature(activeFeature);
 	}
-
+	List<Exp> draggedEquations = new List<Exp>();
 	public void AddDrag(Exp drag) {
+		draggedEquations.Add(drag);
 		sys.AddEquation(drag);
 	}
 
 	public void RemoveDrag(Exp drag) {
+		draggedEquations.Remove(drag);
 		sys.RemoveEquation(drag);
 	}
 
 	void UpdateSystem() {
 		sys.Clear();
 		activeFeature.GenerateEquations(sys);
+		foreach(var drag in draggedEquations) {
+			sys.AddEquation(drag);
+		}
 	}
 	string dofText;
 
@@ -271,7 +280,7 @@ public class DetailEditor : MonoBehaviour {
 		
 		if(!CameraController.instance.IsMoving && !suppressHovering) {
 			double dist = -1.0;
-			hovered = detail.HoverUntil(Input.mousePosition, Camera.main, UnityEngine.Matrix4x4.identity, ref dist, activeFeature);
+			hovered = detail.HoverUntil(Input.mousePosition, Camera.main, UnityEngine.Matrix4x4.identity, ref dist, activeFeature, hoverFilter);
 			/*
 			if(hovered == null && solid != null) {
 				var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -549,8 +558,7 @@ public class DetailEditor : MonoBehaviour {
 	private void OnDrawGizmos() {
 		if(currentSketch != null) {
 			var bounds = currentSketch.bounds;
-			if(currentSketch is LinearArrayFeature) {
-				var laf = currentSketch as LinearArrayFeature;
+			if(currentSketch is LinearArrayFeature laf) {
 				laf.DrawGizmos(Input.mousePosition, Camera.main);
 			} else {
 				Gizmos.DrawWireCube(bounds.center, bounds.size);

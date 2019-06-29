@@ -7,6 +7,19 @@ public class CircleTool : Tool {
 	CircleEntity current;
 	bool canCreate = true;
 
+	CircleTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		if(current == null) return CanConstrainCoincident(e);
+		return false;
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
 		if(current != null) {

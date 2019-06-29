@@ -7,6 +7,19 @@ public class EllipseTool : Tool {
 	EllipseEntity current;
 	bool canCreate = true;
 
+	EllipseTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		if(current == null) return CanConstrainCoincident(e);
+		return false;
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
 		if(current != null) {

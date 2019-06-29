@@ -6,6 +6,18 @@ public class RectTool : Tool {
 
 	LineEntity[] lines = new LineEntity[4];
 
+	RectTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+	
+	protected override bool OnTryHover(IEntity e) {
+		return CanConstrainCoincident(e);
+	}
+	
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		if(lines[0] != null) {
 			foreach(var l in lines) {
@@ -72,7 +84,7 @@ public class RectTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "click where you want to create points of the rect";
+		return "click where you want to create points of the rectangle";
 	}
 
 }

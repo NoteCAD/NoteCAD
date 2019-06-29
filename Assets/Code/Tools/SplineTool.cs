@@ -8,6 +8,18 @@ public class SplineTool : Tool {
 	SplineEntity current;
 	bool canCreate = true;
 
+	SplineTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+	
+	protected override bool OnTryHover(IEntity e) {
+		return CanConstrainCoincident(e);
+	}	
+	
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
 		if(current != null) {
@@ -72,7 +84,7 @@ public class SplineTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "click where you want to create the beginning and the ending points of the spline";
+		return "click where you want to create the beginning and the ending points of the cubic Bezier spline";
 	}
 
 }

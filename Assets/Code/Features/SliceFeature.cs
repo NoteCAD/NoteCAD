@@ -219,7 +219,7 @@ public class SliceFeature : Feature {
 		GameObject.Destroy(go);
 	}
 
-	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, HoverFilter filter, ref double dist) {
 		/*
 		var sk = source as SketchFeature;
 		k

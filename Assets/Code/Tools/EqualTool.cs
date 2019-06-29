@@ -7,13 +7,24 @@ public class EqualTool : Tool {
 	IEntity l0;
 	ValueConstraint c0;
 
+	EqualTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return l0 == null && c is AngleConstraint && c != c0;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		return c0 == null && (e.Radius() != null || e.Length() != null) && !e.IsSameAs(l0);
+	}
+
 	[System.Serializable]
 	class Options { 
 		public bool preserveRatio = false;
 	}
 
 	Options options = new Options();
-
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		var vc = sko as AngleConstraint;

@@ -183,7 +183,7 @@ public class Detail : Feature {
 		}
 	}
 
-	public ICADObject HoverUntil(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist, Feature feature) {
+	public ICADObject HoverUntil(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist, Feature feature, HoverFilter filter) {
 		double min = -1.0;
 		ICADObject result = null;
 		foreach(var f in features) {
@@ -191,7 +191,7 @@ public class Detail : Feature {
 				continue;
 			}
 			double dist = -1.0;
-			var hovered = f.Hover(mouse, camera, tf, ref dist);
+			var hovered = f.Hover(mouse, camera, tf, filter, ref dist);
 
 			if(dist >= 0.0 && dist < Sketch.hoverRadius && (min < 0.0 || dist <= min)) {
 				result = hovered;
@@ -203,8 +203,8 @@ public class Detail : Feature {
 		return result;
 	}
 
-	protected override ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
-		return HoverUntil(mouse, camera, tf, ref objDist, features.Last());
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, HoverFilter filter, ref double objDist) {
+		return HoverUntil(mouse, camera, tf, ref objDist, features.Last(), filter);
 	}
 
 	protected override void OnDraw(Matrix4x4 tf) {

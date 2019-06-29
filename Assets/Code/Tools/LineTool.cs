@@ -7,6 +7,19 @@ public class LineTool : Tool {
 	LineEntity current;
 	bool canCreate = true;
 
+	LineTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		if(current != null && current.p0.IsCoincidentWith(e)) return false;
+		return CanConstrainCoincident(e);
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
 		if(current != null) {

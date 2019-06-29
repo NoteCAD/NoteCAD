@@ -336,7 +336,7 @@ public class MeshImportFeature : MeshFeature {
 			return basis.matrix;
 		}
 	}
-	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, HoverFilter filter, ref double dist) {
 		var tris = new List<int>();
 		var fullTf = tf * transform;
 		var invFullTf = fullTf.inverse;
@@ -360,8 +360,11 @@ public class MeshImportFeature : MeshFeature {
 		}
 
 		if(hoverV0 != -1) {
-			dist = min;
-			return new MeshVertexEntity(this, hoverV0);
+			var e = new MeshVertexEntity(this, hoverV0);
+			if(filter == null || filter(e)) {
+				dist = min;
+				return e;
+			}
 		}
 
 		foreach(var ti in tris) {
@@ -377,8 +380,11 @@ public class MeshImportFeature : MeshFeature {
 		}
 
 		if(hoverV0 != -1) {
-			dist = min;
-			return new MeshEdgeEntity(this, hoverV0, hoverV1);
+			var e = new MeshEdgeEntity(this, hoverV0, hoverV1);
+			if(filter == null || filter(e)) {
+				dist = min;
+				return e;
+			}
 		}
 
 		return null;

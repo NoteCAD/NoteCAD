@@ -8,6 +8,10 @@ public class AngleTool : Tool {
 	AngleConstraint constraint;
 	Vector3 click;
 
+	AngleTool() {
+		enableHoverFilter = true;
+	}
+
 	static IEntity[] GetPoints(LineEntity l0, LineEntity l1) {
 		if(l0.p0.IsCoincidentWith(l1.p0)) return new IEntity[4] { l0.p1, l0.p0, l1.p0, l1.p1 };
 		if(l0.p0.IsCoincidentWith(l1.p1)) return new IEntity[4] { l0.p1, l0.p0, l1.p1, l1.p0 };
@@ -22,6 +26,16 @@ public class AngleTool : Tool {
 			return new AngleConstraint(DetailEditor.instance.currentSketch.GetSketch(), pts);
 		}
 		return new AngleConstraint(DetailEditor.instance.currentSketch.GetSketch(), l0, l1);
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		if(constraint != null) return false;
+		if(l0 == null) return e.type == IEntityType.Line || e.type == IEntityType.Arc;
+		return e.type == IEntityType.Line && !e.IsSameAs(l0);
 	}
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
@@ -64,7 +78,7 @@ public class AngleTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "hover and click two different lines. You can change dimension value by double clicking it when MoveTool is active.";
+		return "hover and click an arc or a two different lines. You can change dimension value by double clicking it when MoveTool is active.";
 	}
 
 }

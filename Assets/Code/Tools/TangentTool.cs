@@ -6,6 +6,18 @@ public class TangentTool : Tool {
 
 	IEntity l0;
 
+	TangentTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		return e.type != IEntityType.Point && CanConstrainCoincident(e) && e.TangentAt(0.0) != null && !e.IsSameAs(l0);
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		var entity = sko as IEntity;
 		if(entity == null) return;
@@ -25,7 +37,7 @@ public class TangentTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "hover and click two different lines.";
+		return "hover and click two different entities.";
 	}
 
 }

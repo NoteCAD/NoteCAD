@@ -7,6 +7,18 @@ public class ArcTool : Tool {
 	ArcEntity current;
 	bool canCreate = true;
 
+	ArcTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		return CanConstrainCoincident(e);
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
 		if(current != null) {

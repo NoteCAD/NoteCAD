@@ -7,6 +7,18 @@ public class LengthTool : Tool {
 	ValueConstraint constraint;
 	//Vector3 click;
 
+	LengthTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		return e.Length() != null;
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		/*
 		if(constraint != null) {

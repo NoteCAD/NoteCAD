@@ -6,6 +6,19 @@ public class RevolveTool : Tool {
 	IEntity p;
 	IEntity axis;
 
+	RevolveTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+	
+	protected override bool OnTryHover(IEntity e) {
+		if(p == null) return e.type == IEntityType.Point;
+		return e.type == IEntityType.Line;
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		if(sko == null) return;
 		var entity = sko as IEntity;
