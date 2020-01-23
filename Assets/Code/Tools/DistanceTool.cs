@@ -38,6 +38,10 @@ public class DistanceTool : Tool {
 		e0 = null;
 	}
 
+	protected override bool OnTryHover(IEntity e) {
+		return e.type == IEntityType.Point || e.type == IEntityType.Line || e.IsCircular();
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		var entity = sko as IEntity;
 		if(constraint != null && entity == null) {
@@ -112,7 +116,7 @@ public class DistanceTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "click a two points or a line for constraining distance/length and then click where you want to create dimension value. You can change dimension value by double clicking it when MoveTool is active.";
+		return "click a line to constrain length or circle(arc) to constrain daimeter(radius). Click two entities of type point/line/circle/arc to constrain distance or angle between them.";
 	}
 
 }
