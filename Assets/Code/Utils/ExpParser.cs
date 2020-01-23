@@ -235,8 +235,9 @@ public class ExpParser {
             case Exp.Op.Sub:
                 return 1;
             case Exp.Op.Mul:
-            case Exp.Op.Div:
                 return 2;
+            case Exp.Op.Div:
+                return 3;
             default:
                 return 0;
         }
