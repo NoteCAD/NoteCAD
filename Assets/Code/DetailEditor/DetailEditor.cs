@@ -396,9 +396,8 @@ public class DetailEditor : MonoBehaviour {
 		if(detail != null) {
 			detail.Clear();
 		}
-		selection.Clear();
+		Clear();
 		undoRedo.Clear();
-		activeFeature = null;
 		detail = new Detail();
 
 		if(newFile != null) {
@@ -422,8 +421,13 @@ public class DetailEditor : MonoBehaviour {
 
 	}
 
-	public void ReadXml(string xml, bool readView = true, bool activateLast = true) {
+	void Clear() {
 		activeFeature = null;
+		selection.Clear();
+	}
+
+	public void ReadXml(string xml, bool readView = true, bool activateLast = true) {
+		Clear();
 		IdPath active = null;
 		detail.ReadXml(xml, readView, out active);
 		if(active.IsNull()) active = detail.features.Last().id;
