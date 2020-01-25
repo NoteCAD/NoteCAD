@@ -224,7 +224,7 @@ public class Tool : MonoBehaviour {
 		if(hotkeys == null || hotkeys.Length == 0) return text;
 		var hk = hotkeys[0].ToString();
 		if(hk.Length != 1) return text;
-		var index = text.IndexOf(hk, System.StringComparison.OrdinalIgnoreCase);
+		var index = text.IndexOf(hk, System.StringComparison.InvariantCultureIgnoreCase);
 		var openColor = "<color=\"#6ECEEFFF\">";
 		var closeColor = "</color>";
 		if(index < 0 || ctrl) return text + " [" + openColor + (ctrl ? "Ctrl+" : "") + hk  + closeColor + "]";
