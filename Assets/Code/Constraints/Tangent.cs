@@ -89,13 +89,13 @@ public class Tangent : Constraint {
 		}
 		if(s0 != null) {
 			PointOn pOn = null;
-			if(s0.begin.IsCoincidentWithCurve(l1, ref pOn)) { tv0 = 0.0; p = t1; c = new Exp(t1) - pOn.GetValueParam(); return true; }
-			if(s0.end.IsCoincidentWithCurve(l1, ref pOn))	{ tv0 = 1.0; p = t1; c = new Exp(t1) - pOn.GetValueParam(); return true; }
+			if(s0.begin.IsCoincidentWithCurve(l1, ref pOn)) { tv0 = 0.0; p = t1; c = new Exp(t1) - pOn.GetValueExp(); return true; }
+			if(s0.end.IsCoincidentWithCurve(l1, ref pOn))	{ tv0 = 1.0; p = t1; c = new Exp(t1) - pOn.GetValueExp(); return true; }
 		}
 		if(s1 != null) {
 			PointOn pOn = null;
-			if(s1.begin.IsCoincidentWithCurve(l0, ref pOn)) { p = t0; c = new Exp(t0) - pOn.GetValueParam(); tv1 = 0.0; return true; }
-			if(s1.end.IsCoincidentWithCurve(l0, ref pOn))   { p = t0; c = new Exp(t0) - pOn.GetValueParam(); tv1 = 1.0; return true; }
+			if(s1.begin.IsCoincidentWithCurve(l0, ref pOn)) { p = t0; c = new Exp(t0) - pOn.GetValueExp(); tv1 = 0.0; return true; }
+			if(s1.end.IsCoincidentWithCurve(l0, ref pOn))   { p = t0; c = new Exp(t0) - pOn.GetValueExp(); tv1 = 1.0; return true; }
 		}
 		return false;
 	}

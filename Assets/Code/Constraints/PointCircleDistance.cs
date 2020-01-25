@@ -22,7 +22,7 @@ public class PointCircleDistance : ValueConstraint {
 			var cCen = circle.Center();
 			var cRad = circle.Radius();
 
-			yield return (pPos - cCen).Magnitude() - cRad - value.exp;
+			yield return (pPos - cCen).Magnitude() - cRad - value;
 		}
 	}
 

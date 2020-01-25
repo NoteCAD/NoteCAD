@@ -140,6 +140,9 @@ public static class IPlaneUtils {
 public class Sketch : CADObject  {
 	Dictionary<Id, Entity> entities = new Dictionary<Id, Entity>();
 	Dictionary<Id, Constraint> constraints = new Dictionary<Id, Constraint>();
+	List<Param> parameters = new List<Param>();
+	public IEnumerable<Param> userParameters => parameters;
+
 	Feature feature_;
 
 	public Feature feature {
@@ -183,6 +186,11 @@ public class Sketch : CADObject  {
 		get {
 			return feature;
 		}
+	}
+
+	public void AddParameter(Param p) {
+		parameters.Add(p);
+		MarkDirtySketch(topo:true);
 	}
 
 	public void AddEntity(Entity e) {
@@ -461,6 +469,17 @@ public class Sketch : CADObject  {
 			}
 			xml.WriteEndElement();
 		}
+
+		if(parameters.Count > 0) {
+			xml.WriteStartElement("parameters");
+			foreach(var p in parameters) {
+				xml.WriteStartElement("param");
+				xml.WriteAttributeString("name", p.name);
+				xml.WriteAttributeString("value", p.value.ToStr());
+				xml.WriteEndElement();
+			}
+			xml.WriteEndElement();
+		}
 	}
 
 	public Dictionary<Id, Id> idMapping = null;
@@ -499,6 +518,15 @@ public class Sketch : CADObject  {
 					var constraint = Constraint.New(typeName, this, id);
 					if(constraint == null) continue;
 					constraint.Read(node);
+				}
+			}
+			if(nodeKind.Name == "parameters") {
+				foreach(XmlNode node in nodeKind.ChildNodes) {
+					if(node.Name != "param") continue;
+					var name = node.Attributes["name"].Value;
+					var value = node.Attributes["value"].Value.ToDouble();
+					var param = new Param(name, value);
+					AddParameter(param);
 				}
 			}
 		}
@@ -572,6 +600,7 @@ public class Sketch : CADObject  {
 			system.AddParameters(c.parameters);
 			system.AddEquations(c.equations);
 		}
+		system.AddParameters(parameters);
 	}
 
 	public override ICADObject GetChild(Id guid) {

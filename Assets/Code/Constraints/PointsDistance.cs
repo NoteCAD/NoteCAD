@@ -25,7 +25,7 @@ public class PointsDistance : ValueConstraint {
 
 	public override IEnumerable<Exp> equations {
 		get {
-			yield return (p1exp - p0exp).Magnitude() - value.exp;
+			yield return (p1exp - p0exp).Magnitude() - value;
 		}
 	}
 

@@ -48,16 +48,16 @@ public class CirclesDistance : ValueConstraint {
 			var r1 = c1.Radius();
 			if(isCentersCoincident(c0, c1)) {
 				if(option == Option.FirstInside) {
-					yield return r0 - r1 - value.exp;
+					yield return r0 - r1 - value;
 				} else {
-					yield return r1 - r0 - value.exp;
+					yield return r1 - r0 - value;
 				}
 			} else {
 				var dist = (c0.CenterInPlane(sketch.plane) - c1.CenterInPlane(sketch.plane)).Magnitude();
 				switch(option) {
-					case Option.Outside:		yield return (dist - r0 - r1) - value.exp; break;
-					case Option.FirstInside:	yield return (r1 - r0 - dist) - value.exp; break;
-					case Option.SecondInside:	yield return (r0 - r1 - dist) - value.exp; break;
+					case Option.Outside:		yield return (dist - r0 - r1) - value; break;
+					case Option.FirstInside:	yield return (r1 - r0 - dist) - value; break;
+					case Option.SecondInside:	yield return (r0 - r1 - dist) - value; break;
 				}
 			}
 		}

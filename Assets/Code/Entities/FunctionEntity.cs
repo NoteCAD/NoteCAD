@@ -16,8 +16,6 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 	[NonSerialized]
 	public PointEntity c;
 
-	string function_x;
-	string function_y;
 	int subdivision_ = 16;
 	public int subdivision {
 		get {
@@ -70,66 +68,30 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		}
 	}
 
-	public string x {
-		get {
-			return function_x;
-		}
-		set {
-			if(function_x == value) return;
-			function_x = value;
-			parser.SetString(function_x);
-			var e = parser.Parse();
-			if(e != null) {
-				exp.x = e;
-				Debug.Log("x = " + e.ToString());
-				sketch.MarkDirtySketch(entities:true, topo:true);
-			}
-		}
-	}
+	public ExpressionData x;
+	public ExpressionData y;
 
-	public string y {
-		get {
-			return function_y;
-		}
-		set {
-			if(function_y == value) return;
-			function_y = value;
-			parser.SetString(function_y);
-			var e = parser.Parse();
-			if(e != null) {
-				exp.y = e;
-				Debug.Log("y = " + e.ToString());
-				sketch.MarkDirtySketch(entities:true, topo:true);
-			}
-		}
-	}
-
-	ExpParser parser;
-	ExpVector exp = new ExpVector(0.0, 0.0, 0.0);
 	Param t = new Param("t");
 	Param t0 = new Param("t0", 0.0);
 	Param t1 = new Param("t1", 1.0);
-
-	void InitParser() {
-		parser = new ExpParser("0");
-		parser.parameters.Add(t);
-		x = "t";
-		y = "cos(t * pi)";
-
-	}
 
 	public FunctionEntity(Sketch sk) : base(sk) {
 		p0 = AddChild(new PointEntity(sk));
 		p1 = AddChild(new PointEntity(sk));
 		c = AddChild(new PointEntity(sk));
-		InitParser();
+
+		x = new ExpressionData(this, t);
+		y = new ExpressionData(this, t);
+		x.source = "t";
+		y.source = "cos(t * pi)";
+
 	}
 
 	public override IEntityType type { get { return IEntityType.Function; } }
 
 
 	public ExpVector GetExpClone(Exp t) {
-		var e = new ExpVector(exp.x.DeepClone(), exp.y.DeepClone(), 0.0);
+		var e = new ExpVector(x.expression.DeepClone(), y.expression.DeepClone(), 0.0);
 		if(t != null) {
 			e.x.Substitute(this.t, t);
 			e.y.Substitute(this.t, t);
@@ -234,8 +196,8 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 	}
 
 	protected override void OnWrite(XmlTextWriter xml) {
-		xml.WriteAttributeString("x", x);
-		xml.WriteAttributeString("y", y);
+		xml.WriteAttributeString("x", x.source);
+		xml.WriteAttributeString("y", y.source);
 		xml.WriteAttributeString("t0", t0.value.ToStr());
 		xml.WriteAttributeString("t1", t1.value.ToStr());
 		xml.WriteAttributeString("t0fix", tBeginFixed_.ToString());
@@ -245,8 +207,8 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 	}
 
 	protected override void OnRead(XmlNode xml) {
-		x = xml.Attributes["x"].Value;
-		y = xml.Attributes["y"].Value;
+		x.source = xml.Attributes["x"].Value;
+		y.source = xml.Attributes["y"].Value;
 		t0.value = xml.Attributes["t0"].Value.ToDouble();
 		t1.value = xml.Attributes["t1"].Value.ToDouble();
 		tBeginFixed_ = Convert.ToBoolean(xml.Attributes["t0fix"].Value);

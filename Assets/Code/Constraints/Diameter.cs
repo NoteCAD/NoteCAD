@@ -22,7 +22,7 @@ public class Diameter : ValueConstraint {
 
 	public override IEnumerable<Exp> equations {
 		get {
-			yield return radius * 2.0 - value.exp;
+			yield return radius * 2.0 - value;
 		}
 	}
 
@@ -41,7 +41,7 @@ public class Diameter : ValueConstraint {
 		var lo = getPlane().projectVectorInto(getLabelOffset());
 		var dir = (lo - p).normalized;
 		
-		float r = (float)value.exp.Eval() / 2f;
+		float r = (float)value.Eval() / 2f;
 
 
 		

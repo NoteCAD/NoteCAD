@@ -3,6 +3,59 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
+public class ExpressionData {
+	
+	public SketchObject obj { get; private set; }
+
+	string source_;
+	public string source {
+		get {
+			return source_;
+		}
+
+		set {
+			source_ = value;
+			if(source_ == "") {
+				expression = Exp.zero;
+			} else {
+				var parser = new ExpParser(this);
+				expression = parser.Parse();
+				foreach(var p in parser.newParameters) {
+					obj.sketch.AddParameter(p);
+				}
+			}
+			Debug.Log("exp = " + expression.ToString());
+		}
+	}
+
+	public bool Exist() {
+		return source != "" && source != null;
+	}
+	
+	Exp exp;
+	public Exp expression {
+		private set {
+			exp = value;
+			obj.sketch.MarkDirtySketch(topo: true, entities: true);
+		}
+		get {
+			return exp;
+		}
+	}
+
+	public List<Param> parameters { get; private set; }
+
+	public ExpressionData(SketchObject sko, Param p0 = null) {
+		obj = sko;
+		if(p0 != null) {
+			parameters = new List<Param>();
+			parameters.Add(p0);
+		}
+	}
+
+}
+
 public class ExpParser {
     
     Dictionary <string, Exp.Op> functions = new Dictionary<string, Exp.Op> {
@@ -38,6 +91,7 @@ public class ExpParser {
     int index = 0;
     
     public List<Param> parameters = new List<Param>();
+    public List<Param> newParameters = new List<Param>();
     
     
 	public static void Test() {
@@ -89,6 +143,14 @@ public class ExpParser {
 
     public ExpParser(string str) {
         toParse = str;
+    }
+
+    public ExpParser(ExpressionData data) {
+        toParse = data.source;
+		if(data.parameters != null) {
+			parameters.AddRange(data.parameters);
+		}
+		parameters.AddRange(data.obj.sketch.userParameters);
     }
 
 	public void SetString(string str) {
@@ -221,7 +283,7 @@ public class ExpParser {
             var param = GetParam(alphas);
             if(param == null) {
                 param = new Param(alphas);
-                parameters.Add(param);
+                newParameters.Add(param);
             }
             return new Exp(param);
         }

@@ -540,7 +540,17 @@ public abstract class ValueConstraint : Constraint {
 
 	public abstract ValueUnits units { get; }
 
-	protected Param value = new Param("value");
+	protected Param valueParam = new Param("value");
+
+	protected Exp value {
+		get {
+			if(expression.Exist()) {
+				return expression.expression;
+			}
+			return valueParam.exp;
+		}
+	}
+
 	bool reference_;
 	public bool reference {
 		get {
@@ -551,7 +561,7 @@ public abstract class ValueConstraint : Constraint {
 			sketch.MarkDirtySketch(constraints:true);
 		}
 	}
-	
+
 	public virtual bool valueVisible { get { return true; } }
 	public override bool IsDimension { get { return true; } }
 	protected bool selectByRefPoints = false;
@@ -583,13 +593,18 @@ public abstract class ValueConstraint : Constraint {
 		}
 	}
 
-	public ValueConstraint(Sketch sk) : base(sk) {}
-	public ValueConstraint(Sketch sk, Id id) : base(sk, id) {}
+	public ValueConstraint(Sketch sk) : base(sk) {
+		expression = new ExpressionData(this);
+	}
+
+	public ValueConstraint(Sketch sk, Id id) : base(sk, id) {
+		expression = new ExpressionData(this);
+	}
 
 	public override IEnumerable<Param> parameters {
 		get {
 			if(!reference) yield break;
-			yield return value;
+			yield return valueParam;
 		}
 	}
 
@@ -628,7 +643,7 @@ public abstract class ValueConstraint : Constraint {
 	}
 
 	public double GetValue() {
-		var label = ValueToLabel(value.value);
+		var label = ValueToLabel(value.Eval());
 		switch(units) {
 			case ValueUnits.LENGTH: return LengthToLabel(label);
 			default: return label;
@@ -636,7 +651,11 @@ public abstract class ValueConstraint : Constraint {
 	}
 
 	protected virtual string OnGetLabelValue() {
-		return Math.Abs(GetValue()).ToString("0.##");
+		var valueString = Math.Abs(GetValue()).ToString("0.##");
+		if(expression.Exist()) {
+			return valueString + " (" + expression.source + ")";
+		}
+		return valueString;
 	}
 
 	public string GetLabel() {
@@ -653,14 +672,16 @@ public abstract class ValueConstraint : Constraint {
 			case ValueUnits.LENGTH: v = LabelToLength(v); break;
 			default: break;
 		}
-		value.value = LabelToValue(v);
+		valueParam.value = LabelToValue(v);
 	}
 
-	public Param GetValueParam() {
+	public Exp GetValueExp() {
 		return value;
 	}
 
 	public double dimension { get { return GetValue(); } set { SetValue(value); } }
+
+	public ExpressionData expression;
 
 	protected virtual double ValueToLabel(double value) {
 		return value;
@@ -673,7 +694,7 @@ public abstract class ValueConstraint : Constraint {
 	protected virtual bool OnSatisfy() {
 		EquationSystem sys = new EquationSystem();
 		sys.revertWhenNotConverged = false;
-		sys.AddParameter(value);
+		sys.AddParameter(valueParam);
 		sys.AddEquations(equations);
 		return sys.Solve() == EquationSystem.SolveResult.OKAY;
 	}
@@ -705,6 +726,9 @@ public abstract class ValueConstraint : Constraint {
 		xml.WriteAttributeString("y", pos.y.ToStr());
 		xml.WriteAttributeString("z", pos.z.ToStr());
 		xml.WriteAttributeString("value", GetValue().ToStr());
+		if(expression.Exist()) {
+			xml.WriteAttributeString("expression", expression.source);
+		}
 		xml.WriteAttributeString("reference", reference.ToString());
 		OnWriteValueConstraint(xml);
 	}
@@ -720,6 +744,9 @@ public abstract class ValueConstraint : Constraint {
 		pos.z = xml.Attributes["z"].Value.ToFloat();
 		this.pos = pos;
 		SetValue(xml.Attributes["value"].Value.ToDouble());
+		if(xml.Attributes["expression"] != null) {
+			expression.source = xml.Attributes["expression"].Value;
+		}
 		if(xml.Attributes["reference"] != null) {
 			reference = Convert.ToBoolean(xml.Attributes["reference"].Value);
 		}

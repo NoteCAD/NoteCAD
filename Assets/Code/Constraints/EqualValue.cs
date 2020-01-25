@@ -34,7 +34,7 @@ public class EqualValue : ValueConstraint {
 		get {
 			var c0 = GetConstraint(0) as ValueConstraint;
 			var c1 = GetConstraint(1) as ValueConstraint;
-			yield return c0.GetValueParam().exp - c1.GetValueParam().exp * value;
+			yield return c0.GetValueExp() - c1.GetValueExp() * value;
 		}
 	}
 
