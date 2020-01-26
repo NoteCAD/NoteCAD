@@ -51,7 +51,7 @@ public class Equal : ValueConstraint {
 	public Equal(Sketch sk, IEntity l0, IEntity l1) : base(sk) {
 		AddEntity(l0);
 		AddEntity(l1);
-		value.value = 1.0;
+		valueParam.value = 1.0;
 		selectByRefPoints = true;
 	}
 

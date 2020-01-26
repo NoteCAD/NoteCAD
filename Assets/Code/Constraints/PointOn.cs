@@ -37,14 +37,14 @@ public class PointOn : ValueConstraint {
 		double bestI = 0.0;
 		double min = -1.0;
 		for(double i = 0.0; i < 1.0; i += 0.25 / 2.0) {
-			value.value = i;
+			valueParam.value = i;
 			sys.Solve();
 			double cur_value = exprs.Sum(e => Math.Abs(e.Eval()));
 			if(min >= 0.0 && min < cur_value) continue;
-			bestI = value.value;
+			bestI = valueParam.value;
 			min = cur_value;
 		}
-		value.value = bestI;
+		valueParam.value = bestI;
 		return true;
 	}
 
@@ -65,12 +65,12 @@ public class PointOn : ValueConstraint {
 		var p0 = pointPos;
 		drawCameraCircle(canvas, Camera.main, p0, R_CIRLE_R * getPixelSize());
 		if(!reference) {
-			pos = sketch.plane.FromPlane(on.OffsetAt(value.value, 20f * getPixelSize()).Eval());
+			pos = sketch.plane.FromPlane(on.OffsetAt(value.Eval(), 20f * getPixelSize()).Eval());
 		} else {
-			pos = sketch.plane.FromPlane(on.PointOn(value.value).Eval());
+			pos = sketch.plane.FromPlane(on.PointOn(value.Eval()).Eval());
 		}
 		ref_points[0] = ref_points[1] = sketch.plane.ToPlane(p0);
-		//on.DrawExtend(canvas, value.value, 0.05);
+		//on.DrawExtend(canvas, value.Eval(), 0.05);
 	}
 
 	protected override Matrix4x4 OnGetBasis() {
@@ -100,6 +100,6 @@ public class PointOn : ValueConstraint {
 	}
 
 	public Vector3 GetPointOnInPlane(IPlane plane) {
-		return on.PointOnInPlane(value.value, plane).Eval();
+		return on.PointOnInPlane(value.Eval(), plane).Eval();
 	}
 }

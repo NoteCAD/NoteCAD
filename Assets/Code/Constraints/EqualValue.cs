@@ -15,7 +15,7 @@ public class EqualValue : ValueConstraint {
 		var c0 = GetConstraint(0) as ValueConstraint;
 		var c1 = GetConstraint(1) as ValueConstraint;
 		if(Math.Sign(c0.GetValue()) != Math.Sign(c1.GetValue())) {
-			value.value = -1;
+			valueParam.value = -1;
 		}
 		return true;
 	}
@@ -23,7 +23,7 @@ public class EqualValue : ValueConstraint {
 	public EqualValue(Sketch sk, ValueConstraint c0, ValueConstraint c1) : base(sk) {
 		AddConstraint(c0);
 		AddConstraint(c1);
-		value.value = 1.0;
+		valueParam.value = 1.0;
 		var c = GetConstraint(0) as ValueConstraint;
 		Vector3 up = c.GetBasis().GetColumn(1);
 		pos = c.pos + up.normalized * getPixelSize() * 30f;

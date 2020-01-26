@@ -16,9 +16,9 @@ public class AngleConstraint : ValueConstraint {
 			if(value == supplementary_) return;
 			supplementary_ = value;
 			if(HasEntitiesOfType(IEntityType.Arc, 1)) {
-				this.value.value = 2.0 * Math.PI - this.value.value;
+				valueParam.value = 2.0 * Math.PI - valueParam.value;
 			} else {
-				this.value.value = -(Math.Sign(this.value.value) * Math.PI - this.value.value);
+				valueParam.value = -(Math.Sign(valueParam.value) * Math.PI - valueParam.value);
 			}
 			sketch.MarkDirtySketch(topo:true);
 		}
@@ -36,7 +36,7 @@ public class AngleConstraint : ValueConstraint {
 
 	public AngleConstraint(Sketch sk, IEntity arc) : base(sk) {
 		AddEntity(arc);
-		value.value = Math.PI / 4;
+		valueParam.value = Math.PI / 4;
 		Satisfy();
 	}
 
