@@ -451,6 +451,17 @@ public class Sketch : CADObject  {
 	}
 
 	public void Write(XmlTextWriter xml, Func<SketchObject, bool> filter = null) {
+		if(parameters.Count > 0) {
+			xml.WriteStartElement("parameters");
+			foreach(var p in parameters) {
+				xml.WriteStartElement("param");
+				xml.WriteAttributeString("name", p.name);
+				xml.WriteAttributeString("value", p.value.ToStr());
+				xml.WriteEndElement();
+			}
+			xml.WriteEndElement();
+		}
+
 		if(entities.Count > 0) {
 			xml.WriteStartElement("entities");
 			foreach(var en in entities) {
@@ -466,17 +477,6 @@ public class Sketch : CADObject  {
 			foreach(var c in constraints.Values) {
 				if(filter != null && !filter(c as SketchObject)) continue;
 				c.Write(xml);
-			}
-			xml.WriteEndElement();
-		}
-
-		if(parameters.Count > 0) {
-			xml.WriteStartElement("parameters");
-			foreach(var p in parameters) {
-				xml.WriteStartElement("param");
-				xml.WriteAttributeString("name", p.name);
-				xml.WriteAttributeString("value", p.value.ToStr());
-				xml.WriteEndElement();
 			}
 			xml.WriteEndElement();
 		}
