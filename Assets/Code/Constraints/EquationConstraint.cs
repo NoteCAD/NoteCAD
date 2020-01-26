@@ -11,7 +11,9 @@ public class EquationConstraint : ValueConstraint {
 
 	public override IEnumerable<Exp> equations {
 		get {
-			if(expression.Exist()) yield return expression.expression;
+			if(expression.Exist() && !reference) {
+				yield return expression.expression;
+			}
 		}
 	}
 
