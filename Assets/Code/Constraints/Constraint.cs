@@ -536,6 +536,7 @@ public abstract class ValueConstraint : Constraint {
 		ANGLE,
 		LENGTH,
 		FRACTION,
+		ARBITRARY,
 	}
 
 	public abstract ValueUnits units { get; }
@@ -653,7 +654,10 @@ public abstract class ValueConstraint : Constraint {
 	protected virtual string OnGetLabelValue() {
 		var valueString = Math.Abs(GetValue()).ToString("0.##");
 		if(expression.Exist()) {
-			return valueString + " (" + expression.source + ")";
+			if(expression.expression.op == Exp.Op.Equal || expression.expression.op == Exp.Op.Drag) {
+				return expression.source;
+			}
+			return expression.source + " = " + valueString;
 		}
 		return valueString;
 	}

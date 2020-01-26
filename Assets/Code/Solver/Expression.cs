@@ -60,6 +60,7 @@ public class Exp {
 		Cosh,
 		SFres,
 		CFres,
+		Equal
 
 		//Pow,
 	}
@@ -221,6 +222,7 @@ public class Exp {
 			case Op.Const:	return value;
 			case Op.Param:	return param.value;
 			case Op.Add:	return a.Eval() + b.Eval();
+			case Op.Equal:
 			case Op.Drag:
 			case Op.Sub:	return a.Eval() - b.Eval();
 			case Op.Mul:	return a.Eval() * b.Eval();
@@ -285,6 +287,7 @@ public class Exp {
 
 	public bool IsAdditive() {
 		switch(op) {
+			case Op.Equal:
 			case Op.Drag:
 			case Op.Sub:
 			case Op.Add:
@@ -322,7 +325,8 @@ public class Exp {
 			case Op.Atan2:	return "atan2(" + a.ToString() + ", " + b.ToString() + ")";
 			case Op.Neg:	return "-" + a.Quoted();
 			case Op.Pos:	return "+" + a.Quoted();
-			case Op.Drag:   return a.ToString() + " ≈ " + b.QuotedAdd();
+			case Op.Equal:  return a.ToString() + " = " + b.ToString();
+			case Op.Drag:   return a.ToString() + " ~ " + b.ToString();
 			case Op.Exp:	return "exp(" + a.ToString() + ")";
 			case Op.Sinh:	return "sinh(" + a.ToString() + ")";
 			case Op.Cosh:	return "cosh(" + a.ToString() + ")";
@@ -353,6 +357,7 @@ public class Exp {
 			case Op.Const:	return zero;
 			case Op.Param:	return (param == p) ? one : zero;
 			case Op.Add:	return a.d(p) + b.d(p);
+			case Op.Equal:
 			case Op.Drag:
 			case Op.Sub:	return a.d(p) - b.d(p);
 			case Op.Mul:	return a.d(p) * b + a * b.d(p);
