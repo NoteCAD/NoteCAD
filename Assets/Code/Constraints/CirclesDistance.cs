@@ -23,7 +23,7 @@ public class CirclesDistance : ValueConstraint {
 	public CirclesDistance(Sketch sk, IEntity c0, IEntity c1) : base(sk) {
 		AddEntity(c0);
 		AddEntity(c1);
-		value.value = 1;
+		valueParam.value = 1;
 		ChooseBestOption();
 		Satisfy();
 	}
