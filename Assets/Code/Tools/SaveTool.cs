@@ -23,17 +23,7 @@ public class SaveTool : Tool {
 		void Save() {
 			if(specifyFilename != "") {
 				tool.editor.GetDetail().name = specifyFilename;
-				switch(format) {
-					case FileFormat.Text: {
-						var data = DetailEditor.instance.WriteXml();
-						NoteCADJS.SaveData(data, tool.editor.GetDetail().name + ".ncad", "ncad");
-					} break;
-					case FileFormat.Binary: {
-						var data = DetailEditor.instance.GetDetail().WriteXmlAsBinary();
-						NoteCADJS.SaveBinaryData(data, tool.editor.GetDetail().name + ".notecad", "notecad");
-					} break;
-				}
-				tool.StopTool();
+				tool.Save(format);
 			}
 		}
 	}
@@ -44,7 +34,18 @@ public class SaveTool : Tool {
 		options = new Options(this);
 	}
 
-	public void Save() {
+	public void Save(FileFormat format) {
+		switch(format) {
+			case FileFormat.Text: {
+				var data = DetailEditor.instance.WriteXml();
+				NoteCADJS.SaveData(data, editor.GetDetail().name + ".ncad", "ncad");
+			} break;
+			case FileFormat.Binary: {
+				var data = DetailEditor.instance.GetDetail().WriteXmlAsBinary();
+				NoteCADJS.SaveBinaryData(data, editor.GetDetail().name + ".notecad", "notecad");
+			} break;
+		}
+		StopTool();
 	}
 
 	protected override void OnActivate() {
@@ -52,7 +53,7 @@ public class SaveTool : Tool {
 			options.specifyFilename = "";
 			Inspect(options);
 		} else {
-			Save();
+			Save(FileFormat.Text);
 		}
 	}
 }
