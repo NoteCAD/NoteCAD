@@ -18,7 +18,7 @@ public enum LengthMeasurementSystem {
 public class DetailSettings {
 	public LengthMeasurementSystem lengthMeasurement = LengthMeasurementSystem.Millimetre;
 	
-	public void Write(XmlTextWriter xml) {
+	public void Write(XmlWriter xml) {
 		xml.WriteStartElement("settings");
 		xml.WriteAttributeString("lengthMeasurement", lengthMeasurement.ToString());
 		xml.WriteEndElement();
@@ -106,6 +106,12 @@ public class Detail : Feature {
 	}
 
 	public void ReadXml(string str, bool readView, out IdPath active) {
+		#if XOR_ENCRYPTED
+			if(!str.StartsWith("<?xml")) {
+				str = Encrypton.Xor(str, 0xFADE2CAD);
+			}
+		#endif
+
 		Clear();
 		var xml = new XmlDocument();
 		xml.LoadXml(str);
@@ -150,12 +156,28 @@ public class Detail : Feature {
 		}
 	}
 
-	public string WriteXml() {
+	public string WriteXmlAsString() {
 		var text = new StringWriter();
 		var xml = new XmlTextWriter(text);
 		xml.Formatting = Formatting.Indented;
 		xml.IndentChar = '\t';
 		xml.Indentation = 1;
+		WriteXml(xml);
+		var result = text.ToString();
+		#if XOR_ENCRYPTED
+			result = Encrypton.Xor(result, 0xFADE2CAD);
+		#endif
+		return result;
+	}
+
+	public byte[] WriteXmlAsBinary() {
+		var bin = new MemoryStream();
+		var xml = XmlDictionaryWriter.CreateBinaryWriter(bin);
+		WriteXml(xml);
+		return bin.ToArray();
+	}
+
+	public void WriteXml(XmlWriter xml) {
 		xml.WriteStartDocument();
 		xml.WriteStartElement("detail");
 		xml.WriteAttributeString("id", guid.ToString());
@@ -170,7 +192,6 @@ public class Detail : Feature {
 			f.Write(xml);
 		}
 		xml.WriteEndElement();
-		return text.ToString();
 	}
 
 	public void MarqueeSelectUntil(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf, ref List<ICADObject> result, Feature feature) {

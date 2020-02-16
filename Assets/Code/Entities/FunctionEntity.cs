@@ -195,7 +195,7 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		return null;
 	}
 
-	protected override void OnWrite(XmlTextWriter xml) {
+	protected override void OnWrite(XmlWriter xml) {
 		xml.WriteAttributeString("x", x.source);
 		xml.WriteAttributeString("y", y.source);
 		xml.WriteAttributeString("t0", t0.value.ToStr());

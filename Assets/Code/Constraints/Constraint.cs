@@ -103,7 +103,7 @@ public class Constraint : SketchObject {
 		Debug.Log("best option = " + optionInternal.ToString());
 	}
 
-	public override void Write(XmlTextWriter xml) {
+	public override void Write(XmlWriter xml) {
 		xml.WriteStartElement("constraint");
 		xml.WriteAttributeString("type", this.GetType().Name);
 		if(Enum.GetNames(optionInternal.GetType()).Length >= 2) {
@@ -725,7 +725,7 @@ public abstract class ValueConstraint : Constraint {
 		return pos;
 	}
 
-	protected sealed override void OnWrite(XmlTextWriter xml) {
+	protected sealed override void OnWrite(XmlWriter xml) {
 		xml.WriteAttributeString("x", pos.x.ToStr());
 		xml.WriteAttributeString("y", pos.y.ToStr());
 		xml.WriteAttributeString("z", pos.z.ToStr());
@@ -737,7 +737,7 @@ public abstract class ValueConstraint : Constraint {
 		OnWriteValueConstraint(xml);
 	}
 
-	protected virtual void OnWriteValueConstraint(XmlTextWriter xml) {
+	protected virtual void OnWriteValueConstraint(XmlWriter xml) {
 
 	}
 

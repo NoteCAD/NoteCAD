@@ -97,7 +97,7 @@ public abstract class Feature : CADObject {
 		sourceChanged = false;
 	}
 
-	public void Write(XmlTextWriter xml) {
+	public void Write(XmlWriter xml) {
 		xml.WriteStartElement("feature");
 		xml.WriteAttributeString("type", this.GetType().Name);
 		xml.WriteAttributeString("id", guid.ToString());
@@ -108,7 +108,7 @@ public abstract class Feature : CADObject {
 		xml.WriteEndElement();
 	}
 
-	protected virtual void OnWrite(XmlTextWriter xml) {
+	protected virtual void OnWrite(XmlWriter xml) {
 
 	}
 
@@ -273,7 +273,7 @@ public abstract class MeshFeature : SketchFeatureBase {
 		return OnGenerateMesh();
 	}
 
-	protected virtual void OnWriteMeshFeature(XmlTextWriter xml) {
+	protected virtual void OnWriteMeshFeature(XmlWriter xml) {
 
 	}
 
@@ -281,7 +281,7 @@ public abstract class MeshFeature : SketchFeatureBase {
 
 	}
 
-	protected sealed override void OnWriteSketchFeatureBase(XmlTextWriter xml) {
+	protected sealed override void OnWriteSketchFeatureBase(XmlWriter xml) {
 		xml.WriteAttributeString("op", operation.ToString());
 		OnWriteMeshFeature(xml);
 	}

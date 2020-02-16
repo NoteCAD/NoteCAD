@@ -52,7 +52,7 @@ public class Style {
 		}
 	}
 
-	public void Write(XmlTextWriter xml) {
+	public void Write(XmlWriter xml) {
 		xml.WriteStartElement("style");
 		xml.WriteAttributeString("name", stroke.name);
 		xml.WriteAttributeString("id", guid.ToString());
@@ -116,7 +116,7 @@ public class Styles {
 		}
 	}
 
-	public void Write(XmlTextWriter xml) {
+	public void Write(XmlWriter xml) {
 		xml.WriteStartElement("styles");
 		foreach(var style in styles.Values) {
 			style.Write(xml);

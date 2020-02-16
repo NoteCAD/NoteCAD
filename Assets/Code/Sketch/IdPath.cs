@@ -144,7 +144,7 @@ public class IdPath {
 		return result;
 	}
 
-	public void Write(XmlTextWriter xml, string name) {
+	public void Write(XmlWriter xml, string name) {
 		var data = ToString();
 		if(data == "") return;
 		xml.WriteStartElement("ref");

@@ -15,6 +15,12 @@ public class NoteCADJS : MonoBehaviour {
 		System.IO.File.WriteAllText(path, data);
 	}
 
+	public static void SaveBinaryData(byte[] data, string filename, string ext) {
+		var path = FileBrowser.SaveFile("Save NoteCAD file", "", filename, ext);
+		//var path = UnityEditor.EditorUtility.SaveFilePanel("Save NoteCAD file", "", filename, "");
+		System.IO.File.WriteAllBytes(path, data);
+	}
+
 	public static void LoadData(Action<string> callback, string ext) {
 		var path = FileBrowser.OpenSingleFile("Load NoteCAD file", "", ext);
 		//var path = UnityEditor.EditorUtility.OpenFilePanel("Load NoteCAD file", "", "");
@@ -32,6 +38,12 @@ public class NoteCADJS : MonoBehaviour {
 	[DllImport("__Internal")]
 	public static extern void SaveData(string data, string filename, string ext);
 
+	public static void SaveBinaryData(byte[] data, string filename, string ext) {
+		SaveBinaryDataInternal(data, data.Length, filename, ext);
+	}
+
+	[DllImport("__Internal")]
+	public static extern void SaveBinaryDataInternal(byte[] data, int dataLength, string filename, string ext);
 
 	[DllImport("__Internal")]
 	private static extern string LoadDataInternal();

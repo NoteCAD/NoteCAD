@@ -378,7 +378,7 @@ public class LinearArrayFeature : SketchFeature {
 		dsy.value = xml.Attributes["dsy"].Value.ToDouble();
 	}
 
-	protected override void OnWriteSketchFeature(XmlTextWriter xml) {
+	protected override void OnWriteSketchFeature(XmlWriter xml) {
 		xml.WriteAttributeString("repeatCount", repeatCount.ToString());
 		xml.WriteAttributeString("translate", translate.ToString());
 		xml.WriteAttributeString("rotate", rotate.ToString());

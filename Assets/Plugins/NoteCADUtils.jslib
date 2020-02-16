@@ -15,6 +15,22 @@ mergeInto(LibraryManager.library, {
     }());
     saveDataFunc(Pointer_stringify(data), Pointer_stringify(fileName));
   },
+  SaveBinaryDataInternal: function(data, dataLength, fileName) {
+    var saveDataFunc = (function () {
+        var a = document.createElement("a");
+        document.body.appendChild(a);
+        a.style = "display: none";
+        return function (data, fileName) {
+            var blob = new Blob([data], {type: "octet/stream"}),
+                url = window.URL.createObjectURL(blob);
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        };
+    }());
+    saveDataFunc(new Uint8Array(HEAPU8.buffer, data, dataLength), Pointer_stringify(fileName));
+  },
   LoadDataInternal: function() {
     if (!document.getElementById('FileUploadingPluginInput'))
           Init();

@@ -6,8 +6,14 @@ using System;
 
 public class SaveTool : Tool {
 
+	public enum FileFormat {
+		Text,
+		Binary
+	};
+
 	[Serializable]
 	class Options {
+		/*public */FileFormat format = FileFormat.Text;
 		SaveTool tool;
 		public Options(SaveTool t) {
 			tool = t;
@@ -17,7 +23,17 @@ public class SaveTool : Tool {
 		void Save() {
 			if(specifyFilename != "") {
 				tool.editor.GetDetail().name = specifyFilename;
-				tool.Save();
+				switch(format) {
+					case FileFormat.Text: {
+						var data = DetailEditor.instance.WriteXml();
+						NoteCADJS.SaveData(data, tool.editor.GetDetail().name + ".ncad", "ncad");
+					} break;
+					case FileFormat.Binary: {
+						var data = DetailEditor.instance.GetDetail().WriteXmlAsBinary();
+						NoteCADJS.SaveBinaryData(data, tool.editor.GetDetail().name + ".notecad", "notecad");
+					} break;
+				}
+				tool.StopTool();
 			}
 		}
 	}
@@ -29,9 +45,6 @@ public class SaveTool : Tool {
 	}
 
 	public void Save() {
-		var data = DetailEditor.instance.WriteXml(); 
-		NoteCADJS.SaveData(data, editor.GetDetail().name + ".xml", "xml");
-		StopTool();
 	}
 
 	protected override void OnActivate() {

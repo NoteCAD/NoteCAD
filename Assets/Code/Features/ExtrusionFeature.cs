@@ -263,7 +263,7 @@ public class ExtrusionFeature : MeshFeature {
 		GameObject.Destroy(go);
 	}
 
-	protected override void OnWriteMeshFeature(XmlTextWriter xml) {
+	protected override void OnWriteMeshFeature(XmlWriter xml) {
 		xml.WriteAttributeString("length", extrude.value.ToStr());
 	}
 

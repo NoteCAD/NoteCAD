@@ -501,7 +501,7 @@ public class DetailEditor : MonoBehaviour {
 	}
 
 	public string WriteXml() {
-		return detail.WriteXml();
+		return detail.WriteXmlAsString();
 	}
 
 	public void AddFeature(Feature feature) {

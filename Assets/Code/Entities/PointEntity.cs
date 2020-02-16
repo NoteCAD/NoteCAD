@@ -138,7 +138,7 @@ public class PointEntity : Entity {
 		return IsCoincidentWith(point, null);
 	}
 
-	protected override void OnWrite(XmlTextWriter xml) {
+	protected override void OnWrite(XmlWriter xml) {
 		xml.WriteAttributeString("x", x.value.ToStr());
 		xml.WriteAttributeString("y", y.value.ToStr());
 		if(is3d) xml.WriteAttributeString("z", z.value.ToStr());

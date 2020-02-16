@@ -142,8 +142,8 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		MeshUtils.CreateMeshRegion(polygons, ref mainMesh);
 	}
 
-	protected virtual void OnWriteSketchFeature(XmlTextWriter xml) { }
-	protected override sealed void OnWriteSketchFeatureBase(XmlTextWriter xml) {
+	protected virtual void OnWriteSketchFeature(XmlWriter xml) { }
+	protected override sealed void OnWriteSketchFeatureBase(XmlWriter xml) {
 		OnWriteSketchFeature(xml);
 		if(uId.Empty() && vId.Empty() && pId.Empty()) return;
 		xml.WriteStartElement("references");

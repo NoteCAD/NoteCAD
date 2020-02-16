@@ -450,7 +450,7 @@ public class Sketch : CADObject  {
 		return result;
 	}
 
-	public void Write(XmlTextWriter xml, Func<SketchObject, bool> filter = null) {
+	public void Write(XmlWriter xml, Func<SketchObject, bool> filter = null) {
 		if(parameters.Count > 0) {
 			xml.WriteStartElement("parameters");
 			foreach(var p in parameters) {

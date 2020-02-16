@@ -318,7 +318,7 @@ public abstract partial class Entity : SketchObject, IEntity {
 		}
 	}
 
-	public override void Write(XmlTextWriter xml) {
+	public override void Write(XmlWriter xml) {
 		xml.WriteStartElement("entity");
 		xml.WriteAttributeString("type", this.GetType().Name);
 		base.Write(xml);
