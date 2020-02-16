@@ -50,3 +50,4 @@ MonoBehaviour:
   lineCanvas: {fileID: 114912699884685590, guid: 92e6e26c1358f764ba4be1a1df8269c4,
     type: 3}
   styles: {fileID: 3446126984989665717, guid: 096c60f02a7666c4585c8831e0d52070, type: 3}
+  font: {fileID: 4900000, guid: f42958e00156a6948afbaa3cdd550aaf, type: 3}
