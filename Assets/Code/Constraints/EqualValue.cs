@@ -30,7 +30,7 @@ public class EqualValue : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations	 {
 		get {
 			var c0 = GetConstraint(0) as ValueConstraint;
 			var c1 = GetConstraint(1) as ValueConstraint;

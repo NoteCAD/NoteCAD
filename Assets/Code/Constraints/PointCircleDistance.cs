@@ -14,7 +14,7 @@ public class PointCircleDistance : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			var point = GetEntity(0);
 			var circle = GetEntity(1);

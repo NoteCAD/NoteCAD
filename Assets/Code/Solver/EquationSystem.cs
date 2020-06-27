@@ -33,6 +33,8 @@ public class EquationSystem  {
 	List<Exp> equations = new List<Exp>();
 	List<Param> currentParams = new List<Param>();
 
+	public IEnumerable<Exp> equationsList => sourceEquations.AsEnumerable();
+
 	Dictionary<Param, Param> subs;
 
 	public void AddEquation(Exp eq) {

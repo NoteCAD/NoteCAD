@@ -23,7 +23,7 @@ public class PointsDistance : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			yield return (p1exp - p0exp).Magnitude() - value;
 		}

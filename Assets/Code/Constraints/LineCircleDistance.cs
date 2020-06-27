@@ -38,7 +38,7 @@ public class LineCircleDistance : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			switch(option) {
 				case Option.Positive: yield return ConstraintExp.pointLineDistance(centerExp, lineP0Exp, lineP1Exp, sketch.is3d) - circle.Radius() - value; break;

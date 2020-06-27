@@ -46,7 +46,7 @@ public class AngleConstraint : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			var p = GetPointsExp(sketch.plane);
 			ExpVector d0 = p[0] - p[1];

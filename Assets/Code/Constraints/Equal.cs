@@ -54,8 +54,8 @@ public class Equal : ValueConstraint {
 		valueParam.value = 1.0;
 		selectByRefPoints = true;
 	}
-
-	public override IEnumerable<Exp> equations {
+	
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			Exp[] len = new Exp[2];
 

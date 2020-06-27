@@ -442,27 +442,6 @@ public class Constraint : SketchObject {
 		return proj;
 	}
 	
-	protected Matrix4x4 getPointLineDistanceBasis(Vector3 lip0_, Vector3 lip1_, Vector3 ap_, IPlane plane) {
-	
-		Vector3 lip0 = lip0_;
-		Vector3 lip1 = lip1_;
-		Vector3 ap = ap_;
-		
-		if(plane != null) {
-			lip0 = plane.projectVectorInto(lip0);
-			lip1 = plane.projectVectorInto(lip1);
-			ap = plane.projectVectorInto(ap);
-		}
-		
-		Vector3 lid = normalize(lip1 - lip0);
-		Vector3 bp = lip0 + lid * Vector3.Dot(ap - lip0, lid);
-		Vector3 x = normalize(bp - ap);
-		Vector3 y = lid;
-		Vector3 z = normalize(Vector3.Cross(x, y));
-		Vector3 p = (ap + bp) * 0.5f;
-		return UnityExt.Basis(x, y, z, p);
-	}
-	
 	protected Matrix4x4 getPointsDistanceBasis(Vector3 app, Vector3 bpp, IPlane plane) {
 		if(plane == null) return Matrix4x4.Translate((app + bpp) / 2f);
 		Vector3 z = plane.n;
@@ -545,9 +524,10 @@ public abstract class ValueConstraint : Constraint {
 
 	protected Exp value {
 		get {
-			if(expression.Exist()) {
+			/*
+			if(reference && expression.Exist()) {
 				return expression.expression;
-			}
+			}*/
 			return valueParam.exp;
 		}
 	}
@@ -559,6 +539,17 @@ public abstract class ValueConstraint : Constraint {
 		}
 		set {
 			reference_ = value;
+			sketch.MarkDirtySketch(constraints:true);
+		}
+	}
+
+	bool solvable_ = true;
+	public bool solvable {
+		get {
+			return solvable_;
+		}
+		set {
+			solvable_ = value;
 			sketch.MarkDirtySketch(constraints:true);
 		}
 	}
@@ -595,17 +586,43 @@ public abstract class ValueConstraint : Constraint {
 	}
 
 	public ValueConstraint(Sketch sk) : base(sk) {
-		expression = new ExpressionData(this);
+		expression = new ExpressionData(this, false, valueParam);
 	}
 
 	public ValueConstraint(Sketch sk, Id id) : base(sk, id) {
-		expression = new ExpressionData(this);
+		expression = new ExpressionData(this, false, valueParam);
 	}
 
 	public override IEnumerable<Param> parameters {
 		get {
-			if(!reference) yield break;
+			if(!reference && solvable) yield break;
 			yield return valueParam;
+		}
+	}
+
+	public sealed override IEnumerable<Exp> equations {
+		get {
+			if(expression.Exist()) {
+				
+				if(expression.expression.IsEquation()) {
+					if(!reference) yield return expression.expression;
+					//yield return valueParam - expression.expression.a;
+				} else {
+					if(solvable) {
+						yield return valueParam.exp - expression.expression;
+					} else {
+						yield return valueParam.exp - expression.expression.Eval();
+					}
+				}
+				
+			}
+			foreach(var e in constraintEquations) yield return e;
+		}
+	}
+
+	protected virtual IEnumerable<Exp> constraintEquations {
+		get {
+			yield break;
 		}
 	}
 
@@ -654,7 +671,7 @@ public abstract class ValueConstraint : Constraint {
 	protected virtual string OnGetLabelValue() {
 		var valueString = Math.Abs(GetValue()).ToString("0.##");
 		if(expression.Exist()) {
-			if(expression.expression.op == Exp.Op.Equal || expression.expression.op == Exp.Op.Drag) {
+			if(expression.expression.IsEquation()) {
 				return expression.source;
 			}
 			return expression.source + " = " + valueString;
@@ -734,6 +751,7 @@ public abstract class ValueConstraint : Constraint {
 			xml.WriteAttributeString("expression", expression.source);
 		}
 		xml.WriteAttributeString("reference", reference.ToString());
+		xml.WriteAttributeString("solvable", solvable.ToString());
 		OnWriteValueConstraint(xml);
 	}
 
@@ -753,6 +771,9 @@ public abstract class ValueConstraint : Constraint {
 		}
 		if(xml.Attributes["reference"] != null) {
 			reference = Convert.ToBoolean(xml.Attributes["reference"].Value);
+		}
+		if(xml.Attributes["solvable"] != null) {
+			solvable = Convert.ToBoolean(xml.Attributes["solvable"].Value);
 		}
 		OnReadValueConstraint(xml);
 	}
@@ -783,6 +804,30 @@ public abstract class ValueConstraint : Constraint {
 		return false;
 	}
 
+	protected Matrix4x4 getPointLineDistanceBasis(Vector3 lip0_, Vector3 lip1_, Vector3 ap_, IPlane plane) {
+	
+		Vector3 lip0 = lip0_;
+		Vector3 lip1 = lip1_;
+		Vector3 ap = ap_;
+		
+		if(plane != null) {
+			lip0 = plane.projectVectorInto(lip0);
+			lip1 = plane.projectVectorInto(lip1);
+			ap = plane.projectVectorInto(ap);
+		}
+		var value = GetValue();
+		if(value == 0.0) return Matrix4x4.Translate(ap);
+		
+		Vector3 lid = normalize(lip1 - lip0);
+		if(lid.magnitude < EPSILON) return Matrix4x4.Translate(ap);
+		Vector3 bp = lip0 + lid * Vector3.Dot(ap - lip0, lid);
+		Vector3 x = normalize(bp - ap);
+		if(x.magnitude < EPSILON) return Matrix4x4.Translate(ap);
+		Vector3 y = lid;
+		Vector3 z = normalize(Vector3.Cross(x, y));
+		Vector3 p = (ap + bp) * 0.5f;
+		return UnityExt.Basis(x, y, z, p);
+	}
 
 	protected void drawPointLineDistance(Vector3 lip0_, Vector3 lip1_, Vector3 p0_, ICanvas renderer, Camera camera) {
 		

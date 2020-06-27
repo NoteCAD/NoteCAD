@@ -53,6 +53,9 @@ namespace RuntimeInspectorNamespace
 			parser.SetString(input);
 			var newExp = parser.Parse();
 			if(newExp == null) return false;
+			if(data.isEquation != newExp.IsEquation()) {
+				return false;
+			}
 			if(!test) {
 				data.source = input;
 			}

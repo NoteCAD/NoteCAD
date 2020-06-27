@@ -231,9 +231,9 @@ public class Tool : MonoBehaviour {
 		return text.Substring(0, index) + openColor + text[index] + closeColor + text.Substring(index + 1, text.Length - index - 1);
 	}
 
-	protected void Inspect(object obj) {
-		editor.toolInspector = true;
-		editor.inspector.Inspect(obj);
+	public static void Inspect(object obj) {
+		DetailEditor.instance.toolInspector = true;
+		DetailEditor.instance.inspector.Inspect(obj);
 	}
 
 }

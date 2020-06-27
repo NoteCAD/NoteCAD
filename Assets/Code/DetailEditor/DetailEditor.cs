@@ -208,6 +208,12 @@ public class DetailEditor : MonoBehaviour {
 			if(res == EquationSystem.SolveResult.DIDNT_CONVEGE) {
 				suppressSolve = true;
 			}
+			if(currentSketch.GetSketch().HasNonSolvable()) {
+				Debug.Log("Resolve because of non solvable");
+				UpdateSystem();
+
+				res = (!suppressSolve || sys.HasDragged()) ? sys.Solve() : EquationSystem.SolveResult.DIDNT_CONVEGE;
+			}
 			string result = "";
 			result += (GC.GetTotalMemory(false) / 1024 / 1024.0).ToString("0.##") + " mb\n";
 			result += res.ToString() + "\n";
@@ -280,7 +286,12 @@ public class DetailEditor : MonoBehaviour {
 		
 		if(!CameraController.instance.IsMoving && !suppressHovering) {
 			double dist = -1.0;
-			hovered = detail.HoverUntil(Input.mousePosition, Camera.main, UnityEngine.Matrix4x4.identity, ref dist, activeFeature, hoverFilter);
+
+			bool hf(ICADObject co) {
+				return (hoverFilter == null || hoverFilter(co)) && ShouldShowConstraint(co);
+			}
+
+			hovered = detail.HoverUntil(Input.mousePosition, Camera.main, UnityEngine.Matrix4x4.identity, ref dist, activeFeature, hf);
 			/*
 			if(hovered == null && solid != null) {
 				var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -316,7 +327,7 @@ public class DetailEditor : MonoBehaviour {
 
 		if(activeFeature is SketchFeatureBase) {
 			var sk = activeFeature as SketchFeatureBase;
-			sk.DrawConstraints(canvas);
+			sk.DrawConstraints(canvas, c => ShouldShowConstraint(c));
 
 			//var skk = activeFeature as SketchFeature;
 			//if(skk != null) skk.DrawTriangulation(canvas);
@@ -353,6 +364,14 @@ public class DetailEditor : MonoBehaviour {
 		GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced);
 	}
 
+
+	bool ShouldShowConstraint(ICADObject co) {
+		if(co is Constraint c) {
+			return detail.settings.showConstraints && !c.IsDimension || detail.settings.showDimensions && c.IsDimension;
+		}
+		return true;
+	}
+
 	private void OnGUI() {
 		GUIStyle style = new GUIStyle();
 		style.alignment = TextAnchor.MiddleCenter;
@@ -361,6 +380,8 @@ public class DetailEditor : MonoBehaviour {
 			foreach(var c in sk.GetSketch().constraintList) {
 				if(!c.isVisible) continue;
 				if(!(c is ValueConstraint)) continue;
+				if(!ShouldShowConstraint(c)) continue;
+
 				var constraint = c as ValueConstraint;
 				if(!constraint.valueVisible) continue;
 				if(MoveTool.instance.IsConstraintEditing(constraint)) continue;

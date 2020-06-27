@@ -80,8 +80,8 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		p1 = AddChild(new PointEntity(sk));
 		c = AddChild(new PointEntity(sk));
 
-		x = new ExpressionData(this, t);
-		y = new ExpressionData(this, t);
+		x = new ExpressionData(this, false, t);
+		y = new ExpressionData(this, false, t);
 		x.source = "t";
 		y.source = "cos(t * pi)";
 

@@ -596,8 +596,8 @@ PlayerSettings:
   webGLLinkerTarget: 2
   webGLThreadsSupport: 0
   scriptingDefineSymbols:
-    1: G3_USING_UNITY;CT_FB
-    13: G3_USING_UNITY;CT_FB
+    1: G3_USING_UNITY;CT_FB;XOR_ENCRYPTED
+    13: G3_USING_UNITY;CT_FB;XOR_ENCRYPTED
   platformArchitecture: {}
   scriptingBackend: {}
   il2cppCompilerConfiguration: {}
@@ -696,4 +696,4 @@ PlayerSettings:
   cloudEnabled: 0
   enableNativePlatformBackendsForNewInputSystem: 0
   disableOldInputManagerSupport: 0
-  legacyClampBlendShapeWeights: 1
+  legacyClampBlendShapeWeights: 0

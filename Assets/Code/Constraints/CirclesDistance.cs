@@ -40,7 +40,7 @@ public class CirclesDistance : ValueConstraint {
 		return cp0 != null && cp1 != null && cp0.IsCoincidentWith(cp1);
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			var c0 = GetEntity(0);
 			var c1 = GetEntity(1);

@@ -27,7 +27,7 @@ public class PointLineDistance : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			yield return ConstraintExp.pointLineDistance(pointExp, lineP0Exp, lineP1Exp, sketch.is3d) - value;
 		}
@@ -43,6 +43,7 @@ public class PointLineDistance : ValueConstraint {
 		
 		if(GetValue() == 0.0) {
 			drawCameraCircle(canvas, Camera.main, p0, R_CIRLE_R * getPixelSize()); 
+			SetLabelPos(p0);
 		} else {
 			drawPointLineDistance(lip0, lip1, p0, canvas, Camera.main);
 			//drawLineExtendInPlane(getPlane(), renderer, lip0, lip1, p0, R_DASH * camera->getPixelSize()); 

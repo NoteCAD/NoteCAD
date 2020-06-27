@@ -6,16 +6,10 @@ using UnityEngine;
 [Serializable]
 public class EquationConstraint : ValueConstraint {
 	
-	public EquationConstraint(Sketch sk) : base(sk) { }
-	public EquationConstraint(Sketch sk, Id id) : base(sk, id) { }
-
-	public override IEnumerable<Exp> equations {
-		get {
-			if(expression.Exist() && !reference) {
-				yield return expression.expression;
-			}
-		}
+	public EquationConstraint(Sketch sk) : base(sk) {
+		expression.isEquation = true;
 	}
+	public EquationConstraint(Sketch sk, Id id) : base(sk, id) { }
 
 	public override ValueUnits units => ValueUnits.ARBITRARY;
 }

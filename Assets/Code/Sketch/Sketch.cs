@@ -140,7 +140,7 @@ public static class IPlaneUtils {
 public class Sketch : CADObject  {
 	Dictionary<Id, Entity> entities = new Dictionary<Id, Entity>();
 	Dictionary<Id, Constraint> constraints = new Dictionary<Id, Constraint>();
-	List<Param> parameters = new List<Param>();
+	public List<Param> parameters = new List<Param>();
 	public IEnumerable<Param> userParameters => parameters;
 
 	Feature feature_;
@@ -626,5 +626,9 @@ public class Sketch : CADObject  {
 			return pt;
 		}
 		return null;
+	}
+
+	public bool HasNonSolvable() {
+		return constraintList.OfType<ValueConstraint>().Any(c => !c.solvable);
 	}
 }

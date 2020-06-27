@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [Serializable]
 public class ExpressionData {
 	
 	public SketchObject obj { get; private set; }
+	public bool isEquation { get; set; }
 
 	string source_ = "";
 	public string source {
@@ -46,8 +48,9 @@ public class ExpressionData {
 
 	public List<Param> parameters { get; private set; }
 
-	public ExpressionData(SketchObject sko, Param p0 = null) {
+	public ExpressionData(SketchObject sko, bool equation, Param p0 = null) {
 		obj = sko;
+		isEquation = equation;
 		if(p0 != null) {
 			parameters = new List<Param>();
 			parameters.Add(p0);
@@ -66,6 +69,7 @@ public class ExpParser {
         { "sqrt",	Exp.Op.Sqrt },
         { "abs",	Exp.Op.Abs },
         { "sign",	Exp.Op.Sign },
+        { "norm",	Exp.Op.Norm },
         { "acos",	Exp.Op.ACos },
         { "asin",	Exp.Op.Cos },
         { "exp",	Exp.Op.Exp },
@@ -73,15 +77,20 @@ public class ExpParser {
         { "cosh",	Exp.Op.Cosh },
         { "sfres",	Exp.Op.SFres },
         { "cfres",	Exp.Op.CFres },
+        { "if",		Exp.Op.If },
     };
     
-    Dictionary <char, Exp.Op> operators = new Dictionary<char, Exp.Op> {
-        { '+', Exp.Op.Add },
-        { '-', Exp.Op.Sub },
-        { '=', Exp.Op.Equal },
-        { '~', Exp.Op.Drag },
-        { '*', Exp.Op.Mul },
-        { '/', Exp.Op.Div },
+    Dictionary <string, Exp.Op> operators = new Dictionary<string, Exp.Op> {
+        { "+", Exp.Op.Add },
+        { "-", Exp.Op.Sub },
+        { "=", Exp.Op.Equal },
+        { ">=", Exp.Op.GEqual },
+        { "<=", Exp.Op.LEqual },
+        { ">", Exp.Op.Greater },
+        { "<", Exp.Op.Less },
+        { "~", Exp.Op.Drag },
+        { "*", Exp.Op.Mul },
+        { "/", Exp.Op.Div },
     };
 
     Dictionary <string, double> constants = new Dictionary<string, double> {
@@ -105,14 +114,18 @@ public class ExpParser {
 			"a * (b + c)",
 			" a * b + c * (d + e) * f - 1 ",
 			" a * (b + c) * (d + e) * (f - 1) ",
-			" (a * ((b + c) + (d + e)) * 3 + (f - 1) * 5)) ",
+			"((a * ((b + c) + (d + e)) * 3 + (f - 1) * 5))",
 			"a / b * c + 1"
 		};
 
 		foreach(var e in exps) {
 			var parser = new ExpParser(e);
-			var exp = parser.Parse();
-			Debug.Log("src: \"" + e + "\" -> \"" + exp.ToString() + "\"");
+			try {
+				var exp = parser.Parse();
+				Debug.Log("src: \"" + e + "\" -> \"" + exp.ToString() + "\"");
+			} catch (Exception except) {
+				Debug.LogError("can't parse src: \"" + e + "\" with error " + except.ToString());
+			}
 		}
 
 		Dictionary<string, double> results = new Dictionary<string, double> {
@@ -137,10 +150,14 @@ public class ExpParser {
 			var exp = parser.Parse();
 			Debug.Log("src: \"" + e + "\" -> \"" + exp.ToString() + "\" = " + exp.Eval().ToStr());
 			if(exp.Eval() != e.Value) {
-				Debug.Log("result fail: get \"" + exp.Eval() + "\" excepted: \"" + e.Value + "\"");
+				Debug.LogError("result fail: get \"" + exp.Eval() + "\" excepted: \"" + e.Value + "\"");
 			}
 		}
 
+	}
+
+	static ExpParser() {
+		Test();
 	}
 
     public ExpParser(string str) {
@@ -229,6 +246,8 @@ public class ExpParser {
         if(functions.ContainsKey(name)) {
             return functions[name];
         }
+		var cus = CustomFunction.GetFunction(name);
+		if(cus != null) return cus.Op;
         return Exp.Op.Undefined;
     }
 
@@ -261,16 +280,23 @@ public class ExpParser {
             var func = GetFunction(alphas);
             if(func != Exp.Op.Undefined) {
                 if(SkipIf('(')) {
-                    Exp a = ParseExp(0);
+                    Exp a = ParseMain();
                     Exp b = null;
+					Exp c = null;
                     if(SkipIf(',')) {
-                        b = ParseExp(0);
+                        b = ParseMain();
+                    }
+                    if(SkipIf(',')) {
+                        c = ParseMain();
                     }
                     Skip(')');
-					if(func == Exp.Op.Atan2 && b == null) {
+					if((func == Exp.Op.Atan2 || func == Exp.Op.If) && b == null) {
 						error("second function argument execpted");
 					}
-                    return new Exp(func, a, b);
+					if(func == Exp.Op.If && c == null) {
+						error("third function argument execpted");
+					}
+                    return new Exp(func, a, b, c);
                 } else error("function arguments execpted");
             }
 
@@ -280,6 +306,7 @@ public class ExpParser {
             var param = GetParam(alphas);
             if(param == null) {
                 param = new Param(alphas);
+				//param.solvable = false;
                 newParameters.Add(param);
             }
             return new Exp(param);
@@ -288,38 +315,31 @@ public class ExpParser {
 		return null;
     }
     
-    int OrderOf(Exp.Op op) {
-        switch(op) {
-			case Exp.Op.Equal:
-			case Exp.Op.Drag:
-				return 1;
-            case Exp.Op.Add:
-            case Exp.Op.Sub:
-                return 2;
-            case Exp.Op.Mul:
-            case Exp.Op.Div:
-                return 3;
-            default:
-                return 0;
-        }
-    }
-	
-	Exp.Op CheckOp() {
-		if(operators.ContainsKey(next)) {
-			var result = operators[next];
-			return result;
+	IEnumerable<KeyValuePair<string, Exp.Op>> allOperators => operators.Concat(CustomFunction.operatorNames.Select(on => new KeyValuePair<string, Exp.Op>(on.Key, on.Value.Op)));
+
+	Exp.Op CheckOp(Func<Exp.Op, bool> filter = null) {
+		foreach(var op in allOperators) {
+			if(filter != null && !filter(op.Value)) continue;
+			if(!HasNext(op.Key.Length)) continue;
+			if(op.Key == toParse.Substring(index, op.Key.Length)) {
+				return op.Value;
+			}
 		}
 		return Exp.Op.Undefined;
 	}
 
+	void SkipOp(Exp.Op op) {
+		index += allOperators.First(o => o.Value == op).Key.Length;
+	}
+
 	Exp.Op ParseOp() {
 		var result = CheckOp();
-		if(result != Exp.Op.Undefined)index++;
+		if(result != Exp.Op.Undefined) SkipOp(result);
 		return result;
 	}
 
-	bool HasNext() {
-		return index < toParse.Length;
+	bool HasNext(int length = 1) {
+		return index + length - 1 < toParse.Length;
 	}
 
 	Exp.Op ParseUnary() {
@@ -331,16 +351,36 @@ public class ExpParser {
 			index++;
 			return Exp.Op.Neg;
 		}
-		return Exp.Op.Undefined;
+		return CheckOp(op => {
+			var cus = CustomFunction.Get(op);
+			return cus != null && cus.ArgCount == 1;
+		});
 	}
-	    
+	
+	Exp ParseMain() {
+				
+		Exp a = ParseExp(0);
+		while(HasNext() && next != ')' && next != ',')  {
+			var op = CheckOp();
+			if(op == Exp.Op.Undefined) error("operator expected");
+			//var curSingle = Exp.IsEquation(op);
+			//if(curSingle && single) error("operators like \"" + operators.First(o => o.Value == op).Key + "\" can be used only one time per expression");
+			//single = curSingle;
+			var curOrder = Exp.OrderOf(op);
+			SkipOp(op);
+			var b = ParseExp(curOrder);
+			a = new Exp(op, a, b);
+		}
+		return a;
+	}
+
     Exp ParseExp(int minOrder) {
 
 		var uop = ParseUnary();
 				
 		Exp a = null;
         if(SkipIf('(')) {
-            a = ParseExp(0);
+            a = ParseMain();
             Skip(')');
         } else {
 			a = ParseValue();
@@ -349,14 +389,18 @@ public class ExpParser {
 			a = new Exp(uop, a, null);
 		}
         
+		bool single = false;
 		while(HasNext() && next != ')' && next != ',')  {
 			var op = CheckOp();
-			if(op == Exp.Op.Undefined) error("operator execpted");
-			var curOrder = OrderOf(op);
+			if(op == Exp.Op.Undefined) error("operator expected");
+			//var curSingle = Exp.IsEquation(op);
+			//if(curSingle && single) error("operators like \"" + operators.First(o => o.Value == op).Key + "\" can be used only one time per expression");
+			//single = curSingle;
+			var curOrder = Exp.OrderOf(op);
 			if(curOrder <= minOrder) {
 				return a;
 			}
-			index++;
+			SkipOp(op);
 
 			var b = ParseExp(curOrder);
         
@@ -367,7 +411,7 @@ public class ExpParser {
     
 	public Exp Parse() {
 		try {
-			var result = ParseExp(0);
+			var result = ParseMain();
 			if(HasNext()) {
 				error("unexcepted token");
 			}
@@ -378,6 +422,7 @@ public class ExpParser {
 			}
 			*/
 			return result;
+
 		} catch (System.Exception) {
 			return null;
 		}

@@ -17,10 +17,14 @@ public enum LengthMeasurementSystem {
 [Serializable]
 public class DetailSettings {
 	public LengthMeasurementSystem lengthMeasurement = LengthMeasurementSystem.Millimetre;
+	public bool showConstraints = true;
+	public bool showDimensions = true;
 	
 	public void Write(XmlWriter xml) {
 		xml.WriteStartElement("settings");
 		xml.WriteAttributeString("lengthMeasurement", lengthMeasurement.ToString());
+		xml.WriteAttributeString("showConstraints", showConstraints.ToString());
+		xml.WriteAttributeString("showDimensions", showDimensions.ToString());
 		xml.WriteEndElement();
 	}
 
@@ -28,6 +32,8 @@ public class DetailSettings {
 		foreach(XmlNode xmlChild in xml.ChildNodes) {
 			if(xmlChild.Name != "settings") continue;
 			xmlChild.Attributes["lengthMeasurement"].Value.ToEnum(ref lengthMeasurement);
+			if(xmlChild.Attributes["showConstraints"] != null) showConstraints = Convert.ToBoolean(xmlChild.Attributes["showConstraints"].Value);
+			if(xmlChild.Attributes["showDimensions"] != null) showDimensions = Convert.ToBoolean(xmlChild.Attributes["showDimensions"].Value);
 		}
 	}
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RuntimeInspectorNamespace;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,18 @@ public class SketchFeatureBase : Feature {
 	protected LineCanvas canvas;
 	protected Sketch sketch;
 	GameObject go;
+
+	[RuntimeInspectorButton("Variables", false, ButtonVisibility.InitializedObjects)]
+	public void ShowVariables() {
+		Tool.Inspect(sketch.parameters);
+	}
+
+	[RuntimeInspectorButton("Equations", false, ButtonVisibility.InitializedObjects)]
+	public void ShowEquations() {
+		var sys = new EquationSystem();
+		GenerateEquations(sys);
+		Tool.Inspect(sys.equationsList.Select(e => e.ToString()).ToList());
+	}
 
 	bool solveParent_ = false;
 	public bool solveParent {
@@ -83,7 +96,14 @@ public class SketchFeatureBase : Feature {
 	public EquationSystem.SolveResult Solve() {
 		var sys = new EquationSystem();
 		GenerateEquations(sys);
-		return sys.Solve();
+		var result = sys.Solve();
+		if(sketch.HasNonSolvable()) {
+			Debug.Log("solve second time for non-solveable");
+			sys.Clear();
+			GenerateEquations(sys);
+			return sys.Solve();
+		}
+		return result;
 	}
 	/*
 	public bool IsRedundant() {

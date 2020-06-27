@@ -20,7 +20,7 @@ public class Diameter : ValueConstraint {
 	Exp radius { get { return GetEntity(0).Radius(); } }
 	ExpVector center { get { return GetEntity(0).CenterInPlane(null); } }
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			yield return radius * 2.0 - value;
 		}

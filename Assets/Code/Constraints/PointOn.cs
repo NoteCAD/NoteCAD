@@ -48,7 +48,7 @@ public class PointOn : ValueConstraint {
 		return true;
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			var p = pointExp;
 			var eq = on.PointOnInPlane(value, sketch.plane) - p;

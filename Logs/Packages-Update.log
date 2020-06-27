@@ -49,3 +49,16 @@ Update Mode: updateDependencies
 
 The following packages were updated:
   com.unity.package-manager-ui from version 2.0.3 to 2.0.7
+
+=== Sat Jun 27 13:31:29 2020
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were added:
+  com.unity.timeline@1.0.0
+  com.unity.multiplayer-hlapi@1.0.2
+  com.unity.xr.legacyinputhelpers@2.0.2
+The following packages were updated:
+  com.unity.analytics from version 3.2.2 to 3.3.2
+  com.unity.package-manager-ui from version 2.0.7 to 2.1.2

@@ -17,7 +17,7 @@ public class Length : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			yield return GetEntity(0).Length() - value;
 		}
