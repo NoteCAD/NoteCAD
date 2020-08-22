@@ -13,7 +13,8 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 
 	enum FileType {
 		Dxf,
-		Hpgl
+		Hpgl,
+		Slvs
 	};
 
 	[Serializable]
@@ -58,6 +59,10 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 				NoteCADJS.LoadBinaryData(HpglDataLoaded, "hpgl");
 				break;
 			}
+			case FileType.Slvs: {
+				NoteCADJS.LoadBinaryData(SlvsDataLoaded, "slvs");
+				break;
+			}
 		}
 	}
 
@@ -65,7 +70,7 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 	}
 
 	void AutoConstrain(Entity e) {
-		if(!settings.autoconstrain) return;
+		if(!settings.autoconstrain || settings.fileType == FileType.Slvs) return;
 		foreach(var p in e.points) {
 			var other = p.sketch.GetOtherPointByPoint(p, 1e-4f);
 			if(other == null) continue;
@@ -82,6 +87,14 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 		AutoConstrain(line);
 	}
 
+	void AddArc(UnityEngine.Vector3 c, UnityEngine.Vector3 p0, UnityEngine.Vector3 p1) {
+		ArcEntity arc = new ArcEntity(DetailEditor.instance.currentSketch.GetSketch());
+		arc.c.SetPosition(c);
+		arc.p0.SetPosition(p0);
+		arc.p1.SetPosition(p1);
+		AutoConstrain(arc);
+	}
+
 	void AddArc(netDxf.Entities.Arc a) {
 		var c = new UnityEngine.Vector3((float)a.Center.X, (float)a.Center.Y, (float)a.Center.Z);
 		var e = a.StartAngle;
@@ -96,6 +109,13 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 		arc.p0.SetPosition(rvs);
 		arc.p1.SetPosition(rve);
 		AutoConstrain(arc);
+	}
+
+	void AddCircle(UnityEngine.Vector3 pos, double r) {
+		CircleEntity circle = new CircleEntity(DetailEditor.instance.currentSketch.GetSketch());
+		circle.c.SetPosition(pos);
+		circle.r.value = r;
+		AutoConstrain(circle);
 	}
 
 	void AddCircle(netDxf.Entities.Circle c) {
@@ -177,4 +197,144 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 			AddArc(a);
 		}
 	}
+
+	enum SlvsEntityType {
+        POINT_IN_3D            =  2000,
+        POINT_IN_2D            =  2001,
+        POINT_N_TRANS          =  2010,
+        POINT_N_ROT_TRANS      =  2011,
+        POINT_N_COPY           =  2012,
+        POINT_N_ROT_AA         =  2013,
+        POINT_N_ROT_AXIS_TRANS =  2014,
+        POINT_MIRROR           =  2019,
+
+        NORMAL_IN_3D           =  3000,
+        NORMAL_IN_2D           =  3001,
+        NORMAL_N_COPY          =  3010,
+        NORMAL_N_ROT           =  3011,
+        NORMAL_N_ROT_AA        =  3012,
+        NORMAL_MIRROR           = 3019,
+
+        DISTANCE               =  4000,
+        DISTANCE_N_COPY        =  4001,
+
+        FACE_NORMAL_PT         =  5000,
+        FACE_XPROD             =  5001,
+        FACE_N_ROT_TRANS       =  5002,
+        FACE_N_TRANS           =  5003,
+        FACE_N_ROT_AA          =  5004,
+        FACE_MIRROR            =  5005,
+
+        WORKPLANE              = 10000,
+        LINE_SEGMENT           = 11000,
+        CUBIC                  = 12000,
+        CUBIC_PERIODIC         = 12001,
+        CIRCLE                 = 13000,
+        ARC_OF_CIRCLE          = 14000,
+        TTF_TEXT               = 15000,
+        IMAGE                  = 16000
+	}
+
+	class SlvsParam {
+		public string hv;
+		public double value;
+	}
+
+	class SlvsEntity {
+		public string hv;
+		public SlvsEntityType type;
+		public bool construction;
+		public List<string> pointshv = new List<string>();
+		public List<string> normalshv = new List<string>();
+		public UnityEngine.Vector3 actPoint;
+		public string distancehv;
+		public double actDistance;
+	}
+
+	void SlvsDataLoaded(byte[] data) {
+		editor.PushUndo();
+		var str = Encoding.UTF8.GetString(data, 0, data.Length);
+		var sep = new char[] { '\n', '\r' };
+		var sep1 = new char[] { '=' };
+		var commands = str.Split(sep, StringSplitOptions.RemoveEmptyEntries);
+		UnityEngine.Vector3 pos = UnityEngine.Vector3.zero;
+		string firstGroup = "";
+		
+		var parameters = new Dictionary<string, SlvsParam>();
+		SlvsParam curParam = new SlvsParam();
+
+		var entities = new Dictionary<string, SlvsEntity>();
+		SlvsEntity curEntity = new SlvsEntity();
+		
+		foreach(var com in commands) {
+			var keyValue = com.Split(sep1);
+			var key = keyValue[0];
+			var value = keyValue.Length > 1 ? keyValue[1] : "";
+
+			switch(key) {
+				case "Group.h.v":
+					if(value == "00000001") {
+					} else
+					if(firstGroup == "") {
+						firstGroup = value;
+					} else {
+						return;
+					}
+					break;
+				
+				case "Param.h.v.": curParam.hv = value; break;
+				case "Param.val": curParam.value = value.ToDouble(); break;
+				case "AddParam": parameters.Add(curParam.hv, curParam); curParam = new SlvsParam(); break;
+
+				case "Entity.h.v": curEntity.hv = value; break;
+				case "Entity.type": curEntity.type = (SlvsEntityType)Convert.ToInt32(value); break;
+				case "Entity.construction": curEntity.construction = Convert.ToInt32(value) != 0; break;
+				case "Entity.point[0].v": curEntity.pointshv.Add(value); break;
+				case "Entity.point[1].v": curEntity.pointshv.Add(value); break;
+				case "Entity.point[2].v": curEntity.pointshv.Add(value); break;
+				case "Entity.point[3].v": curEntity.pointshv.Add(value); break;
+				case "Entity.point[4].v": curEntity.pointshv.Add(value); break;
+				case "Entity.point[5].v": curEntity.pointshv.Add(value); break;
+				case "Entity.point[6].v": curEntity.pointshv.Add(value); break;
+				case "Entity.point[7].v": curEntity.pointshv.Add(value); break;
+				case "Entity.point[8].v": curEntity.pointshv.Add(value); break;
+				case "Entity.point[9].v": curEntity.pointshv.Add(value); break;
+				case "Entity.point[10].v": curEntity.pointshv.Add(value); break;
+				case "Entity.point[11].v": curEntity.pointshv.Add(value); break;
+				case "Entity.actPoint.x": curEntity.actPoint.x = value.ToFloat(); break;
+				case "Entity.actPoint.y": curEntity.actPoint.y = value.ToFloat(); break;
+				case "Entity.actPoint.z": curEntity.actPoint.z = value.ToFloat(); break;
+				case "Entity.actDistance": curEntity.actDistance = value.ToDouble(); break;
+				case "Entity.distance.v": curEntity.distancehv = value; break;
+				case "AddEntity": entities.Add(curEntity.hv, curEntity); curEntity = new SlvsEntity(); break;
+			}
+		}
+
+		foreach(var e in entities.Values) {
+			switch(e.type) {
+				case SlvsEntityType.LINE_SEGMENT: {
+					var p0 = entities[e.pointshv[0]];
+					var p1 = entities[e.pointshv[1]];
+					AddLine(p0.actPoint, p1.actPoint);
+					break;
+				}
+				case SlvsEntityType.CIRCLE: {
+					var c = entities[e.pointshv[0]];
+					var d = entities[e.distancehv];
+					AddCircle(c.actPoint, d.actDistance);
+					break;
+				}
+				case SlvsEntityType.ARC_OF_CIRCLE: {
+					var c = entities[e.pointshv[0]];
+					var p0 = entities[e.pointshv[1]];
+					var p1 = entities[e.pointshv[2]];
+					AddArc(c.actPoint, p0.actPoint, p1.actPoint);
+					break;
+				}
+			}
+		}
+
+	}
+
+
 }
