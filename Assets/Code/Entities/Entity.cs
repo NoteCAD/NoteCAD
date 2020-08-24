@@ -73,6 +73,13 @@ public static class IEntityUtils {
 		//return entity.PointsInPlane(plane).Single();
 	}
 
+	public static Vector3 GetPointPos(this IEntity entity, IPlane plane = null) {
+		var it = entity.PointsInPlane(plane).GetEnumerator();
+		it.MoveNext();
+		return it.Current.Eval();
+		//return entity.PointsInPlane(plane).Single();
+	}
+
 	public static ExpVector CenterInPlane(this IEntity entity, IPlane plane) {
 		var c = entity.Center();
 		if(c == null) return null;

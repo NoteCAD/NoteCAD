@@ -48,6 +48,12 @@ public static class GeomUtils {
 		Plane p = new Plane(normal, point);
 		return pos - p.GetDistanceToPoint(pos) * normal;
 	}
+
+	public static Vector3 projectPointToLine(Vector3 pos, Vector3 lp0, Vector3 lp1) {
+		var dir = lp1 - lp0;
+		float t = Vector3.Dot(pos - lp0, dir) / Vector3.Dot(dir, dir);
+		return lp0 + t * dir;
+	}
 	
 	public enum Classify {
 		etLEFT,
