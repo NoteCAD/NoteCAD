@@ -447,6 +447,7 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 			if(!ncadEntities.TryGetValue(hv, out e)) {
 				if(slvsEntities.TryGetValue(hv, out var slvsPoint)) {
 					e = AddPoint(slvsPoint.actPoint);
+					ncadEntities.Add(hv, e);
 					return true;
 				}
 				return false;

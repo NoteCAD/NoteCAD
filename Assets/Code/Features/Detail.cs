@@ -162,7 +162,7 @@ public class Detail : Feature {
 		}
 	}
 
-	public string WriteXmlAsString() {
+	public string WriteXmlAsString(bool encrypt) {
 		var text = new StringWriter();
 		var xml = new XmlTextWriter(text);
 		xml.Formatting = Formatting.Indented;
@@ -170,9 +170,9 @@ public class Detail : Feature {
 		xml.Indentation = 1;
 		WriteXml(xml);
 		var result = text.ToString();
-		#if XOR_ENCRYPTED
+		if(encrypt) {
 			result = Encrypton.Xor(result, 0xFADE2CAD);
-		#endif
+		}
 		return result;
 	}
 

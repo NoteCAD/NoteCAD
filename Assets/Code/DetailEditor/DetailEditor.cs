@@ -521,8 +521,8 @@ public class DetailEditor : MonoBehaviour {
 		}
 	}
 
-	public string WriteXml() {
-		return detail.WriteXmlAsString();
+	public string WriteXml(bool encrypt = false) {
+		return detail.WriteXmlAsString(encrypt);
 	}
 
 	public void AddFeature(Feature feature) {

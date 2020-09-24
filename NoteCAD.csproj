@@ -68,17 +68,11 @@
     <Reference Include="Managed/UnityEngine/UnityEngine.BaselibModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.BaselibModule.dll</HintPath>
     </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.ClothModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.ClothModule.dll</HintPath>
-    </Reference>
     <Reference Include="Managed/UnityEngine/UnityEngine.CoreModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="Managed/UnityEngine/UnityEngine.CrashReportingModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.CrashReportingModule.dll</HintPath>
-    </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.DirectorModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.DirectorModule.dll</HintPath>
     </Reference>
     <Reference Include="Managed/UnityEngine/UnityEngine.FileSystemHttpModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.FileSystemHttpModule.dll</HintPath>
@@ -116,9 +110,6 @@
     <Reference Include="Managed/UnityEngine/UnityEngine.PhysicsModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.Physics2DModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.Physics2DModule.dll</HintPath>
-    </Reference>
     <Reference Include="Managed/UnityEngine/UnityEngine.ProfilerModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.ProfilerModule.dll</HintPath>
     </Reference>
@@ -149,20 +140,11 @@
     <Reference Include="Managed/UnityEngine/UnityEngine.TLSModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.TLSModule.dll</HintPath>
     </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.TerrainModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.TerrainModule.dll</HintPath>
-    </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.TerrainPhysicsModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.TerrainPhysicsModule.dll</HintPath>
-    </Reference>
     <Reference Include="Managed/UnityEngine/UnityEngine.TextCoreModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.TextCoreModule.dll</HintPath>
     </Reference>
     <Reference Include="Managed/UnityEngine/UnityEngine.TextRenderingModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.TextRenderingModule.dll</HintPath>
-    </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.TilemapModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.TilemapModule.dll</HintPath>
     </Reference>
     <Reference Include="Managed/UnityEngine/UnityEngine.TimelineModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.TimelineModule.dll</HintPath>
@@ -170,17 +152,8 @@
     <Reference Include="Managed/UnityEngine/UnityEngine.UIModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.UIModule.dll</HintPath>
     </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.UIElementsModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.UIElementsModule.dll</HintPath>
-    </Reference>
     <Reference Include="Managed/UnityEngine/UnityEngine.UNETModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.UNETModule.dll</HintPath>
-    </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.UmbraModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.UmbraModule.dll</HintPath>
-    </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.UnityAnalyticsModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.UnityAnalyticsModule.dll</HintPath>
     </Reference>
     <Reference Include="Managed/UnityEngine/UnityEngine.UnityConnectModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.UnityConnectModule.dll</HintPath>
@@ -206,23 +179,8 @@
     <Reference Include="Managed/UnityEngine/UnityEngine.VFXModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.VFXModule.dll</HintPath>
     </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.VRModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.VRModule.dll</HintPath>
-    </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.VehiclesModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.VehiclesModule.dll</HintPath>
-    </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.VideoModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.VideoModule.dll</HintPath>
-    </Reference>
     <Reference Include="WebGLSupport/Managed/UnityEngine.WebGLModule">
       <HintPath>C:\Program Files\Unity\Editor\Data\PlaybackEngines\WebGLSupport/Managed/UnityEngine.WebGLModule.dll</HintPath>
-    </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.WindModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.WindModule.dll</HintPath>
-    </Reference>
-    <Reference Include="Managed/UnityEngine/UnityEngine.XRModule">
-      <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEngine/UnityEngine.XRModule.dll</HintPath>
     </Reference>
     <Reference Include="Managed/UnityEditor">
       <HintPath>C:\Program Files\Unity\Editor\Data\Managed/UnityEditor.dll</HintPath>
