@@ -34,7 +34,7 @@ mergeInto(LibraryManager.library, {
   LoadDataInternal: function() {
     if (!document.getElementById('FileUploadingPluginInput'))
           Init();
-    document.getElementById('gameContainer').addEventListener('click', openFileDialog, false);
+    document.getElementById('unity-canvas').addEventListener('click', openFileDialog, false);
 
     function Init() {
         var inputFile = document.createElement('input');
@@ -68,7 +68,7 @@ mergeInto(LibraryManager.library, {
     }
 
     function openFileDialog() {
-            document.getElementById('gameContainer').removeEventListener('click', openFileDialog);
+            document.getElementById('unity-canvas').removeEventListener('click', openFileDialog);
             document.getElementById('FileUploadingPluginInput').click();
             
     }
@@ -104,9 +104,9 @@ mergeInto(LibraryManager.library, {
     }
     var OpenFileDialog = function() {
       document.getElementById('BinaryFileInput').click();
-      document.getElementById('gameContainer').removeEventListener('click', OpenFileDialog);
+      document.getElementById('unity-canvas').removeEventListener('click', OpenFileDialog);
     };
-    document.getElementById('gameContainer').addEventListener('click', OpenFileDialog, false);
+    document.getElementById('unity-canvas').addEventListener('click', OpenFileDialog, false);
   }
 });
 

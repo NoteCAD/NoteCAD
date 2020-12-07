@@ -26,14 +26,14 @@
 			#pragma fragment frag
 			#pragma multi_compile_instancing				
 			
-			#include "UnityCG.cginc"
+			//#include "UnityCG.cginc"
 
 			struct appdata {
 				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
 				float4 tangent: NORMAL;
 				float4 params: TANGENT;
-				UNITY_VERTEX_INPUT_INSTANCE_ID
+				//UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct v2f
@@ -56,7 +56,7 @@
 			v2f vert (appdata v) {
 				const float feather = 0.7;
 				v2f o;
-				UNITY_SETUP_INSTANCE_ID(v);
+				//UNITY_SETUP_INSTANCE_ID(v);
 				float pix = _Pixel / 2.0;
 				float3 tang = normalize(v.tangent.xyz);
 				float3 dir = mul((float3x3)unity_WorldToObject, (float3)_CamDir);
@@ -79,7 +79,7 @@
 					o.cap = float2((len + cap) / cap, len / cap);
 				}
 
-				o.uv = TRANSFORM_TEX(uv, _MainTex);
+				o.uv = uv;
 				return o;
 			}
 
