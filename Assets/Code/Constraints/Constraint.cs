@@ -576,12 +576,15 @@ public abstract class ValueConstraint : Constraint {
 		}
 		set {
 			var newPos = GetBasis().inverse.MultiplyPoint(value);
-			if(position_ == newPos) return;
+			if((position_- newPos).magnitude < 1e-4f) {
+				return;
+			}
+
 			position_ = newPos;
 			if(!sketch.is3d) {
 				position_.z = 0;
 			}
-			changed = true;
+			//changed = true;
 		}
 	}
 

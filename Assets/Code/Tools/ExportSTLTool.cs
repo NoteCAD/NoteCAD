@@ -9,7 +9,8 @@ public class ExportSTLTool : Tool {
 
 	enum FileType {
 		Stl,
-		Hpgl
+		Hpgl,
+		Replay
 	};
 
 	[Serializable]
@@ -35,6 +36,11 @@ public class ExportSTLTool : Tool {
 				case FileType.Hpgl: {
 					var data = tool.ExportHpgl(); 
 					NoteCADJS.SaveData(data, "NoteCADExport.hpgl", "hpgl");
+					break;
+				}
+				case FileType.Replay: {
+					var data = tool.ExportReplay(); 
+					NoteCADJS.SaveData(data, "NoteCADExport.replay", "replay");
 					break;
 				}
 			}
@@ -173,6 +179,10 @@ public class ExportSTLTool : Tool {
 			editor.currentSketch.DrawConstraints(canvas, c => settings.constraints && !c.IsDimension || settings.dimensions && c.IsDimension);
 		}
 		return canvas.GetResult();
+	}
+
+	string ExportReplay() {
+		return Poisson.ReplaySerializer.SaveToJson(editor.currentSketch.GetSketch());
 	}
 
 	Settings settings;

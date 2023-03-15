@@ -8,13 +8,15 @@ using netDxf;
 using System.IO;
 using System;
 using System.Text;
+using System.Linq;
 
 public class ImportDXFTool : Tool, IPointerDownHandler {
 
 	enum FileType {
 		Dxf,
 		Hpgl,
-		Slvs
+		Slvs,
+		Replay
 	};
 
 	[Serializable]
@@ -61,6 +63,10 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 			}
 			case FileType.Slvs: {
 				NoteCADJS.LoadBinaryData(SlvsDataLoaded, "slvs");
+				break;
+			}
+			case FileType.Replay: {
+				NoteCADJS.LoadBinaryData(ReplayDataLoaded, "replay");
 				break;
 			}
 		}
@@ -602,5 +608,9 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 
 	}
 
-
+	void ReplayDataLoaded(byte[] data) {
+		var replay = Poisson.ReplaySerializer.Load(data);
+		var sk = DetailEditor.instance.currentSketch.GetSketch();
+		replay.Output.CreateTo(sk);
+	}
 }
