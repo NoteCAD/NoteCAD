@@ -309,7 +309,7 @@ public class Sketch : CADObject  {
 
 	public void MarkUnchanged() {
 		foreach(var e in entities) {
-			foreach(var p in e.Value.parameters) {
+			foreach(var p in e.Value.allParameters) {
 				p.changed = false;
 			}
 		}

@@ -133,6 +133,14 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		}
 	}
 
+	public override IEnumerable<Param> allParameters {
+		get {
+			yield return t0;
+			yield return t1;
+			foreach(var p in basis.parameters) yield return p;
+		}
+	}
+
 	public override IEnumerable<Param> parameters {
 		get {
 			if(!tBeginFixed) yield return t0;

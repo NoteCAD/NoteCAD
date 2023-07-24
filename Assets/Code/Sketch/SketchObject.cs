@@ -76,6 +76,7 @@ public abstract class SketchObject : CADObject, ICADObject {
 		guid_ = sketch.idGenerator.New();
 	}
 
+	public virtual IEnumerable<Param> allParameters { get { return parameters; } }
 	public virtual IEnumerable<Param> parameters { get { yield break; } }
 	public virtual IEnumerable<Exp> equations { get { yield break; } }
 
