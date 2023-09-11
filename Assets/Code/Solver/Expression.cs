@@ -372,7 +372,7 @@ public class Exp {
 			case Op.Div:	return a.EvalBool() && !b.EvalBool();
 			case Op.Neg:	return !a.EvalBool();
 			case Op.Pos:	return a.EvalBool();
-			case Op.If:		return c.EvalBool();
+			case Op.If:		return a.EvalBool();
 		}
 		var cus = CustomFunction.Get(op);
 		if(cus == null) return false;
@@ -486,7 +486,7 @@ public class Exp {
 			case Op.Cosh:	return "cosh(" + a.ToString() + ")";
 			case Op.SFres:	return "sfres(" + a.ToString() + ")";
 			case Op.CFres:	return "cfres(" + a.ToString() + ")";
-			case Op.If:		return "if(" + c.ToString() + ", " + a.ToString() + ", " + b.ToString() + ")";
+			case Op.If:		return "if(" + a.ToString() + ", " + b.ToString() + ", " + c.ToString() + ")";
 			//case Op.Pow:	return Quoted(a) + " ^ " + Quoted(b);
 		}
 		var cus = CustomFunction.Get(op);
@@ -543,7 +543,7 @@ public class Exp {
 			case Op.SFres:	return a.d(p) * Sin(Math.PI * Sqr(a) / 2.0);
 			case Op.CFres:	return a.d(p) * Cos(Math.PI * Sqr(a) / 2.0);
 			case Op.Pos:	return a.d(p);
-			case Op.If:		return 0.0;
+			case Op.If:		return new Exp(Op.If, a, b.d(p), c.d(p));
 		}
 		var cus = CustomFunction.Get(op);
 		if(cus == null) return 0.0;
