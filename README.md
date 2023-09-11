@@ -2,3 +2,5 @@
 
 This is public repository of brand-new CAD based on Unity3d engine with C# Geometric Constraint Solver.
 The project was created from scratch, all source code of CAD is written in C#.
+
+Contacts for licensing: contact at notecad dot pro
