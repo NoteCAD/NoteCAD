@@ -157,20 +157,29 @@ public class EquationSystem  {
 
 		UnityEngine.Profiling.Profiler.BeginSample("SolveLeastSquares: A^T * A");
 		var time = Time.realtimeSinceStartup;
+
 		for(int r = 0; r < rows; r++) {
 			for(int c = 0; c < rows; c++) {
-				double sum = 0.0;
-				for(int i = 0; i < cols; i++) {
-					if(A[c, i] == 0 || A[r, i] == 0) continue;
-					sum += A[r, i] * A[c, i];
-				}
-				AAT[r, c] = sum;
+				AAT[r, c] = 0.0;
 			}
 		}
+
+		for(int i = 0; i < cols; i++) {
+			for(int r = 0; r < rows; r++) {
+				if (A[r, i] == 0) continue;
+				for(int c = 0; c < rows; c++) {
+					if(A[c, i] == 0) continue;
+					AAT[r, c] += A[r, i] * A[c, i];
+				}
+			}
+		}
+
 		//Debug.Log("AAT time " + (Time.realtimeSinceStartup - time) * 1000);
 		UnityEngine.Profiling.Profiler.EndSample();
 
+		time = Time.realtimeSinceStartup;
 		GaussianMethod.Solve(AAT, B, ref Z);
+		//Debug.Log("GaussianMethod time " + (Time.realtimeSinceStartup - time) * 1000);
 
 		for(int c = 0; c < cols; c++) {
 			double sum = 0.0;
