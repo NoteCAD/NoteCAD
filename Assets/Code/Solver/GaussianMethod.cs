@@ -100,6 +100,7 @@ public static class GaussianMethod {
 			// 
 			for(int rr = r + 1; rr < rows; rr++) {
 				double coef = A[rr, r] / A[r, r];
+				if (coef == 0.0) continue;
 				for(int c = 0; c < cols; c++) {
 					A[rr, c] -= A[r, c] * coef;
 				}
