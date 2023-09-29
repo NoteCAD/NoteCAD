@@ -6,3 +6,5 @@
 Files
 /*.csproj
 /obj
+/Logs
+/UserSettings
