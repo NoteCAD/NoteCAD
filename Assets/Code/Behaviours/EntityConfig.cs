@@ -13,6 +13,7 @@ public class EntityConfig : MonoBehaviour {
 	public Material loopMaterial;
 	public LineCanvas lineCanvas;
 	public StrokeStyles styles;
+	public Font systemFont;
 
 	public TextAsset font;
 	public FontFace fontFace;

@@ -375,6 +375,7 @@ public class DetailEditor : MonoBehaviour {
 	private void OnGUI() {
 		GUIStyle style = new GUIStyle();
 		style.alignment = TextAnchor.MiddleCenter;
+		style.font = EntityConfig.instance.systemFont;
 		if(activeFeature is SketchFeatureBase) {
 			var sk = activeFeature as SketchFeatureBase;
 			foreach(var c in sk.GetSketch().constraintList) {

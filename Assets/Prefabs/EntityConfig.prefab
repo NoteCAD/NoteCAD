@@ -24,12 +24,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1656160843183340}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &114924300170107960
 MonoBehaviour:
@@ -50,4 +51,5 @@ MonoBehaviour:
   lineCanvas: {fileID: 114912699884685590, guid: 92e6e26c1358f764ba4be1a1df8269c4,
     type: 3}
   styles: {fileID: 3446126984989665717, guid: 096c60f02a7666c4585c8831e0d52070, type: 3}
+  systemFont: {fileID: 12800000, guid: 030396cd6c85cc84ca25b182ef25b164, type: 3}
   font: {fileID: 4900000, guid: f42958e00156a6948afbaa3cdd550aaf, type: 3}
