@@ -706,7 +706,7 @@ PlayerSettings:
   webGLPowerPreference: 2
   scriptingDefineSymbols:
     Standalone: G3_USING_UNITY;CT_FB;XOR_ENCRYPTED
-    WebGL: G3_USING_UNITY;CT_FB;XOR_ENCRYPTED
+    WebGL: G3_USING_UNITY;CT_FB
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
