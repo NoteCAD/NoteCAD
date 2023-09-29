@@ -151,6 +151,7 @@ public class Tool : MonoBehaviour {
 			case IEntityType.Line:
 			case IEntityType.Point:
 			case IEntityType.Spline:
+			case IEntityType.Offset:
 				return true;
 		}
 		return false;

@@ -15,7 +15,8 @@ public enum IEntityType {
 	Spline,
 	Ellipse,
 	EllipticArc,
-	Sketch
+	Sketch,
+	Offset
 }
 
 public interface IEntity : ICADObject {

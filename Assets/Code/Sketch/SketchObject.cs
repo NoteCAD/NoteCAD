@@ -133,6 +133,14 @@ public abstract class SketchObject : CADObject, ICADObject {
 	
 	}
 
+	public virtual void AfterRead(XmlNode xml) {
+		OnAfterRead(xml);
+	}
+
+	protected virtual void OnAfterRead(XmlNode xml)  {
+	
+	}
+
 	public virtual void Draw(ICanvas canvas) {
 		OnDraw(canvas);
 	}

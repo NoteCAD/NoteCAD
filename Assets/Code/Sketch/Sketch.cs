@@ -496,15 +496,21 @@ public class Sketch : CADObject  {
 		if(remap) {
 			idMapping = new Dictionary<Id, Id>();
 		}
-
 		foreach(XmlNode nodeKind in xml.ChildNodes) {
 			if(nodeKind.Name == "entities") {
+				var objects = new Dictionary<SketchObject, XmlNode>();
 				foreach(XmlNode node in nodeKind.ChildNodes) {
 					if(node.Name != "entity") continue;
 					var type = node.Attributes["type"].Value;
 					var entity = Entity.New(type, this);
 					entity.Read(node);
+					objects[entity] = node;
 				}
+				
+				foreach(var obj in objects) {
+					obj.Key.AfterRead(obj.Value);
+				}
+				
 				var oldEntities = entities.Values.ToList();
 				entities.Clear();
 				foreach(var e in oldEntities) {
