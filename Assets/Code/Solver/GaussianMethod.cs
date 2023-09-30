@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 public static class GaussianMethod {
 
@@ -28,6 +29,7 @@ public static class GaussianMethod {
 
 	public static int Rank(double[,] A) {
 		UnityEngine.Profiling.Profiler.BeginSample("GaussianMethod.Rank");
+		//var time = Time.realtimeSinceStartup;
 		var rows = A.GetLength(0);
 		var cols = A.GetLength(1);
 
@@ -40,10 +42,14 @@ public static class GaussianMethod {
 
 				double sum = 0;
 				for(int j = 0; j < cols; j++) {
+					if (A[ii, j] == 0 || A[i, j] == 0) continue;
 					sum += A[ii, j] * A[i, j];
 				}
+				if (sum == 0) continue;
+				double coeff = sum / rowsLength[ii];
 				for(int j = 0; j < cols; j++) {
-					A[i, j] -= A[ii, j] * sum / rowsLength[ii];
+					//if (A[ii, j] == 0) continue;
+					A[i, j] -= A[ii, j] * coeff;
 				}
 			}
 
@@ -58,6 +64,7 @@ public static class GaussianMethod {
 		}
 
 		UnityEngine.Profiling.Profiler.EndSample();
+		//Debug.Log("GaussianMethod.Rank time " + (Time.realtimeSinceStartup - time) * 1000);
 		return rank;
 	}
 
