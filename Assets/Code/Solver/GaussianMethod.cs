@@ -27,6 +27,7 @@ public static class GaussianMethod {
 
 
 	public static int Rank(double[,] A) {
+		UnityEngine.Profiling.Profiler.BeginSample("GaussianMethod.Rank");
 		var rows = A.GetLength(0);
 		var cols = A.GetLength(1);
 
@@ -56,6 +57,7 @@ public static class GaussianMethod {
 			rowsLength[i] = len;
 		}
 
+		UnityEngine.Profiling.Profiler.EndSample();
 		return rank;
 	}
 
