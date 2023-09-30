@@ -598,11 +598,11 @@ public class Exp {
 	public void Walk(Action<Exp> action) {
 		action(this);
 		if(a != null) {
-			action(a);
+			a.Walk(action);
 			if(b != null) {
-				action(b);
+				b.Walk(action);
 				if(c != null) {
-					action(c);
+					c.Walk(action);
 				}
 			}
 		}
@@ -632,6 +632,17 @@ public class Exp {
 		});
 		return changed;
 	}
+
+	public HashSet<Param> DependOnParams() {
+		var result = new HashSet<Param>();
+		Walk(e => {
+			if(e.op == Op.Param) {
+				result.Add(e.param);
+			}
+		});
+		return result;
+	}
+
 	
 	public void ReduceParams(List<Param> pars) {
 		if(op == Op.Param) {

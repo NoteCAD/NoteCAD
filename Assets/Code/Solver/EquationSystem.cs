@@ -112,19 +112,25 @@ public class EquationSystem  {
 	}
 
 	static Exp[,] WriteJacobian(List<Exp> equations, List<Param> parameters) {
+		UnityEngine.Profiling.Profiler.BeginSample("WriteJacobian");
+		//var time = Time.realtimeSinceStartup;
 		var J = new Exp[equations.Count, parameters.Count];
 		for(int r = 0; r < equations.Count; r++) {
 			var eq = equations[r];
+			var depends = eq.DependOnParams();
 			for(int c = 0; c < parameters.Count; c++) {
 				var u = parameters[c];
-				J[r, c] = eq.Deriv(u);
-				/*
-				if(!J[r, c].IsZeroConst()) {
-					Debug.Log(J[r, c].ToString() + "\n");
+				
+				if (!depends.Contains(u))
+				{
+					J[r, c] = Exp.zero;
+					continue;
 				}
-				*/
+				J[r, c] = eq.Deriv(u);
 			}
 		}
+		//Debug.Log("WriteJacobian time " + (Time.realtimeSinceStartup - time) * 1000);
+		UnityEngine.Profiling.Profiler.EndSample();
 		return J;
 	}
 
@@ -156,7 +162,7 @@ public class EquationSystem  {
 		var cols = A.GetLength(1);
 
 		UnityEngine.Profiling.Profiler.BeginSample("SolveLeastSquares: A^T * A");
-		var time = Time.realtimeSinceStartup;
+		//var time = Time.realtimeSinceStartup;
 
 		for(int r = 0; r < rows; r++) {
 			for(int c = 0; c < rows; c++) {
@@ -177,7 +183,7 @@ public class EquationSystem  {
 		//Debug.Log("AAT time " + (Time.realtimeSinceStartup - time) * 1000);
 		UnityEngine.Profiling.Profiler.EndSample();
 
-		time = Time.realtimeSinceStartup;
+		//time = Time.realtimeSinceStartup;
 		GaussianMethod.Solve(AAT, B, ref Z);
 		//Debug.Log("GaussianMethod time " + (Time.realtimeSinceStartup - time) * 1000);
 
