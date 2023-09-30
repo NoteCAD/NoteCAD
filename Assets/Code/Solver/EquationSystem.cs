@@ -283,6 +283,8 @@ public class EquationSystem  {
 					continue;
 				}
 				eqj.Substitute(b, a);
+				depends.Remove(b);
+				depends.Add(a);
 			}
 		}
 		UnityEngine.Profiling.Profiler.EndSample();
