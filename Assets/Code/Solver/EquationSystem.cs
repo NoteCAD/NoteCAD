@@ -246,7 +246,10 @@ public class EquationSystem  {
 	}
 
 	Dictionary<Param, Param> SolveBySubstitution() {
+		UnityEngine.Profiling.Profiler.BeginSample("SolveBySubstitution");
+		//var time = Time.realtimeSinceStartup;
 		var subs = new Dictionary<Param, Param>();
+		var equationDepends = equations.ToDictionary(eq => eq, eq => eq.DependOnParams());
 
 		for(int i = 0; i < equations.Count; i++) {
 			var eq = equations[i];
@@ -274,9 +277,16 @@ public class EquationSystem  {
 			currentParams.Remove(b);
 
 			for(int j = 0; j < equations.Count; j++) {
-				equations[j].Substitute(b, a);
+				var eqj = equations[j];
+				var depends = equationDepends[eqj];
+				if(!depends.Contains(b)) {
+					continue;
+				}
+				eqj.Substitute(b, a);
 			}
 		}
+		UnityEngine.Profiling.Profiler.EndSample();
+		//Debug.Log("SolveBySubstitution time " + (Time.realtimeSinceStartup - time) * 1000);
 		return subs;
 	}
 
