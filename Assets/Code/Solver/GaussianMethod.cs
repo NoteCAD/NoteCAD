@@ -46,6 +46,8 @@ public static class GaussianMethod {
 					sum += A[ii, j] * A[i, j];
 				}
 				if (sum == 0) continue;
+				// it will work faster, but it need to investigate if this will cause wrong computation
+				//if (Math.Abs(sum) < rankEpsilon) continue;
 				double coeff = sum / rowsLength[ii];
 				for(int j = 0; j < cols; j++) {
 					//if (A[ii, j] == 0) continue;
@@ -71,6 +73,7 @@ public static class GaussianMethod {
 	public static void Solve(double[,] A, double[] B, ref double[] X) {
 
 		UnityEngine.Profiling.Profiler.BeginSample("GaussianMethod.Solve");
+		//var time = Time.realtimeSinceStartup;
 		var rows = A.GetLength(0);
 		var cols = A.GetLength(1);
 		double t = 0.0;
@@ -108,8 +111,10 @@ public static class GaussianMethod {
 
 			// 
 			for(int rr = r + 1; rr < rows; rr++) {
+				// it will work faster, but it need to investigate if this will cause wrong computation
+				//if (Math.Abs(A[rr, r]) < epsilon) continue;
 				double coef = A[rr, r] / A[r, r];
-				if (coef == 0.0) continue;
+				if(coef == 0.0) continue;
 				for(int c = 0; c < cols; c++) {
 					A[rr, c] -= A[r, c] * coef;
 				}
@@ -126,6 +131,7 @@ public static class GaussianMethod {
 			X[r] = xx;
 		}
 		UnityEngine.Profiling.Profiler.EndSample();
+		//Debug.Log("GaussianMethod.Solve time " + (Time.realtimeSinceStartup - time) * 1000);
 	}
 
 }
