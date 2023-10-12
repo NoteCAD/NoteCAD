@@ -141,18 +141,28 @@ public class EquationSystem  {
 	public void EvalJacobian(Exp[,] J, ref double[,] A, bool clearDrag) {
 		UpdateDirty();
 		UnityEngine.Profiling.Profiler.BeginSample("EvalJacobian");
-		for(int r = 0; r < J.GetLength(0); r++) {
+		//var time = Time.realtimeSinceStartup;
+
+		int rows = J.GetLength(0);
+		int cols = J.GetLength(1);
+		for(int r = 0; r < rows; r++) {
+			
 			if(clearDrag && equations[r].IsDrag()) {
-				for(int c = 0; c < J.GetLength(1); c++) {
+				for(int c = 0; c < cols; c++) {
 					A[r, c] = 0.0;
 				}
 				continue;
 			}
-			for(int c = 0; c < J.GetLength(1); c++) {
+			for(int c = 0; c < cols; c++) {
+				if(J[r, c] == Exp.zero) {
+					A[r, c] = 0.0;
+					continue;
+				}
 				A[r, c] = J[r, c].Eval();
 			}
 		}
 		UnityEngine.Profiling.Profiler.EndSample();
+		//Debug.Log("EvalJacobian time " + (Time.realtimeSinceStartup - time) * 1000);
 	}
 
 	public void SolveLeastSquares(double[,] A, double[] B, ref double[] X) {
