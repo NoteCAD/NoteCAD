@@ -180,13 +180,63 @@ public class EquationSystem  {
 			}
 		}
 
+		double Ari = 0.0;
 		for(int i = 0; i < cols; i++) {
 			for(int r = 0; r < rows; r++) {
-				if (A[r, i] == 0) continue;
+				Ari = A[r, i];
+				if (Ari == 0.0) continue;
+				/*
 				for(int c = 0; c < rows; c++) {
 					if(A[c, i] == 0) continue;
-					AAT[r, c] += A[r, i] * A[c, i];
+					AAT[r, c] += Ari * A[c, i];
 				}
+				*/
+
+				const int u = 16;
+				int loop = rows / u;
+				int left = rows % u;
+				int c = 0;
+
+				while(loop-- != 0) {
+					if(A[c +  0, i] != 0) AAT[r, c +  0] += Ari * A[c +  0, i];
+					if(A[c +  1, i] != 0) AAT[r, c +  1] += Ari * A[c +  1, i];
+					if(A[c +  2, i] != 0) AAT[r, c +  2] += Ari * A[c +  2, i];
+					if(A[c +  3, i] != 0) AAT[r, c +  3] += Ari * A[c +  3, i];
+					if(A[c +  4, i] != 0) AAT[r, c +  4] += Ari * A[c +  4, i];
+					if(A[c +  5, i] != 0) AAT[r, c +  5] += Ari * A[c +  5, i];
+					if(A[c +  6, i] != 0) AAT[r, c +  6] += Ari * A[c +  6, i];
+					if(A[c +  7, i] != 0) AAT[r, c +  7] += Ari * A[c +  7, i];
+					if(A[c +  8, i] != 0) AAT[r, c +  8] += Ari * A[c +  8, i];
+					if(A[c +  9, i] != 0) AAT[r, c +  9] += Ari * A[c +  9, i];
+					if(A[c + 10, i] != 0) AAT[r, c + 10] += Ari * A[c + 10, i];
+					if(A[c + 11, i] != 0) AAT[r, c + 11] += Ari * A[c + 11, i];
+					if(A[c + 12, i] != 0) AAT[r, c + 12] += Ari * A[c + 12, i];
+					if(A[c + 13, i] != 0) AAT[r, c + 13] += Ari * A[c + 13, i];
+					if(A[c + 14, i] != 0) AAT[r, c + 14] += Ari * A[c + 14, i];
+					if(A[c + 15, i] != 0) AAT[r, c + 15] += Ari * A[c + 15, i];
+
+					c += u;
+				}
+
+				switch(left) {
+					case 15: AAT[r, c + 14] += Ari * A[c + 14, i]; goto case 14;
+					case 14: AAT[r, c + 13] += Ari * A[c + 13, i]; goto case 13;
+					case 13: AAT[r, c + 12] += Ari * A[c + 12, i]; goto case 12;
+					case 12: AAT[r, c + 11] += Ari * A[c + 11, i]; goto case 11;
+					case 11: AAT[r, c + 10] += Ari * A[c + 10, i]; goto case 10;
+					case 10: AAT[r, c +  9] += Ari * A[c +  9, i]; goto case 9;
+					case  9: AAT[r, c +  8] += Ari * A[c +  8, i]; goto case 8;
+					case  8: AAT[r, c +  7] += Ari * A[c +  7, i]; goto case 7;
+					case  7: AAT[r, c +  6] += Ari * A[c +  6, i]; goto case 6;
+					case  6: AAT[r, c +  5] += Ari * A[c +  5, i]; goto case 5;
+					case  5: AAT[r, c +  4] += Ari * A[c +  4, i]; goto case 4;
+					case  4: AAT[r, c +  3] += Ari * A[c +  3, i]; goto case 3;
+					case  3: AAT[r, c +  2] += Ari * A[c +  2, i]; goto case 2;
+					case  2: AAT[r, c +  1] += Ari * A[c +  1, i]; goto case 1;
+					case  1: AAT[r, c +  0] += Ari * A[c +  0, i]; goto case 0;
+					case  0: break;	
+				}
+
 			}
 		}
 
