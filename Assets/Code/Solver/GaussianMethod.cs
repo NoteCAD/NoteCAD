@@ -45,9 +45,7 @@ public static class GaussianMethod {
 					if (A[ii, j] == 0 || A[i, j] == 0) continue;
 					sum += A[ii, j] * A[i, j];
 				}
-				if (sum == 0) continue;
-				// it will work faster, but it need to investigate if this will cause wrong computation
-				//if (Math.Abs(sum) < rankEpsilon) continue;
+				if (sum == 0.0) continue;
 				double coeff = sum / rowsLength[ii];
 				for(int j = 0; j < cols; j++) {
 					//if (A[ii, j] == 0) continue;
@@ -66,7 +64,7 @@ public static class GaussianMethod {
 		}
 
 		UnityEngine.Profiling.Profiler.EndSample();
-		//Debug.Log("GaussianMethod.Rank time " + (Time.realtimeSinceStartup - time) * 1000);
+		//Debug.Log($"GaussianMethod.Rank({rank}) time " + (Time.realtimeSinceStartup - time) * 1000);
 		return rank;
 	}
 
@@ -111,13 +109,59 @@ public static class GaussianMethod {
 
 			// 
 			for(int rr = r + 1; rr < rows; rr++) {
-				// it will work faster, but it need to investigate if this will cause wrong computation
-				//if (Math.Abs(A[rr, r]) < epsilon) continue;
 				double coef = A[rr, r] / A[r, r];
 				if(coef == 0.0) continue;
-				for(int c = 0; c < cols; c++) {
+				/*
+				for(int c = r; c < cols; c++) {
 					A[rr, c] -= A[r, c] * coef;
 				}
+				*/
+				
+				// unrolled version works a little bit faster (20-30%)
+				const int u = 16;
+				int c = r;
+				int loop = (cols - r) / u;
+				int left = (cols - r) % u;
+
+				while(loop-- != 0) {
+					A[rr, c +  0] -= A[r, c +  0] * coef;
+					A[rr, c +  1] -= A[r, c +  1] * coef;
+					A[rr, c +  2] -= A[r, c +  2] * coef;
+					A[rr, c +  3] -= A[r, c +  3] * coef;
+					A[rr, c +  4] -= A[r, c +  4] * coef;
+					A[rr, c +  5] -= A[r, c +  5] * coef;
+					A[rr, c +  6] -= A[r, c +  6] * coef;
+					A[rr, c +  7] -= A[r, c +  7] * coef;
+					A[rr, c +  8] -= A[r, c +  8] * coef;
+					A[rr, c +  9] -= A[r, c +  9] * coef;
+					A[rr, c + 10] -= A[r, c + 10] * coef;
+					A[rr, c + 11] -= A[r, c + 11] * coef;
+					A[rr, c + 12] -= A[r, c + 12] * coef;
+					A[rr, c + 13] -= A[r, c + 13] * coef;
+					A[rr, c + 14] -= A[r, c + 14] * coef;
+					A[rr, c + 15] -= A[r, c + 15] * coef;
+					c += u;
+				}
+
+				switch(left) {
+					case 15: A[rr, c + 14] -= A[r, c + 14] * coef; goto case 14;
+					case 14: A[rr, c + 13] -= A[r, c + 13] * coef; goto case 13;
+					case 13: A[rr, c + 12] -= A[r, c + 12] * coef; goto case 12;
+					case 12: A[rr, c + 11] -= A[r, c + 11] * coef; goto case 11;
+					case 11: A[rr, c + 10] -= A[r, c + 10] * coef; goto case 10;
+					case 10: A[rr, c +  9] -= A[r, c +  9] * coef; goto case 9;
+					case  9: A[rr, c +  8] -= A[r, c +  8] * coef; goto case 8;
+					case  8: A[rr, c +  7] -= A[r, c +  7] * coef; goto case 7;
+					case  7: A[rr, c +  6] -= A[r, c +  6] * coef; goto case 6;
+					case  6: A[rr, c +  5] -= A[r, c +  5] * coef; goto case 5;
+					case  5: A[rr, c +  4] -= A[r, c +  4] * coef; goto case 4;
+					case  4: A[rr, c +  3] -= A[r, c +  3] * coef; goto case 3;
+					case  3: A[rr, c +  2] -= A[r, c +  2] * coef; goto case 2;
+					case  2: A[rr, c +  1] -= A[r, c +  1] * coef; goto case 1;
+					case  1: A[rr, c +  0] -= A[r, c +  0] * coef; goto case 0;
+					case  0: break;
+				}
+
 				B[rr] -= B[r] * coef;
 			}
 		}
