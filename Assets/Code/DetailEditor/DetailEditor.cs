@@ -276,7 +276,7 @@ public class DetailEditor : MonoBehaviour {
 				}
 				if(f == activeFeature) break;
 			}
-			UnityEngine.Debug.Log("combined " + combinedCount + " meshes");
+			//UnityEngine.Debug.Log("combined " + combinedCount + " meshes");
 			solid = result;
 			if(result != null) {
 				mesh.FromSolid(result);
