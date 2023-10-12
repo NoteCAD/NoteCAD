@@ -306,50 +306,85 @@ public class EquationSystem  {
 	}
 
 	Dictionary<Param, Param> SolveBySubstitution() {
+		var subs = new Dictionary<Param, Param>();
+		var newParams = new HashSet<Param>(currentParams);
 		UnityEngine.Profiling.Profiler.BeginSample("SolveBySubstitution");
 		//var time = Time.realtimeSinceStartup;
-		var subs = new Dictionary<Param, Param>();
-		var equationDepends = equations.ToDictionary(eq => eq, eq => eq.DependOnParams());
 
-		for(int i = 0; i < equations.Count; i++) {
+		Param getLastSubstitution(Param p) {
+			Param current = p;
+			while(subs.ContainsKey(current)) {
+				current = subs[current];
+				// to break the loops
+				if(current == p) {
+					// break the loop;
+					subs.Remove(current);
+					break;
+				}
+			}
+			return current;
+		}
+
+		for (int i = 0; i < equations.Count; i++) {
 			var eq = equations[i];
 			if(!eq.IsSubstitionForm()) continue;
-			var a = eq.GetSubstitutionParamA();
-			var b = eq.GetSubstitutionParamB();
+			
+			// b замещаем на a
+			var a = eq.a.param;
+			var b = eq.b.param;
+
+			if(a == b) {
+				equations.RemoveAt(i--);
+				continue;
+			}
+
 			if(Math.Abs(a.value - b.value) > GaussianMethod.epsilon) continue;
-			if(!currentParams.Contains(b)) {
+			if(!newParams.Contains(b)) {
 				var t = a;
 				a = b;
 				b = t;
 			}
-			// TODO: Check errors
-			//if(!parameters.Contains(b)) {
-			//	continue;
-			//}
-
-			foreach(var k in subs.Keys.ToList()) {
-				if(subs[k] == b) {
-					subs[k] = a;
-				}
+			
+			// берем  последнее замещение параметра b
+			// это делается для того, чтобы сформировать цепочку замещений
+			Param last = getLastSubstitution(b);
+			
+			// замещаем параметром a и метим как замещенный
+			subs[last] = a;
+			
+			// если a замещено
+			if(subs.ContainsKey(a)) {
+				// берем последнее замещение вхолостую, 
+				// тем самым разбиваем циклы если они вдруг появились
+				getLastSubstitution(a);
 			}
-			subs[b] = a;
 			equations.RemoveAt(i--);
-			currentParams.Remove(b);
+			newParams.Remove(b);
+		}
 
-			for(int j = 0; j < equations.Count; j++) {
-				var eqj = equations[j];
-				var depends = equationDepends[eqj];
-				if(!depends.Contains(b)) {
-					continue;
+		currentParams = newParams.ToList();
+
+		var backSubs = new Dictionary<Param, Param>();
+		foreach(var p in subs.Keys) {
+			var last = getLastSubstitution(p);
+			if(last == p) continue;
+			backSubs[p] = last;
+		}
+
+		// замещаем все параметры во всех уравнениях последними замещениями в цепочке замещений
+		for(int i = 0; i < equations.Count; i++) {
+			var eq = equations[i];
+			var depends = eq.DependOnParams();
+			foreach(var p in depends) {
+				if(backSubs.TryGetValue(p, out var sub)) {
+					eq.Substitute(p, sub);
 				}
-				eqj.Substitute(b, a);
-				depends.Remove(b);
-				depends.Add(a);
 			}
 		}
+
 		UnityEngine.Profiling.Profiler.EndSample();
 		//Debug.Log("SolveBySubstitution time " + (Time.realtimeSinceStartup - time) * 1000);
-		return subs;
+		return backSubs;
 	}
 
 	public string stats { get; private set; }
