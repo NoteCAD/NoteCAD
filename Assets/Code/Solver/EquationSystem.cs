@@ -20,6 +20,8 @@ public class EquationSystem  {
 	public bool revertWhenNotConverged = true;
 
 	Exp[,] J;
+	List<int>[] nzColumns;
+	List<int>[] nzRows;
 	double[,] A;
 	double[,] AAT;
 	double[] B;
@@ -119,9 +121,22 @@ public class EquationSystem  {
 		}
 	}
 
-	static Exp[,] WriteJacobian(List<Exp> equations, List<Param> parameters) {
+	Exp[,] WriteJacobian(List<Exp> equations, List<Param> parameters) {
 		UnityEngine.Profiling.Profiler.BeginSample("WriteJacobian");
 		//var time = Time.realtimeSinceStartup;
+
+		int rows = equations.Count;
+		int cols = parameters.Count;
+		nzColumns = new List<int>[cols];
+		for(int c = 0; c < cols; c++) {
+			nzColumns[c] = new();
+		}
+		nzRows = new List<int>[rows];
+		for(int r = 0; r < rows; r++) {
+			nzRows[r] = new();
+		}
+
+
 		var J = new Exp[equations.Count, parameters.Count];
 		for(int r = 0; r < equations.Count; r++) {
 			var eq = equations[r];
@@ -135,6 +150,8 @@ public class EquationSystem  {
 					continue;
 				}
 				J[r, c] = eq.Deriv(u);
+				nzColumns[c].Add(r);
+				nzRows[r].Add(c);
 			}
 		}
 		//Debug.Log("WriteJacobian time " + (Time.realtimeSinceStartup - time) * 1000);
@@ -154,18 +171,13 @@ public class EquationSystem  {
 		int rows = J.GetLength(0);
 		int cols = J.GetLength(1);
 		for(int r = 0; r < rows; r++) {
-			
+			for(int c = 0; c < cols; c++) {
+				A[r, c] = 0.0;
+			}
 			if(clearDrag && equations[r].IsDrag()) {
-				for(int c = 0; c < cols; c++) {
-					A[r, c] = 0.0;
-				}
 				continue;
 			}
-			for(int c = 0; c < cols; c++) {
-				if(J[r, c] == Exp.zero) {
-					A[r, c] = 0.0;
-					continue;
-				}
+			foreach(int c in nzRows[r]) {
 				A[r, c] = J[r, c].Eval();
 			}
 		}
