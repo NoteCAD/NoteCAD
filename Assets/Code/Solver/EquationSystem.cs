@@ -124,6 +124,24 @@ public class EquationSystem  {
 	Exp[,] WriteJacobian(List<Exp> equations, List<Param> parameters) {
 		UnityEngine.Profiling.Profiler.BeginSample("WriteJacobian");
 		//var time = Time.realtimeSinceStartup;
+		var depends = equations.Select(eq => eq.DependOnParams()).ToList();
+		var allDepends = depends.SelectMany(eq => eq).ToHashSet();
+		var allParameters = parameters.ToHashSet();
+
+		int removedCount = 0;
+		for(int i = 0; i < parameters.Count; i++) {
+			if (!allDepends.Contains(parameters[i])) {
+				removedCount++;
+				parameters.RemoveAt(i--);
+			}
+		}
+		for(int i = 0; i < equations.Count; i++) {
+			if (depends[i].All(d => !allParameters.Contains(d))) {
+				removedCount++;
+				equations.RemoveAt(i--);
+			}
+		}
+		Debug.Log($"removed params + equs {removedCount}");
 
 		int rows = equations.Count;
 		int cols = parameters.Count;
@@ -140,11 +158,11 @@ public class EquationSystem  {
 		var J = new Exp[equations.Count, parameters.Count];
 		for(int r = 0; r < equations.Count; r++) {
 			var eq = equations[r];
-			var depends = eq.DependOnParams();
+			var depend = depends[r];
 			for(int c = 0; c < parameters.Count; c++) {
 				var u = parameters[c];
 				
-				if (!depends.Contains(u))
+				if (!depend.Contains(u))
 				{
 					J[r, c] = Exp.zero;
 					continue;
