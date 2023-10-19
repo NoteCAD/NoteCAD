@@ -218,7 +218,7 @@ public class DetailEditor : MonoBehaviour {
 			result += (GC.GetTotalMemory(false) / 1024 / 1024.0).ToString("0.##") + " mb\n";
 			result += res.ToString() + "\n";
 			if(sys.dofChanged) {
-				if(res == EquationSystem.SolveResult.OKAY && !sys.HasDragged()) {
+				if(res == EquationSystem.SolveResult.OKAY && !sys.HasDragged() && sys.CurrentEquationsCount() <= 1024) {
 					int dof;
 					bool ok = sys.TestRank(out dof);
 					if(!ok) {

@@ -74,6 +74,14 @@ public class EquationSystem  {
 		isDirty = true;
 	}
 
+	public int CurrentParamsCount() {
+		return currentParams.Count;
+	}
+
+	public int CurrentEquationsCount() {
+		return equations.Count;
+	}
+
 	public void Eval(ref double[] B, bool clearDrag) {
 		for(int i = 0; i < equations.Count; i++) {
 			if(clearDrag && equations[i].IsDrag()) {
