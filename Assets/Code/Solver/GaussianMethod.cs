@@ -112,16 +112,16 @@ public static class GaussianMethod {
 				double coef = A[rr, r] / A[r, r];
 				if(coef == 0.0) continue;
 				/*
-				for(int c = r; c < cols; c++) {
+				for(int c = r + 1; c < cols; c++) {
 					A[rr, c] -= A[r, c] * coef;
 				}
 				*/
 				
 				// unrolled version works a little bit faster (20-30%)
 				const int u = 16;
-				int c = r;
-				int loop = (cols - r) / u;
-				int left = (cols - r) % u;
+				int c = r + 1;
+				int loop = (cols - c) / u;
+				int left = (cols - c) % u;
 
 				while(loop-- != 0) {
 					A[rr, c +  0] -= A[r, c +  0] * coef;
@@ -162,6 +162,7 @@ public static class GaussianMethod {
 					case  0: break;
 				}
 
+				A[rr, r] = 0.0;
 				B[rr] -= B[r] * coef;
 			}
 		}
