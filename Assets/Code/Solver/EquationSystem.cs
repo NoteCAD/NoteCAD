@@ -203,13 +203,11 @@ public class EquationSystem  {
 		//Debug.Log("EvalJacobian time " + (Time.realtimeSinceStartup - time) * 1000);
 	}
 
-	public void SolveLeastSquares(double[,] A, double[] B, ref double[] X) {
-
+	public void MakeAAT(double[,] A, double[,] AAT) {
 		// A^T * A * X = A^T * B
 		var rows = A.GetLength(0);
 		var cols = A.GetLength(1);
-
-		UnityEngine.Profiling.Profiler.BeginSample("SolveLeastSquares: A^T * A");
+		UnityEngine.Profiling.Profiler.BeginSample("MakeAAT: A^T * A");
 		//var time = Time.realtimeSinceStartup;
 
 		for(int r = 0; r < rows; r++) {
@@ -278,12 +276,17 @@ public class EquationSystem  {
 			}
 		}
 
-		//Debug.Log("AAT time " + (Time.realtimeSinceStartup - time) * 1000);
+		//Debug.Log("MakeAAT time " + (Time.realtimeSinceStartup - time) * 1000);
 		UnityEngine.Profiling.Profiler.EndSample();
+	}
 
-		//time = Time.realtimeSinceStartup;
+	public void SolveLeastSquares(double[,] A, double[] B, ref double[] X) {
+
+		MakeAAT(A, AAT);
 		GaussianMethod.Solve(AAT, B, ref Z);
-		//Debug.Log("GaussianMethod time " + (Time.realtimeSinceStartup - time) * 1000);
+
+		var rows = A.GetLength(0);
+		var cols = A.GetLength(1);
 
 		for(int c = 0; c < cols; c++) {
 			double sum = 0.0;
