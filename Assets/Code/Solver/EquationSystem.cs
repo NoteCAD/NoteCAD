@@ -9,7 +9,8 @@ public class EquationSystem  {
 		OKAY,
 		DIDNT_CONVEGE,
 		REDUNDANT,
-		POSTPONE
+		POSTPONE,
+		INTERNAL_FAILURE
 	}
 
 	bool isDirty = true;
@@ -417,6 +418,9 @@ public class EquationSystem  {
 			}
 		} catch (Exception e) {
 			Debug.LogError(e.Message);
+			RevertParams();
+			dofChanged = false;
+			return SolveResult.INTERNAL_FAILURE;
 		}
 		return SolveResult.DIDNT_CONVEGE;
 	}
