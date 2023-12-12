@@ -126,6 +126,7 @@ public class EquationSystem  {
 		UnityEngine.Profiling.Profiler.BeginSample("WriteJacobian");
 		//var time = Time.realtimeSinceStartup;
 		var depends = equations.Select(eq => eq.DependOnParams()).ToList();
+		/*
 		var allDepends = depends.SelectMany(eq => eq).ToHashSet();
 		var allParameters = parameters.ToHashSet();
 
@@ -143,6 +144,7 @@ public class EquationSystem  {
 			}
 		}
 		Debug.Log($"removed params + equs {removedCount}");
+		*/
 
 		int rows = equations.Count;
 		int cols = parameters.Count;
