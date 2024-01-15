@@ -346,27 +346,35 @@ public class Sketch : CADObject  {
 			bool found = false;
 
 			// function entity should generate loop when begin and end point is coincident
-			if (current.begin.GetPosition() == current.end.GetPosition()) {
-				found = true;
-			} else {
+			//if (current.begin.GetPosition() == current.end.GetPosition()) {
+			//	found = true;
+			//} else {
 
-				foreach(var point in points) {
-					var connected = point.constraints
+				for(int i = 0; i < points.Count; i++) {
+					var point = points[i];
+					var connected1 = point.constraints
 						.OfType<PointsCoincident>()
 						.Select(p => p.GetOtherPoint(point) as PointEntity)
+						.ToList();
+					var justPoints = connected1.Where(p => p.parent == null);
+					points.AddRange(justPoints);
+					var connected = connected1
 						.Where(p => p != null && p != prevPoint)
-						.Where(p => p.parent != null && p.parent.IsEnding(p))
+						.Where(p => p.parent != null && p.parent.IsEnding(p) && (p.parent == first || !loop.Contains(p.parent)))
 						.Select(p => p.parent)
 						.Where(e => !e.isConstruction)
-						.OfType<ISegmentaryEntity>();
+						.OfType<ISegmentaryEntity>().
+						ToList();
 					if(connected.Any()) {
 						current = connected.First() as ISegmentaryEntity;
-						found = true;
+						found = true;	
 						prevPoint = point;
 						break;
+					} else {
+						bool stop = true;
 					}
 				}
-			}
+			//}
 			if(!found || current == first) {
 				if(found && current == first) {
 					loops.Add(loop);
