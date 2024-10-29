@@ -30,6 +30,28 @@ public class Constraint : SketchObject {
 	protected virtual Enum optionInternal { get { return Option.Default; } set { } }
 	public virtual bool IsDimension { get { return false; } }
 
+	bool enabled_ = true;
+	public bool enabled {
+		get {
+			return enabled_;
+		}
+		set {
+			enabled_ = value;
+			sketch.MarkDirtySketch(constraints:true);
+		}
+	}
+
+	bool drawLink_ = false;
+	public bool drawLink {
+		get {
+			return drawLink_;
+		}
+		set {
+			drawLink_ = value;
+			sketch.MarkDirtySketch(constraints:true);
+		}
+	}
+
 	protected void AddEntity<T>(T e) where T : IEntity {
 		if(e is Entity) (e as Entity).AddConstraint(this);
 		ids.Add(e.id);
@@ -93,7 +115,7 @@ public class Constraint : SketchObject {
 			List<Exp> exprs = equations.ToList();
 			
 			double cur_value = exprs.Sum(e => Math.Abs(e.Eval()));
-			Debug.Log(String.Format("check option {0} (min: {1}, cur: {2})\n", optionInternal, min_value, cur_value));
+			//Debug.Log(String.Format("check option {0} (min: {1}, cur: {2})\n", optionInternal, min_value, cur_value));
 			if(min_value < 0.0 || cur_value < min_value) {
 				min_value = cur_value;
 				best_option = i;
@@ -229,14 +251,20 @@ public class Constraint : SketchObject {
 	public static float getPixelSize() {
 		return (float)DraftStroke.getPixelSize();
 	}
+
+	protected bool shouldDrawLink => drawLink || DetailEditor.instance.hovered == this || DetailEditor.instance.selection.Count == 1 && DetailEditor.instance.IsSelected(this);
 	
-	public void DrawReferenceLink(ICanvas renderer, Camera camera) {
+	public void DrawReferenceLink(ICanvas renderer, Camera camera, bool drawCircles = true) {
 		float pix = getPixelSize();
 		float size = 12f * pix;
 		var ref_points = this.ref_points.Select(p => sketch.plane.FromPlane(p)).ToArray();
-		drawCameraCircle(renderer, camera, ref_points[0], size, 16);
+		if(drawCircles) {
+			drawCameraCircle(renderer, camera, ref_points[0], size, 16);
+		}
 		if(ref_points.Length > 1) {
-			drawCameraCircle(renderer, camera, ref_points[1], size, 16);
+			if(drawCircles) {
+				drawCameraCircle(renderer, camera, ref_points[1], size, 16);
+			}
 			if(length(ref_points[1] - ref_points[0]) > 2f * size) {
 				Vector3 dir = normalize(ref_points[1] - ref_points[0]);
 				drawDottedLine(ref_points[0] + dir * size, ref_points[1] - dir * size, renderer, R_DASH * pix);
@@ -664,6 +692,9 @@ public abstract class ValueConstraint : Constraint {
 	}
 
 	public double GetValue() {
+		if(enabled == false) {
+			Satisfy();
+		}
 		var label = ValueToLabel(value.Eval());
 		switch(units) {
 			case ValueUnits.LENGTH: return LengthToLabel(label);

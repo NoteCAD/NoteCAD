@@ -44,7 +44,7 @@ public class DetailEditor : MonoBehaviour {
 	public Solid solid;
 	public RuntimeInspector inspector;
 	public bool toolInspector = false;
-
+ 
 	bool meshDirty = true;
 
 	LineCanvas canvas;
@@ -147,6 +147,7 @@ public class DetailEditor : MonoBehaviour {
 	}
 
 	private void Start() {
+		Debug.Log($"Screen.DPI {Screen.dpi}");
 		instance_ = this;
 		mesh = new Mesh();
 		selectedMesh = new Mesh();
@@ -376,6 +377,7 @@ public class DetailEditor : MonoBehaviour {
 		GUIStyle style = new GUIStyle();
 		style.alignment = TextAnchor.MiddleCenter;
 		style.font = EntityConfig.instance.systemFont;
+		style.fontSize = (int)(16f * (Screen.dpi / 100f));
 		if(activeFeature is SketchFeatureBase) {
 			var sk = activeFeature as SketchFeatureBase;
 			foreach(var c in sk.GetSketch().constraintList) {

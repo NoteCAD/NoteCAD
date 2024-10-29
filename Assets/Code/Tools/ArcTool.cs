@@ -5,6 +5,7 @@ using UnityEngine;
 public class ArcTool : Tool {
 
 	ArcEntity current;
+	Diameter dimension;
 	bool canCreate = true;
 
 	ArcTool() {
@@ -28,6 +29,8 @@ public class ArcTool : Tool {
 			current.p0.isSelectable = true;
 			current.c.isSelectable = true;
 			current.isSelectable = true;
+			dimension?.Destroy();
+			dimension = null;
 			if(AutoConstrainCoincident(current.p1, sko as IEntity)) {
 				current = null;
 				StopTool();
@@ -40,6 +43,11 @@ public class ArcTool : Tool {
 		newEntity.p0.pos = pos;
 		newEntity.p1.pos = pos;
 		newEntity.c.pos = pos;
+		if (editor.GetDetail().settings.drawingDimensions) {
+			dimension = new Diameter(newEntity.sketch, newEntity);
+			dimension.showAsRadius = true;
+			dimension.enabled = false;
+		}
 		if(current == null) {
 			AutoConstrainCoincident(newEntity.p0, sko as IEntity);
 		} else {
@@ -67,10 +75,10 @@ public class ArcTool : Tool {
 	}
 
 	protected override void OnDeactivate() {
-		if(current != null) {
-			current.Destroy();
-			current = null;
-		}
+		current?.Destroy();
+		current = null;
+		dimension?.Destroy();
+		dimension = null;
 		canCreate = true;
 	}
 

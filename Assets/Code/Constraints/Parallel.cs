@@ -58,8 +58,7 @@ public class Parallel : Constraint {
 		var l1 = GetEntityOfType(IEntityType.Line, 1);
 		DrawStroke(canvas, l0, 0);
 		DrawStroke(canvas, l1, 1);
-		var det = DetailEditor.instance;
-		if(det.hovered == this || det.selection.Count == 1 && det.IsSelected(this)) {
+		if(shouldDrawLink) {
 			DrawReferenceLink(canvas, Camera.main);
 		}
 	}

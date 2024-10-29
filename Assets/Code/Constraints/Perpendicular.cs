@@ -111,8 +111,7 @@ public class Perpendicular : Constraint {
 				ref_points[i] = sketch.plane.ToPlane(p - perp * pix * 6.0f);
 			}
 
-			var det = DetailEditor.instance;
-			if(det.hovered == this || det.selection.Count == 1 && det.IsSelected(this)) {
+			if(shouldDrawLink) {
 				DrawReferenceLink(canvas, Camera.main);
 			}
 		}

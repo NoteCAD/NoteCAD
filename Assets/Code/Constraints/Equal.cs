@@ -85,8 +85,8 @@ public class Equal : ValueConstraint {
 	protected override void OnDraw(ICanvas canvas) {
 		DrawStroke(canvas, GetEntity(0), 0);
 		DrawStroke(canvas, GetEntity(1), 1);
-		var det = DetailEditor.instance;
-		if(det.hovered == this || det.selection.Count == 1 && det.IsSelected(this)) {
+
+		if(shouldDrawLink) {
 			DrawReferenceLink(canvas, Camera.main);
 		}
 	}

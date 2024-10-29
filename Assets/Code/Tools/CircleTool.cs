@@ -5,6 +5,7 @@ using UnityEngine;
 public class CircleTool : Tool {
 
 	CircleEntity current;
+	Diameter dimension;
 	bool canCreate = true;
 
 	CircleTool() {
@@ -27,6 +28,8 @@ public class CircleTool : Tool {
 			current.c.isSelectable = true;
 			current.isSelectable = true;
 			current = null;
+			dimension?.Destroy();
+			dimension = null;
 			return;
 		}
 
@@ -34,6 +37,12 @@ public class CircleTool : Tool {
 		editor.PushUndo();
 		current = SpawnEntity(new CircleEntity(DetailEditor.instance.currentSketch.GetSketch()));
 		current.center.pos = pos;
+		if (editor.GetDetail().settings.drawingDimensions) {
+			dimension = new Diameter(current.sketch, current);
+			dimension.labelX = 0.0001f;
+			dimension.labelY = 0.0001f;
+			dimension.enabled = false;
+		}
 		AutoConstrainCoincident(current.center, sko as IEntity);
 
 		current.isSelectable = false;
@@ -52,10 +61,10 @@ public class CircleTool : Tool {
 	}
 
 	protected override void OnDeactivate() {
-		if(current != null) {
-			current.Destroy();
-			current = null;
-		}
+		current?.Destroy();
+		current = null;
+		dimension?.Destroy();
+		dimension = null;
 		canCreate = true;
 	}
 

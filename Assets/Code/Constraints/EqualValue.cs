@@ -48,8 +48,7 @@ public class EqualValue : ValueConstraint {
 		DrawStroke(canvas, GetConstraint(0) as ValueConstraint, 0);
 		DrawStroke(canvas, GetConstraint(1) as ValueConstraint, 1);
 		
-		var det = DetailEditor.instance;
-		if(det.hovered == this || det.selection.Count == 1 && det.IsSelected(this)) {
+		if(shouldDrawLink) {
 			DrawReferenceLink(canvas, Camera.main);
 		}
 	}

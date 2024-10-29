@@ -12,6 +12,7 @@ public class SketchFeatureBase : Feature {
 	protected Sketch sketch;
 	GameObject go;
 
+	/*
 	[RuntimeInspectorButton("Variables", false, ButtonVisibility.InitializedObjects)]
 	public void ShowVariables() {
 		Tool.Inspect(sketch.parameters);
@@ -22,6 +23,17 @@ public class SketchFeatureBase : Feature {
 		var sys = new EquationSystem();
 		GenerateEquations(sys);
 		Tool.Inspect(sys.equationsList.Select(e => e.ToString()).ToList());
+	}
+	*/
+	
+	[RuntimeInspectorButton("Source Licensing", false, ButtonVisibility.InitializedObjects)]
+	public void MailToLicense() {
+		Application.OpenURL("mailto:contact@notecad.pro");
+	}
+
+	[RuntimeInspectorButton("Feedback", false, ButtonVisibility.InitializedObjects)]
+	public void MailToFeedback() {
+		Application.OpenURL("mailto:evilspirit@evilspirit.org");
 	}
 
 	bool solveParent_ = false;

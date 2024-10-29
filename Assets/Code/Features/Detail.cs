@@ -19,12 +19,16 @@ public class DetailSettings {
 	public LengthMeasurementSystem lengthMeasurement = LengthMeasurementSystem.Millimetre;
 	public bool showConstraints = true;
 	public bool showDimensions = true;
+	public bool autoconstraining = true;
+	public bool drawingDimensions = true;
 	
 	public void Write(XmlWriter xml) {
 		xml.WriteStartElement("settings");
 		xml.WriteAttributeString("lengthMeasurement", lengthMeasurement.ToString());
 		xml.WriteAttributeString("showConstraints", showConstraints.ToString());
 		xml.WriteAttributeString("showDimensions", showDimensions.ToString());
+		xml.WriteAttributeString("autoconstraining", showDimensions.ToString());
+		xml.WriteAttributeString("drawingDimensions", drawingDimensions.ToString());
 		xml.WriteEndElement();
 	}
 
@@ -34,6 +38,8 @@ public class DetailSettings {
 			xmlChild.Attributes["lengthMeasurement"].Value.ToEnum(ref lengthMeasurement);
 			if(xmlChild.Attributes["showConstraints"] != null) showConstraints = Convert.ToBoolean(xmlChild.Attributes["showConstraints"].Value);
 			if(xmlChild.Attributes["showDimensions"] != null) showDimensions = Convert.ToBoolean(xmlChild.Attributes["showDimensions"].Value);
+			if(xmlChild.Attributes["autoconstraining"] != null) autoconstraining = Convert.ToBoolean(xmlChild.Attributes["autoconstraining"].Value);
+			if(xmlChild.Attributes["drawingDimensions"] != null) drawingDimensions = Convert.ToBoolean(xmlChild.Attributes["drawingDimensions"].Value);
 		}
 	}
 

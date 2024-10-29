@@ -178,24 +178,27 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 		MemoryStream stream = new MemoryStream(data);
 		DxfDocument doc = DxfDocument.Load(stream);
 		editor.PushUndo();
-		foreach(var l in doc.Lines) {
+
+		foreach(var l in doc.Entities.Lines) {
 			AddLine(l);
 		}
 
-		foreach(var pl in doc.Polylines) {
+		/*
+		foreach(var pl in doc.Entities.Polylines2D) {
 			foreach(netDxf.Entities.Line l in pl.Explode()) {
 				AddLine(l);
 			}
 		}
+		*/
 
-		foreach(var pl in doc.LwPolylines) {
+		foreach(var pl in doc.Entities.Polylines2D) {
 			foreach(var e in pl.Explode()) {
 				if(e is netDxf.Entities.Line) AddLine((netDxf.Entities.Line)e);
 				if(e is netDxf.Entities.Arc) AddArc((netDxf.Entities.Arc)e);
 			}
 		}
 
-		foreach(var spl in doc.Splines) {
+		foreach(var spl in doc.Entities.Splines) {
 			var vertices = spl.PolygonalVertexes(32);
 			for(int i = 0; i < vertices.Count - 1; i++) {
 				var s = vertices[i];
@@ -207,11 +210,11 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 			}
 		}
 
-		foreach(var c in doc.Circles) {
+		foreach(var c in doc.Entities.Circles) {
 			AddCircle(c);
 		}
 
-		foreach(var a in doc.Arcs) {
+		foreach(var a in doc.Entities.Arcs) {
 			AddArc(a);
 		}
 	}

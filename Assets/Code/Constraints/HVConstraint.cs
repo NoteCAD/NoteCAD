@@ -86,8 +86,7 @@ public class HVConstraint : Constraint {
 		} else {
 			DrawPointStroke(canvas, p0, p1, 0);
 			DrawPointStroke(canvas, p0, p1, 1);
-			var det = DetailEditor.instance;
-			if(det.hovered == this || det.selection.Count == 1 && det.IsSelected(this)) {
+			if(shouldDrawLink) {
 				DrawReferenceLink(canvas, Camera.main);
 			}
 		}

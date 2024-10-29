@@ -179,7 +179,7 @@ public class DraftStroke : MonoBehaviour {
 	}
 
 	public static double getPixelSize() {
-		return 1.0 / Camera.main.nonJitteredProjectionMatrix.GetColumn(0).magnitude / (double)Camera.main.pixelWidth * 2.0;
+		return 1.0 / Camera.main.nonJitteredProjectionMatrix.GetColumn(0).magnitude / (double)Camera.main.pixelWidth * 2.0 * (Screen.dpi / 100f);
 	}
 
 	public void UpdateDirty() {

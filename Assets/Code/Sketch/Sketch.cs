@@ -253,7 +253,11 @@ public class Sketch : CADObject  {
 		}
 	}
 
-	public static double hoverRadius = 5.0;
+	public static double hoverRadius {
+		get {
+			return 5.0f * (Screen.dpi / 100.0f);
+		}
+	}
 	public SketchObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, HoverFilter filter, ref double objDist) {
 		double min = -1.0;
 		SketchObject hoveredObject = null;
@@ -618,6 +622,9 @@ public class Sketch : CADObject  {
 			system.AddEquations(e.equations);
 		}
 		foreach(var c in constraints.Values) {
+			if (!c.enabled) {
+				continue;
+			}
 			system.AddParameters(c.parameters);
 			system.AddEquations(c.equations);
 		}
