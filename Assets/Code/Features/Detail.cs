@@ -21,6 +21,8 @@ public class DetailSettings {
 	public bool showDimensions = true;
 	public bool autoconstraining = true;
 	public bool drawingDimensions = true;
+	public bool checkSketchErros = true;
+	public bool detectContours = true;
 	
 	public void Write(XmlWriter xml) {
 		xml.WriteStartElement("settings");
@@ -29,6 +31,8 @@ public class DetailSettings {
 		xml.WriteAttributeString("showDimensions", showDimensions.ToString());
 		xml.WriteAttributeString("autoconstraining", showDimensions.ToString());
 		xml.WriteAttributeString("drawingDimensions", drawingDimensions.ToString());
+		xml.WriteAttributeString("checkSketchErros", checkSketchErros.ToString());
+		xml.WriteAttributeString("detectContours", detectContours.ToString());
 		xml.WriteEndElement();
 	}
 
@@ -40,6 +44,8 @@ public class DetailSettings {
 			if(xmlChild.Attributes["showDimensions"] != null) showDimensions = Convert.ToBoolean(xmlChild.Attributes["showDimensions"].Value);
 			if(xmlChild.Attributes["autoconstraining"] != null) autoconstraining = Convert.ToBoolean(xmlChild.Attributes["autoconstraining"].Value);
 			if(xmlChild.Attributes["drawingDimensions"] != null) drawingDimensions = Convert.ToBoolean(xmlChild.Attributes["drawingDimensions"].Value);
+			if(xmlChild.Attributes["checkSketchErros"] != null) checkSketchErros = Convert.ToBoolean(xmlChild.Attributes["checkSketchErros"].Value);
+			if(xmlChild.Attributes["detectContours"] != null) detectContours = Convert.ToBoolean(xmlChild.Attributes["detectContours"].Value);
 		}
 	}
 

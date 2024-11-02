@@ -124,22 +124,27 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 	}
 
 	void CreateLoops() {
-		var itr = new Vector3();
-		foreach(var l in loops) {
-			var loop = l.OfType<Entity>();
-			loop.ForEach(e => e.isError = false);
-			foreach(var e0 in loop) {
-				foreach(var e1 in loop) {
-					var cross = e0.IsCrossed(e1, ref itr);
-					e0.isError = e0.isError || cross;
-					e1.isError = e1.isError || cross;
+		if(detail.settings.checkSketchErros) {
+			var itr = new Vector3();
+			foreach(var l in loops) {
+				var loop = l.OfType<Entity>();
+				loop.ForEach(e => e.isError = false);
+				foreach(var e0 in loop) {
+					foreach(var e1 in loop) {
+						var cross = e0.IsCrossed(e1, ref itr);
+						e0.isError = e0.isError || cross;
+						e1.isError = e1.isError || cross;
+					}
 				}
 			}
 		}
-		List<List<IdPath>> ids = null;
-		var polygons = Sketch.GetPolygons(loops.Where(l => l.All(e => !(e is Entity) || !(e as Entity).isError)).ToList(), ref ids);
+
 		mainMesh.Clear();
-		MeshUtils.CreateMeshRegion(polygons, ref mainMesh);
+		if(detail.settings.detectContours) {
+			List<List<IdPath>> ids = null;
+			var polygons = Sketch.GetPolygons(loops.Where(l => l.All(e => !(e is Entity) || !(e as Entity).isError)).ToList(), ref ids);
+			MeshUtils.CreateMeshRegion(polygons, ref mainMesh);
+		}
 	}
 
 	protected virtual void OnWriteSketchFeature(XmlWriter xml) { }

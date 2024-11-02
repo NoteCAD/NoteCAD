@@ -23,7 +23,7 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 	class Settings {
 		ImportDXFTool tool;
 		public FileType fileType;
-		public bool autoconstrain = true;
+		public bool autoconstrain = false;
 		[NonSerialized]
 		public bool activated = false;
 

@@ -122,7 +122,7 @@ public class Constraint : SketchObject {
 			}
 		}
 		optionInternal = (Enum)Enum.Parse(type, names[best_option]);
-		Debug.Log("best option = " + optionInternal.ToString());
+		//Debug.Log("best option = " + optionInternal.ToString());
 	}
 
 	public override void Write(XmlWriter xml) {

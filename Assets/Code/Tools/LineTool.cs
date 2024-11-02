@@ -177,8 +177,9 @@ public class LineTool : Tool {
 		displayLink?.Destroy();
 		displayLink = null;
 		SnapData snap = null;
+		var sk = DetailEditor.instance.currentSketch.GetSketch();
 		
-		if (editor.GetDetail().settings.autoconstraining /*&& entity == null*/) {
+		if (editor.GetDetail().settings.autoconstraining && !sk.is3d) {
 			var snaps = new List<SnapData>();
 
 			// snap to horizontality / verticality
