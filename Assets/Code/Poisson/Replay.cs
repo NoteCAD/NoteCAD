@@ -63,12 +63,16 @@ namespace Poisson {
 			return new Vector3((float)array[0], (float)array[1], 0.0f);
 		}
 		
-		static double[] fromVec(Vector3 vec) {
+		static double[] fromVec(Vector3 vec, bool is3d) {
+			if (is3d) {
+				return new double[3] { vec.x, vec.y, vec.z };
+			}
 			return new double[2] { vec.x, vec.y };
 		}
 
 		public static ReplaySketch From(Sketch sk) {
 			var replay = new ReplaySketch();
+			replay.Replay = sk.is3d ? "Solve3D" : "Solve";
 			replay.LinearTolerance = 1e-06;
 			replay.AngularTolerance = 1e-09;
 			var objects = new List<ReplayObject>();
@@ -83,6 +87,8 @@ namespace Poisson {
 				}
 			};
 
+			string D = sk.is3d ? "3D" : "2D";
+
 			foreach(var e in sk.entityList) {
 				ReplayObject obj = null;
 				switch(e) {
@@ -91,7 +97,7 @@ namespace Poisson {
 						if(p.parent == null || p.parent.type != IEntityType.Arc) {
 						//if(p.x.name == "draggingPoint") {
 						//} else {
-							obj = new ReplayObject{ type = "Point2D", loc = fromVec(p.GetPosition())};
+							obj = new ReplayObject{ type = "Point" + D, loc = fromVec(p.GetPosition(), sk.is3d)};
 						//}
 						}
 						break;
@@ -100,7 +106,7 @@ namespace Poisson {
 						// write arc points in the right order
 						PointEntity[] points = { a.p0, a.p1, a.c };
 						foreach(var p in points) {
-							var pObj = new ReplayObject{ type = "Point2D", loc = fromVec(p.GetPosition())};
+							var pObj = new ReplayObject{ type = "Point" + D, loc = fromVec(p.GetPosition(), sk.is3d)};
 							pObj.label = e.guid.ToString();
 							objects.Add(pObj);
 							map.Add(p, objects.Count - 1);
@@ -120,27 +126,30 @@ namespace Poisson {
 				ReplayObject obj = null;
 				switch(e) {
 					case CircleEntity c: {
-						obj = new ReplayObject{ type = "Circle2D", cen = fromVec(c.center.GetPosition()), rad = c.radius };
+						obj = new ReplayObject{ type = "Circle" + D, cen = fromVec(c.center.GetPosition(), sk.is3d), rad = c.radius };
 						break;
 					}
 					case LineEntity l: {
-						obj = new ReplayObject{
-							type = "Segment2D", 
-							points = new int[2] { map[l.p0], map[l.p1] }
-						};
-						/*
-						obj = new ReplayObject{ 
-							type = "Line2D", 
-							loc = fromVec(l.p0.GetPosition()), 
-							dir = fromVec(Vector3.Normalize(l.p1.GetPosition() - l.p0.GetPosition()))
-						};*/
+						if (!sk.is3d)
+						{
+							obj = new ReplayObject{
+								type = "Segment" + D, 
+								points = new int[2] { map[l.p0], map[l.p1] }
+							};
+						} else {
+							obj = new ReplayObject{ 
+								type = "Line" + D, 
+								loc = fromVec(l.p0.GetPosition(), sk.is3d), 
+								dir = fromVec(Vector3.Normalize(l.p1.GetPosition() - l.p0.GetPosition()), sk.is3d)
+							};
+						}
 						addPointToLine(l.p0, l.p1, l);
 						addPointToLine(l.p1, l.p0, l);
 						
 						break;
 					}
 					case ArcEntity a: {
-						obj = new ReplayObject{ type = "Circle2D", cen = fromVec(a.center.GetPosition()), rad = a.radius };
+						obj = new ReplayObject{ type = "Circle" + D, cen = fromVec(a.center.GetPosition(), sk.is3d), rad = a.radius };
 						break;
 					}
 				}
@@ -151,6 +160,7 @@ namespace Poisson {
 				objects.Add(obj);
 				map.Add(e, objects.Count - 1);
 			}
+			
 			/*
 			foreach(var e in sk.entityList) {
 				ReplayObject obj = null;
@@ -182,23 +192,23 @@ namespace Poisson {
 				switch(e.Key) {
 					case PointEntity p: {
 						if(p.x.name == "draggingPoint") {
-							constraints.Add(new ReplayConstraint{ type = "Fixation2D", arguments = new int[]{e.Value}});
+							constraints.Add(new ReplayConstraint{ type = "Fixation" + D, arguments = new int[]{e.Value}});
 						}
 						break;
 					}
 					case LineEntity l: {
-						//constraints.Add(new ReplayConstraint{ type = "Incidence2D", arguments = new int[]{ map[l.p0], e.Value}});
-						//constraints.Add(new ReplayConstraint{ type = "Incidence2D", arguments = new int[]{ map[l.p1], e.Value}});
+						constraints.Add(new ReplayConstraint{ type = "Incidence" + D, arguments = new int[]{ map[l.p0], e.Value}});
+						constraints.Add(new ReplayConstraint{ type = "Incidence" + D, arguments = new int[]{ map[l.p1], e.Value}});
 						break;
 					}
 					case CircleEntity c: {
-						constraints.Add(new ReplayConstraint{ type = "Concentricity2D", arguments = new int[]{ map[c.center], e.Value}});
+						constraints.Add(new ReplayConstraint{ type = "Concentricity" + D, arguments = new int[]{ map[c.center], e.Value}});
 						break;
 					}
 					case ArcEntity a: {
-						constraints.Add(new ReplayConstraint{ type = "Incidence2D", arguments = new int[]{ map[a.p0], e.Value}});
-						constraints.Add(new ReplayConstraint{ type = "Incidence2D", arguments = new int[]{ map[a.p1], e.Value}});
-						constraints.Add(new ReplayConstraint{ type = "Concentricity2D", arguments = new int[]{ map[a.c], e.Value}});
+						constraints.Add(new ReplayConstraint{ type = "Incidence" + D, arguments = new int[]{ map[a.p0], e.Value}});
+						constraints.Add(new ReplayConstraint{ type = "Incidence" + D, arguments = new int[]{ map[a.p1], e.Value}});
+						constraints.Add(new ReplayConstraint{ type = "Concentricity" + D, arguments = new int[]{ map[a.c], e.Value}});
 						break;
 					}
 				}
@@ -209,7 +219,7 @@ namespace Poisson {
 					if(c is PointsCoincident) {
 						var p = c.objects.FirstOrDefault(o => map.ContainsKey(o));
 						if(p != null) {
-							var fix = new ReplayConstraint{ type = "Fixation2D", arguments = new int[]{map[p]}};
+							var fix = new ReplayConstraint{ type = "Fixation" + D, arguments = new int[]{map[p]}};
 							constraints.Add(fix);
 						}
 					}
@@ -224,36 +234,36 @@ namespace Poisson {
 				switch(c) {
 					case PointsDistance ptsDist: {
 						if(args.Length == 2) {
-							con = new ReplayConstraint{ type = "Distance2D", arguments = args, value = ptsDist.GetValue() };
+							con = new ReplayConstraint{ type = "Distance" + D, arguments = args, value = ptsDist.GetValue() };
 						} else if (ptsDist.GetEntity(0) is LineEntity l) {
-							con = new ReplayConstraint{ type = "Distance2D", arguments = new int[]{map[l.p0], map[l.p1]}, value = ptsDist.GetValue() };
+							con = new ReplayConstraint{ type = "Distance" + D, arguments = new int[]{map[l.p0], map[l.p1]}, value = ptsDist.GetValue() };
 						}
 						break;
 					}
 					case PointLineDistance ptLD: {
-						con = new ReplayConstraint{ type = "Distance2D", arguments = args, value = ptLD.GetValue() };
+						con = new ReplayConstraint{ type = "Distance" + D, arguments = args, value = ptLD.GetValue() };
 						break;
 					}
 					case PointOn pOn: {
-						con = new ReplayConstraint{ type = "Incidence2D", arguments = args, value = pOn.GetValue() };
+						con = new ReplayConstraint{ type = "Incidence" + D, arguments = args, value = pOn.GetValue() };
 						break;
 					}
 					case PointsCoincident ptsCo: {
-						con = new ReplayConstraint{ type = "Incidence2D", arguments = args};
+						con = new ReplayConstraint{ type = "Incidence" + D, arguments = args};
 						break;
 					}
 					case Tangent tan: {
-						con = new ReplayConstraint{ type = "Tangency2D", arguments = args};
+						con = new ReplayConstraint{ type = "Tangency" + D, arguments = args};
 						con.alignment = tan.option == Tangent.Option.Codirected ? pos : neg;
 						
 						break;
 					}
 					case Parallel par: {
-						con = new ReplayConstraint{ type = "Parallelism2D", arguments = args};
+						con = new ReplayConstraint{ type = "Parallelism" + D, arguments = args};
 						break;
 					}
 					case Perpendicular per: {
-						con = new ReplayConstraint{ type = "Perpendicularity2D", arguments = args};
+						con = new ReplayConstraint{ type = "Perpendicularity" + D, arguments = args};
 						//con.alignment = per.option == Perpendicular.Option.LeftHand ? pos : neg;
 						con.alignment = "Current";
 						break;
@@ -268,7 +278,7 @@ namespace Poisson {
 							args[0] = map[pointsToLine[p[0]][p[1]]];
 							args[1] = map[pointsToLine[p[2]][p[3]]];
 						}
-						con = new ReplayConstraint{ type = "Angle2D", arguments = args, value = Math.Abs(ang.GetValueExp().Eval())};
+						con = new ReplayConstraint{ type = "Angle" + D, arguments = args, value = Math.Abs(ang.GetValueExp().Eval())};
 						con.alignment = ang.GetValue() > 0.0 ? "Positive" : "Negative";
 						//con.alignment = "Current";
 						break;
@@ -280,7 +290,7 @@ namespace Poisson {
 							var p0 = hv.GetEntityOfType(IEntityType.Point, 0) as PointEntity;
 							var p1 = hv.GetEntityOfType(IEntityType.Point, 1) as PointEntity;
 							var obj = new ReplayObject{ 
-								type = "Line2D", 
+								type = "Line" + D, 
 								loc = fromVec(p0.GetPosition()), 
 								dir = fromVec(Vector3.Normalize(p1.GetPosition() - p0.GetPosition()))
 							};
@@ -289,16 +299,16 @@ namespace Poisson {
 							*/
 						}
 						if(hv.orientation == HVOrientation.OY) {
-							con = new ReplayConstraint{ type = "Horizontality2D", arguments = args };
+							con = new ReplayConstraint{ type = "Horizontality" + D, arguments = args };
 						} else
 						if(hv.orientation == HVOrientation.OX) {
-							con = new ReplayConstraint{ type = "Verticality2D", arguments = args };
+							con = new ReplayConstraint{ type = "Verticality" + D, arguments = args };
 						}
 						break;
 					}
 
 					case Diameter d: {
-						con = new ReplayConstraint{ type = "Radius2D", arguments = args, value = d.GetValueExp().Eval() / 2.0 };
+						con = new ReplayConstraint{ type = "Radius" + D, arguments = args, value = d.GetValueExp().Eval() / 2.0 };
 						break;
 					}
 				}
