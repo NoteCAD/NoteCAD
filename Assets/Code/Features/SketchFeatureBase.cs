@@ -24,8 +24,14 @@ public class SketchFeatureBase : Feature {
 		GenerateEquations(sys);
 		Tool.Inspect(sys.equationsList.Select(e => e.ToString()).ToList());
 	}
-	*/
 	
+	[RuntimeInspectorButton("Parameters", false, ButtonVisibility.InitializedObjects)]
+	public void ShowParameters() {
+		var sys = new EquationSystem();
+		GenerateEquations(sys);
+		Tool.Inspect(sys.parametersList.Select(p => p.name).ToList());
+	}
+	*/
 	[RuntimeInspectorButton("Source Licensing", false, ButtonVisibility.InitializedObjects)]
 	public void MailToLicense() {
 		Application.OpenURL("mailto:contact@notecad.pro");

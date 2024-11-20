@@ -33,6 +33,10 @@ public class Param {
 		exp = new Exp(this);
 	}
 
+	public string ToString() {
+		return name;
+	}
+
 }
 
 public abstract class CustomFunction {

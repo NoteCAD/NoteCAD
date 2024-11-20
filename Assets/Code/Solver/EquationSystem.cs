@@ -37,6 +37,7 @@ public class EquationSystem  {
 	List<Param> currentParams = new List<Param>();
 
 	public IEnumerable<Exp> equationsList => sourceEquations.AsEnumerable();
+	public IEnumerable<Param> parametersList => parameters.AsEnumerable();
 
 	Dictionary<Param, Param> subs;
 
@@ -199,7 +200,13 @@ public class EquationSystem  {
 				continue;
 			}
 			foreach(int c in nzRows[r]) {
-				A[r, c] = J[r, c].Eval();
+				var v = J[r, c].Eval();
+				if (double.IsNaN(v)) {
+					// for some reason, may be it will help to jump out of NaN
+					// while testing it showed up better behaviour
+					v = 1.0;
+				}
+				A[r, c] = v;
 			}
 		}
 		UnityEngine.Profiling.Profiler.EndSample();
@@ -337,6 +344,10 @@ public class EquationSystem  {
 				a = b;
 				b = t;
 			}
+			// не можем замещать, так как не имеем параметра под контролем системы уравнений
+			if(!newParams.Contains(b)) {
+				continue;
+			}
 			
 			// берем  последнее замещение параметра b
 			// это делается для того, чтобы сформировать цепочку замещений
@@ -410,6 +421,9 @@ public class EquationSystem  {
 				EvalJacobian(J, ref A, clearDrag: !isDragStep);
 				SolveLeastSquares(A, B, ref X);
 				for(int i = 0; i < currentParams.Count; i++) {
+					if (double.IsNaN(X[i])) {
+						continue;
+					}
 					currentParams[i].value -= X[i];
 				}
 			} while(steps++ <= maxSteps);
