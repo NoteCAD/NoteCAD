@@ -90,7 +90,8 @@ public class DistanceTool : Tool {
 				}
 			} else if(e0.type == IEntityType.Line) {
 				if(entity.type == IEntityType.Line) {
-					SpawnConstraint(() => AngleTool.CreateConstraint(e0, entity));
+					//SpawnConstraint(() => AngleTool.CreateConstraint(e0, entity));
+					SpawnConstraint(() => new LineLineDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
 				} else
 				if(entity.IsCircular()) {
 					SpawnConstraint(() => new LineCircleDistance(DetailEditor.instance.currentSketch.GetSketch(), e0, entity));
