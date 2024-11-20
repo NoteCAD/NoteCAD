@@ -100,7 +100,7 @@ public class Equal : ValueConstraint {
  		return sketch.plane.GetTransform() * Matrix4x4.Translate(pos);
 	}
 
-	protected override void OnWriteValueConstraint(XmlWriter xml) {
+	protected override void OnWriteValueConstraint(Writer xml) {
 		xml.WriteAttributeString("firstLength", lengthType[0].ToString());
 		xml.WriteAttributeString("secondLength", lengthType[1].ToString());
 	}

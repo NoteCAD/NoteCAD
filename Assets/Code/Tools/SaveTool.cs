@@ -8,6 +8,7 @@ public class SaveTool : Tool {
 
 	public enum FileFormat {
 		Xml,
+		Json,
 		NCAD,
 //		Binary
 	};
@@ -40,6 +41,10 @@ public class SaveTool : Tool {
 			case FileFormat.Xml: {
 				var data = DetailEditor.instance.WriteXml(encrypt: false);
 				NoteCADJS.SaveData(data, editor.GetDetail().name + ".xml", "xml");
+			} break;
+			case FileFormat.Json: {
+				var data = DetailEditor.instance.GetDetail().WriteJsonAsString();
+				NoteCADJS.SaveData(data, editor.GetDetail().name + ".json", "json");
 			} break;
 			case FileFormat.NCAD: {
 				var data = DetailEditor.instance.WriteXml(encrypt: false);

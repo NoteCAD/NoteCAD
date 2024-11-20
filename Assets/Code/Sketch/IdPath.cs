@@ -144,10 +144,10 @@ public class IdPath {
 		return result;
 	}
 
-	public void Write(XmlWriter xml, string name) {
+	public void Write(Writer xml, string name) {
 		var data = ToString();
 		if(data == "") return;
-		xml.WriteStartElement("ref");
+		xml.WriteBeginElement("ref");
 		xml.WriteAttributeString("name", name);
 		xml.WriteAttributeString("path", data);
 		xml.WriteEndElement();

@@ -293,7 +293,7 @@ public class MeshImportFeature : MeshFeature {
 		GameObject.Destroy(go);
 	}
 
-	protected override void OnWriteMeshFeature(XmlWriter xml) {
+	protected override void OnWriteMeshFeature(Writer xml) {
 		StringBuilder sb = new StringBuilder();
 		var indices = mesh.GetIndices(0);
 		var verts = mesh.vertices;

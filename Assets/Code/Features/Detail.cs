@@ -5,7 +5,7 @@ using System.IO;
 using System.Xml;
 using System.Linq;
 using UnityEngine;
-
+using System.Text;
 
 public enum LengthMeasurementSystem {
 	Millimetre,
@@ -24,8 +24,8 @@ public class DetailSettings {
 	public bool checkSketchErros = true;
 	public bool detectContours = true;
 	
-	public void Write(XmlWriter xml) {
-		xml.WriteStartElement("settings");
+	public void Write(Writer xml) {
+		xml.WriteBeginElement("settings");
 		xml.WriteAttributeString("lengthMeasurement", lengthMeasurement.ToString());
 		xml.WriteAttributeString("showConstraints", showConstraints.ToString());
 		xml.WriteAttributeString("showDimensions", showDimensions.ToString());
@@ -124,11 +124,11 @@ public class Detail : Feature {
 	}
 
 	public void ReadXml(string str, bool readView, out IdPath active) {
-		#if XOR_ENCRYPTED
-			if(!str.StartsWith("<?xml")) {
-				str = Encrypton.Xor(str, 0xFADE2CAD);
-			}
-		#endif
+		//#if XOR_ENCRYPTED
+		if(!str.StartsWith("<?xml")) {
+			str = Encrypton.Xor(str, 0xFADE2CAD);
+		}
+		//#endif
 
 		Clear();
 		var xml = new XmlDocument();
@@ -188,6 +188,14 @@ public class Detail : Feature {
 		return result;
 	}
 
+	public string WriteJsonAsString() {
+		var json = new WriterJSON();
+		WriteWrt(json);
+		var result = json.ToString();
+		return result;
+	}
+
+
 	public byte[] WriteXmlAsBinary() {
 		var bin = new MemoryStream();
 		var xml = XmlDictionaryWriter.CreateBinaryWriter(bin);
@@ -195,21 +203,28 @@ public class Detail : Feature {
 		return bin.ToArray();
 	}
 
-	public void WriteXml(XmlWriter xml) {
-		xml.WriteStartDocument();
-		xml.WriteStartElement("detail");
-		xml.WriteAttributeString("id", guid.ToString());
-		xml.WriteAttributeString("name", name);
-		xml.WriteAttributeString("viewPos", Camera.main.transform.position.ToStr());
-		xml.WriteAttributeString("viewRot", Camera.main.transform.rotation.ToStr());
-		xml.WriteAttributeString("viewSize", Camera.main.orthographicSize.ToStr());
-		xml.WriteAttributeString("activeFeature", DetailEditor.instance.activeFeature.id.ToString());
-		settings.Write(xml);
-		styles.Write(xml);
+	public void WriteXml(XmlWriter xmlW) {
+		xmlW.WriteStartDocument();
+		var xml = new WriterXml(xmlW);
+		WriteWrt(xml);
+	}
+
+	public void WriteWrt(Writer wrt) {
+		wrt.WriteBeginElement("detail");
+		wrt.WriteAttributeString("id", guid.ToString());
+		wrt.WriteAttributeString("name", name);
+		wrt.WriteAttributeString("viewPos", Camera.main.transform.position.ToStr());
+		wrt.WriteAttributeString("viewRot", Camera.main.transform.rotation.ToStr());
+		wrt.WriteAttributeString("viewSize", Camera.main.orthographicSize.ToStr());
+		wrt.WriteAttributeString("activeFeature", DetailEditor.instance.activeFeature.id.ToString());
+		settings.Write(wrt);
+		styles.Write(wrt);
+		wrt.WriteBeginFakeArray("features");
 		foreach(var f in features) {
-			f.Write(xml);
+			f.Write(wrt);
 		}
-		xml.WriteEndElement();
+		wrt.WriteEndFakeArray();
+		wrt.WriteEndElement();
 	}
 
 	public void MarqueeSelectUntil(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf, ref List<ICADObject> result, Feature feature) {

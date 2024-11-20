@@ -464,13 +464,13 @@ public class DetailEditor : MonoBehaviour {
 		if(currentSketch == null || currentSketch.GetSketch() == null) return "";
 
 		var text = new StringWriter();
-		var xml = new XmlTextWriter(text);
-		xml.Formatting = Formatting.Indented;
-		xml.IndentChar = '\t';
-		xml.Indentation = 1;
-		xml.WriteStartDocument();
-
-		xml.WriteStartElement("copy");
+		var xmlW = new XmlTextWriter(text);
+		xmlW.Formatting = Formatting.Indented;
+		xmlW.IndentChar = '\t';
+		xmlW.Indentation = 1;
+		xmlW.WriteStartDocument();
+		var xml = new WriterXml(xmlW);
+		xml.WriteBeginElement("copy");
 		xml.WriteAttributeString("program", "NoteCAD");
 		xml.WriteAttributeString("version", "0");
 		xml.WriteAttributeString("pos", Tool.MousePos.ToStr());

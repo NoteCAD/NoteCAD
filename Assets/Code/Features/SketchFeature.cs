@@ -147,11 +147,11 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		}
 	}
 
-	protected virtual void OnWriteSketchFeature(XmlWriter xml) { }
-	protected override sealed void OnWriteSketchFeatureBase(XmlWriter xml) {
+	protected virtual void OnWriteSketchFeature(Writer xml) { }
+	protected override sealed void OnWriteSketchFeatureBase(Writer xml) {
 		OnWriteSketchFeature(xml);
 		if(uId.Empty() && vId.Empty() && pId.Empty()) return;
-		xml.WriteStartElement("references");
+		xml.WriteBeginElement("references");
 		uId.Write(xml, "u");
 		vId.Write(xml, "v");
 		pId.Write(xml, "o");

@@ -52,8 +52,8 @@ public class Style {
 		}
 	}
 
-	public void Write(XmlWriter xml) {
-		xml.WriteStartElement("style");
+	public void Write(Writer xml) {
+		xml.WriteBeginArrayElement("style");
 		xml.WriteAttributeString("name", stroke.name);
 		xml.WriteAttributeString("id", guid.ToString());
 		xml.WriteAttributeString("width", stroke.width.ToStr());
@@ -75,7 +75,7 @@ public class Style {
 			dashes += stroke.dashes[i].ToStr();
 		}
 		xml.WriteAttributeString("dashes", dashes);
-		xml.WriteEndElement();
+		xml.WriteEndArrayElement();
 	}
 
 }
@@ -116,11 +116,11 @@ public class Styles {
 		}
 	}
 
-	public void Write(XmlWriter xml) {
-		xml.WriteStartElement("styles");
+	public void Write(Writer xml) {
+		xml.WriteBeginArray("styles");
 		foreach(var style in styles.Values) {
 			style.Write(xml);
 		}
-		xml.WriteEndElement();
+		xml.WriteEndArray();
 	}
 }

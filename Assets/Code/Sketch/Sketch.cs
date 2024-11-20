@@ -469,35 +469,35 @@ public class Sketch : CADObject  {
 		return result;
 	}
 
-	public void Write(XmlWriter xml, Func<SketchObject, bool> filter = null) {
+	public void Write(Writer xml, Func<SketchObject, bool> filter = null) {
 		if(parameters.Count > 0) {
-			xml.WriteStartElement("parameters");
+			xml.WriteBeginArray("parameters");
 			foreach(var p in parameters) {
-				xml.WriteStartElement("param");
+				xml.WriteBeginArrayElement("param");
 				xml.WriteAttributeString("name", p.name);
 				xml.WriteAttributeString("value", p.value.ToStr());
-				xml.WriteEndElement();
+				xml.WriteEndArrayElement();
 			}
-			xml.WriteEndElement();
+			xml.WriteEndArray();
 		}
 
 		if(entities.Count > 0) {
-			xml.WriteStartElement("entities");
+			xml.WriteBeginArray("entities");
 			foreach(var en in entities) {
 				var e = en.Value;
 				if(filter != null && !filter(e as SketchObject) || filter == null && e.parent != null) continue;
 				e.Write(xml);
 			}
-			xml.WriteEndElement();
+			xml.WriteEndArray();
 		}
 
 		if(constraints.Count > 0) {
-			xml.WriteStartElement("constraints");
+			xml.WriteBeginArray("constraints");
 			foreach(var c in constraints.Values) {
 				if(filter != null && !filter(c as SketchObject)) continue;
 				c.Write(xml);
 			}
-			xml.WriteEndElement();
+			xml.WriteEndArray();
 		}
 	}
 

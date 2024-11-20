@@ -326,16 +326,18 @@ public abstract partial class Entity : SketchObject, IEntity {
 		}
 	}
 
-	public override void Write(XmlWriter xml) {
-		xml.WriteStartElement("entity");
+	public override void Write(Writer xml) {
+		xml.WriteBeginArrayElement("entity");
 		xml.WriteAttributeString("type", this.GetType().Name);
 		base.Write(xml);
+		xml.WriteBeginFakeArray("children");
 		if(children.Count > 0) {
 			foreach(var c in children) {
 				c.Write(xml);
 			}
 		}
-		xml.WriteEndElement();
+		xml.WriteEndFakeArray();
+		xml.WriteEndArrayElement();
 	}
 
 	public override void Read(XmlNode xml) {

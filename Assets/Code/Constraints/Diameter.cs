@@ -65,7 +65,7 @@ public class Diameter : ValueConstraint {
 		return sketch.plane.GetTransform() * Matrix4x4.Translate(GetEntity(0).CenterInPlane(sketch.plane).Eval());
 	}
 
-	protected override void OnWriteValueConstraint(XmlWriter xml) {
+	protected override void OnWriteValueConstraint(Writer xml) {
 		xml.WriteAttributeString("showAsRadius", showAsRadius.ToString());
 	}
 

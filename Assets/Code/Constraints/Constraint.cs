@@ -129,19 +129,21 @@ public class Constraint : SketchObject {
 		//Debug.Log("best option = " + optionInternal.ToString());
 	}
 
-	public override void Write(XmlWriter xml) {
-		xml.WriteStartElement("constraint");
+	public override void Write(Writer xml) {
+		xml.WriteBeginArrayElement("constraint");
 		xml.WriteAttributeString("type", this.GetType().Name);
 		if(Enum.GetNames(optionInternal.GetType()).Length >= 2) {
 			xml.WriteAttributeString("chirality", optionInternal.ToString());
 		}
 		base.Write(xml);
+		xml.WriteBeginFakeArray("links");
 		foreach(var id in ids) {
-			xml.WriteStartElement("link");
+			xml.WriteBeginArrayElement("link");
 			xml.WriteAttributeString("path", id.ToString());
-			xml.WriteEndElement();
+			xml.WriteEndArrayElement();
 		}
-		xml.WriteEndElement();
+		xml.WriteEndFakeArray();
+		xml.WriteEndArrayElement();
 	}
 
 	public override void Read(XmlNode xml) {
@@ -780,7 +782,7 @@ public abstract class ValueConstraint : Constraint {
 		return pos;
 	}
 
-	protected sealed override void OnWrite(XmlWriter xml) {
+	protected sealed override void OnWrite(Writer xml) {
 		xml.WriteAttributeString("x", pos.x.ToStr());
 		xml.WriteAttributeString("y", pos.y.ToStr());
 		xml.WriteAttributeString("z", pos.z.ToStr());
@@ -793,7 +795,7 @@ public abstract class ValueConstraint : Constraint {
 		OnWriteValueConstraint(xml);
 	}
 
-	protected virtual void OnWriteValueConstraint(XmlWriter xml) {
+	protected virtual void OnWriteValueConstraint(Writer xml) {
 
 	}
 

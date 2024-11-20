@@ -106,14 +106,14 @@ public abstract class SketchObject : CADObject, ICADObject {
 
 	}
 
-	public virtual void Write(XmlWriter xml) {
+	public virtual void Write(Writer xml) {
 		xml.WriteAttributeString("id", guid.ToString());
 		if(style != null) xml.WriteAttributeString("style", style.guid.ToString());
 		if(isVisible == false) xml.WriteAttributeString("visible", isVisible.ToString());
 		OnWrite(xml);
 	}
 
-	protected virtual void OnWrite(XmlWriter xml) {
+	protected virtual void OnWrite(Writer xml) {
 
 	}
 

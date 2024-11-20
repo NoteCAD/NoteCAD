@@ -393,7 +393,7 @@ public class RevolveFeature : MeshFeature {
 		
 	}
 
-	protected override void OnWriteMeshFeature(XmlWriter xml) {
+	protected override void OnWriteMeshFeature(Writer xml) {
 		xml.WriteAttributeString("angle", angle.value.ToStr());
 		xml.WriteAttributeString("step", step.value.ToStr());
 		xml.WriteAttributeString("meshAngleStep", meshAngleStep.ToStr());
