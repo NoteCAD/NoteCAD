@@ -111,6 +111,10 @@ public class Constraint : SketchObject {
 		int best_option = 0;
 		
 		for(int i = 0; i < names.Length; i++) {
+			// skip any orientations
+			if (names[i] == "Any") {
+				continue;
+			}
 			optionInternal = (Enum)Enum.Parse(type, names[i]);
 			List<Exp> exprs = equations.ToList();
 			
