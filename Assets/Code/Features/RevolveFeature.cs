@@ -401,6 +401,15 @@ public class RevolveFeature : MeshFeature {
 		xml.WriteAttributeString("origin", originId.ToString());
 		xml.WriteAttributeString("angleFixed", angleFixed.ToString());
 		xml.WriteAttributeString("stepFixed", stepFixed.ToString());
+
+		xml.WriteBeginElement("generated");
+		xml.WriteBeginElement("axis");
+		var ax = axis.GetDirectionInPlane(null).Eval().normalized;
+		var o = GetOrigin(null).Eval();
+		xml.WriteAttributeString("dir", ax.ToStr());
+		xml.WriteAttributeString("pos", o.ToStr());
+		xml.WriteEndElement();
+		xml.WriteEndElement();
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {

@@ -150,12 +150,21 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 	protected virtual void OnWriteSketchFeature(Writer xml) { }
 	protected override sealed void OnWriteSketchFeatureBase(Writer xml) {
 		OnWriteSketchFeature(xml);
+		xml.WriteBeginElement("generated");
+		xml.WriteBeginElement("transform");
+		var plane = this as IPlane;
+		xml.WriteAttributeString("u", plane.u.ToStr());
+		xml.WriteAttributeString("v", plane.v.ToStr());
+		xml.WriteAttributeString("n", plane.n.ToStr());
+		xml.WriteAttributeString("o", plane.o.ToStr());
+		xml.WriteEndElement();
+		xml.WriteEndElement();
 		if(uId.Empty() && vId.Empty() && pId.Empty()) return;
-		xml.WriteBeginElement("references");
+		xml.WriteBeginArray("references");
 		uId.Write(xml, "u");
 		vId.Write(xml, "v");
 		pId.Write(xml, "o");
-		xml.WriteEndElement();
+		xml.WriteEndArray();
 	}
 
 	protected virtual void OnReadSketchFeature(XmlNode xml) { }

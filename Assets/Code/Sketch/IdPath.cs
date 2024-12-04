@@ -147,10 +147,10 @@ public class IdPath {
 	public void Write(Writer xml, string name) {
 		var data = ToString();
 		if(data == "") return;
-		xml.WriteBeginElement("ref");
+		xml.WriteBeginArrayElement("ref");
 		xml.WriteAttributeString("name", name);
 		xml.WriteAttributeString("path", data);
-		xml.WriteEndElement();
+		xml.WriteEndArrayElement();
 	}
 
 	public void Read(XmlNode xml) {
