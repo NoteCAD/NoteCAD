@@ -186,9 +186,9 @@ public class LineTool : Tool {
 			snaps.Add(new SnapData(SnapType.Horizontal, Vector3.right));
 			snaps.Add(new SnapData(SnapType.Vertical, Vector3.up));
 		
-			// snap to previous segemnt
+			// snap to previous segment
 			if(prev != null) {	
-				var pdir = prev.p1.GetPosition() - prev.p0.GetPosition();
+				var pdir = prev.GetLineP0(sk.plane).Eval() - prev.GetLineP1(sk.plane).Eval();
 				snaps.Add(new SnapData(SnapType.Parallel, pdir));
 				var pperp = new Vector3(-pdir.y, pdir.x, pdir.z);
 				snaps.Add(new SnapData(SnapType.Perpendicular, pperp));
@@ -203,8 +203,8 @@ public class LineTool : Tool {
 				if(e == current) {
 					continue;
 				}
-				var eP0 = e.GetLineP0(null).Eval();
-				var eDir = e.GetLineP1(null).Eval() - eP0;
+				var eP0 = e.GetLineP0(sk.plane).Eval();
+				var eDir = e.GetLineP1(sk.plane).Eval() - eP0;
 				if (eDir == Vector3.zero) {
 					continue;
 				}
@@ -224,7 +224,7 @@ public class LineTool : Tool {
 			}
 			snaps.AddRange(dirs.Values);
 		
-			var p0 = current.p0.GetPointPos();
+			var p0 = current.GetLineP0(sk.plane).Eval();
 
 			snap = snaps
 				.Where(s => s.check(p0, pos, out var _))
@@ -254,7 +254,7 @@ public class LineTool : Tool {
 						if(e == current.p0 || e == current.p1) {
 							continue;
 						}
-						var pt = e.GetPointPos();
+						var pt = e.GetPointPos(sk.plane);
 
 						if(SnapData.checkPointLine(newPos, pt, perp, out var diff)) {
 							if(minDiff < 0f || diff < minDiff + Mathf.Epsilon) {
@@ -269,7 +269,7 @@ public class LineTool : Tool {
 					}
 
 					if(snapPoint != null) {
-						var snapPt = snapPoint.GetPointPos();
+						var snapPt = snapPoint.GetPointPos(sk.plane);
 						newPos = GeomUtils.projectPointToLine(newPos, snapPt, snapPt + perp);
 						displayLink = new DisplayLink(current.sketch, snapPoint, current.p1);
 					}
