@@ -138,6 +138,26 @@ public class PointEntity : Entity {
 		return IsCoincidentWith(point, null);
 	}
 
+	void GetConicidentPoints(HashSet<PointEntity> points) {
+		
+		var coincident = constraints
+			.OfType<PointsCoincident>()
+			.Select(c => c.GetOtherPoint(this)).OfType<PointEntity>();
+		foreach (var p in coincident) {
+			if (points.Contains(p)) {
+				continue;
+			}
+			points.Add(p);
+			p.GetConicidentPoints(points);
+		}
+	}
+
+	public HashSet<PointEntity> GetConicidentPoints() {
+		var result = new HashSet<PointEntity>();
+		GetConicidentPoints(result);
+		return result;
+	}
+
 	protected override void OnWrite(Writer xml) {
 		xml.WriteAttributeString("x", x.value.ToStr());
 		xml.WriteAttributeString("y", y.value.ToStr());

@@ -335,12 +335,42 @@ public class Sketch : CADObject  {
 	}
 
 	public static List<List<Entity>> GenerateLoops(IEnumerable<Entity> entities) {
+
+		List<List<Entity>> loops = new List<List<Entity>>();
+		List<Entity> loop = new List<Entity>();
 		var all = entities.Where(e => !e.isConstruction).OfType<ISegmentaryEntity>().ToList();
+		
+		// process singleton loops
+		for (int i = 0; i < all.Count; i++) {
+			var e = all[i];
+			if (e.begin.GetConicidentPoints().Contains(e.end)) {
+				all.RemoveAt(i--);
+				loop.Add(e as Entity);
+				loops.Add(loop);
+				loop = new();
+			}
+		}
+			
+		// remove branches
+		var branchFound = false;
+		do {
+			var notConnected = all.Where(e => 
+				Enumerable.Repeat(e.begin, 1).Concat(Enumerable.Repeat(e.end, 1))
+				.Any(p => p.GetConicidentPoints()
+					.Where(p => p.parent != null).Select(p => p.parent).OfType<ISegmentaryEntity>()
+					.All(oe => e == oe || !all.Contains(oe))
+				)
+			).ToList();
+			branchFound = notConnected.Any();
+			if (branchFound) {
+				all.RemoveAll(e => notConnected.Contains(e));
+			}
+		} while(branchFound);
+
 		var first = all.FirstOrDefault();
 		var current = first;
 		PointEntity prevPoint = null;
-		List<Entity> loop = new List<Entity>();
-		List<List<Entity>> loops = new List<List<Entity>>();
+
 		while(current != null && all.Count > 0) {
 			if(!all.Remove(current)) {
 				break;
@@ -356,21 +386,24 @@ public class Sketch : CADObject  {
 
 				for(int i = 0; i < points.Count; i++) {
 					var point = points[i];
-					var connected1 = point.constraints
-						.OfType<PointsCoincident>()
-						.Select(p => p.GetOtherPoint(point) as PointEntity)
-						.ToList();
+					// find coincident points to the entity points begin and end
+					var connected1 = point.GetConicidentPoints();
+					// connection of entities can be through simple point, so add "just points"
+					// for further inspecting
 					var justPoints = connected1.Where(p => p.parent == null);
 					points.AddRange(justPoints);
+
+					// inspect not-previous points with not-null parents and 
+					// where point is ending of its parent
+					// and parent should not be already used in loop or equal to the first
 					var connected = connected1
 						.Where(p => p != null && p != prevPoint)
 						.Where(p => p.parent != null && p.parent.IsEnding(p) && (p.parent == first || !loop.Contains(p.parent)))
-						.Select(p => p.parent)
-						.Where(e => !e.isConstruction)
-						.OfType<ISegmentaryEntity>().
-						ToList();
+						.Select(p => p.parent).OfType<ISegmentaryEntity>()
+						.Where(e => e == first || all.Contains(e))
+						.ToList();
 					if(connected.Any()) {
-						current = connected.First() as ISegmentaryEntity;
+						current = connected.First();
 						found = true;	
 						prevPoint = point;
 						break;
@@ -389,7 +422,13 @@ public class Sketch : CADObject  {
 				continue;
 			}
 		}
-		loops.AddRange(entities.Where(e => !e.isConstruction).OfType<ILoopEntity>().Select(e => Enumerable.Repeat(e as Entity, 1).ToList()));
+		
+		// add ILoopEntities as separate loops
+		loops.AddRange(entities
+			.Where(e => !e.isConstruction)
+			.OfType<ILoopEntity>()
+			.Select(e => Enumerable.Repeat(e as Entity, 1).ToList())
+		);
 		return loops;
 	}
 
