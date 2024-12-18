@@ -229,6 +229,7 @@ public class ExtrusionFeature : MeshFeature {
 	protected override void OnUpdateDirty() {
 		GameObject.Destroy(go);
 		go = new GameObject("ExtrusionFeature");
+		//go.transform.parent = detail.gameObject.transform;
 		//canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas, go.transform);
 		canvas.SetStyle("entities");
 		var sk = (source as SketchFeature).GetSketch();

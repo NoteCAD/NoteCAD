@@ -59,15 +59,17 @@ public class Detail : Feature {
 	public List<Feature> features = new List<Feature>();
 
 	public DetailSettings settings { get; private set; }
+	GameObject go;
 
 	public override GameObject gameObject {
 		get {
-			return null;
+			return go;
 		}
 	}
 
 	public Detail() {
 		settings = new DetailSettings();
+		go = new GameObject("Detail");
 	}
 
 	public override ICADObject GetChild(Id guid) {
@@ -90,6 +92,9 @@ public class Detail : Feature {
 
 	public void AddFeature(Feature feature) {
 		feature.detail = this;
+		if (feature.gameObject != null) {
+			feature.gameObject.transform.parent = gameObject.transform;
+		}
 		features.Add(feature);
 	}
 

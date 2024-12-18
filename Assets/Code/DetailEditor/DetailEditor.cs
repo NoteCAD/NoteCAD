@@ -151,10 +151,12 @@ public class DetailEditor : MonoBehaviour {
 		instance_ = this;
 		mesh = new Mesh();
 		selectedMesh = new Mesh();
-		CreateMeshObject("DetailMesh", mesh, EntityConfig.instance.meshMaterial);
-		CreateMeshObject("DetailMeshSelection", selectedMesh, EntityConfig.instance.loopMaterial);
+		var mgo = CreateMeshObject("DetailMesh", mesh, EntityConfig.instance.meshMaterial);
+		mgo.transform.parent = transform;
+		mgo = CreateMeshObject("DetailMeshSelection", selectedMesh, EntityConfig.instance.loopMaterial);
+		mgo.transform.parent = transform;
 		New();
-		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
+		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas, transform);
 		if(NoteCADJS.GetParam("filename") != "") {
 			var uri = new Uri(Application.absoluteURL);
 			var url = "http://" + uri.Host + ":" + uri.Port + "/Files/" + NoteCADJS.GetParam("filename");
@@ -167,10 +169,12 @@ public class DetailEditor : MonoBehaviour {
 			Destroy(featuresUI[i].gameObject);
 		}
 		featuresUI.Clear();
-		foreach(var f in detail.features) {
-			var ui = Instantiate(featureUIPrefab, featuresContent.transform);
-			ui.feature = f;
-			featuresUI.Add(ui);
+		if (featuresContent != null) {
+			foreach(var f in detail.features) {
+				var ui = Instantiate(featureUIPrefab, featuresContent.transform);
+				ui.feature = f;
+				featuresUI.Add(ui);
+			}
 		}
 		ActivateFeature(activeFeature);
 	}
@@ -237,9 +241,13 @@ public class DetailEditor : MonoBehaviour {
 			result += "Undo: " + undoRedo.Count() + "\n";
 			result += "UndoSize: " + undoRedo.Size() + "\n";
 			//result += sys.stats;
-			resultText.text = result.ToString();
+			if (resultText != null) {
+				resultText.text = result.ToString();
+			}
 		}
-		detailName.text = detail.name;
+		if (detailName != null) {
+			detailName.text = detail.name;
+		}
 
 		detail.UpdateUntil(activeFeature);
 		//detail.Update();
@@ -320,9 +328,9 @@ public class DetailEditor : MonoBehaviour {
 		if(!toolInspector) {
 			if(selection.Count == 1) {
 				var obj = detail.GetObjectById(selection.First());
-				inspector.Inspect(obj);
+				inspector?.Inspect(obj);
 			} else {
-				inspector.Inspect(activeFeature);
+				inspector?.Inspect(activeFeature);
 			}
 		}
 
@@ -423,6 +431,7 @@ public class DetailEditor : MonoBehaviour {
 		Clear();
 		undoRedo.Clear();
 		detail = new Detail();
+		detail.gameObject.transform.parent = gameObject.transform;
 
 		if(newFile != null) {
 			ReadXml(newFile.text);
@@ -438,7 +447,7 @@ public class DetailEditor : MonoBehaviour {
 			sk = new SketchFeature();
 			detail.AddFeature(sk);
 			UpdateFeatures();
-			StylesUI.instance.UpdateStyles();
+			StylesUI.instance?.UpdateStyles();
 			sys.Clear();
 			ActivateFeature(sk);
 		}
@@ -543,21 +552,25 @@ public class DetailEditor : MonoBehaviour {
 		bool skipActive = (activeFeature_ == feature);
 		if(activeFeature_ != null) {
 			var ui = featuresUI.Find(u => u.feature == activeFeature_);
-			var btn = ui.GetComponent<Button>();
-			var cb = btn.colors;
-			cb.normalColor = Color.white;
-			btn.colors = cb;
+			if (ui != null) {
+				var btn = ui.GetComponent<Button>();
+				var cb = btn.colors;
+				cb.normalColor = Color.white;
+				btn.colors = cb;
+			}
 			if(!skipActive) activeFeature_.active = false;
 		}
 		activeFeature_ = feature;
 		if(activeFeature_ != null) {
 			var ui = featuresUI.Find(u => u.feature == activeFeature_);
-			var btn = ui.GetComponent<Button>();
-			var cb = btn.colors;
-			cb.normalColor = pressedColor;
-			btn.colors = cb;
+			if (ui != null) {
+				var btn = ui.GetComponent<Button>();
+				var cb = btn.colors;
+				cb.normalColor = pressedColor;
+				btn.colors = cb;
+			}
 			if(!skipActive) activeFeature_.active = true;
-			inspector.Inspect(activeFeature_);
+			inspector?.Inspect(activeFeature_);
 			UpdateSystem();
 		}
 		meshDirty = true;

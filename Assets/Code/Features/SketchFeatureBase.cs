@@ -91,7 +91,9 @@ public class SketchFeatureBase : Feature {
 		sketch.feature = this;
 		sketch.is3d = true;
 		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
+		canvas.name = "SketchFeatureCanvas";
 		go = new GameObject(GetType().Name);
+		//canvas.transform.SetParent(go.transform, false);
 		canvas.parent = go;
 	}
 

@@ -107,7 +107,7 @@ public class ExportSTLTool : Tool {
 			
 			StringBuilder builder = new StringBuilder();
 			builder.Append("IN;\nPA0,0;\n");
-
+			var pixel = DraftStroke.getGlobalPixelSize();
 			foreach(var style in allLines.Keys) {
 				if(!style.export) continue;
 				var lines = allLines[style];
@@ -140,7 +140,7 @@ public class ExportSTLTool : Tool {
 					if(style.stroke.dashes.Length > 1) {
 						Vector3 pos = l.a;
 						while(len > 0f) {
-							var delta = style.stroke.dashes[dash] * (float)style.stroke.dashesScaleMm - phase;
+							var delta = style.stroke.dashes[dash] * (float)style.stroke.dashesScaleMm(pixel) - phase;
 							if(delta > len) {
 								phase += len;
 								delta = len;

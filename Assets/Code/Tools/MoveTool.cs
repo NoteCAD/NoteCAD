@@ -27,7 +27,9 @@ public class MoveTool : Tool {
 	public Texture2D rectSelectionImageInverted;
 
 	protected override void OnStart() {
-		input.onEndEdit.AddListener(OnEndEdit);
+		if (input != null) {
+			input.onEndEdit.AddListener(OnEndEdit);
+		}
 		instance = this;
 	}
 
@@ -110,7 +112,9 @@ public class MoveTool : Tool {
 	protected override void OnDeactivate() {
 		ClearDrag();
 		valueConstraint = null;
-		input.gameObject.SetActive(false);
+		if (input != null) {
+			input.gameObject.SetActive(false);
+		}
 	}
 
 	protected override void OnMouseMove(Vector3 pos, ICADObject sko) {

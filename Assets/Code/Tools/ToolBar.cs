@@ -100,7 +100,9 @@ public class ToolBar : MonoBehaviour {
 
 		if(activeTool != null) {
 			activeTool.DoUpdate();
-			description.text = activeTool.GetDescription();
+			if (description != null) {
+				description.text = activeTool.GetDescription();
+			}
 		}
 
 		if(activeTool.shouldStop) {
@@ -126,7 +128,9 @@ public class ToolBar : MonoBehaviour {
 			cb.normalColor = pressedColor;
 			btn.colors = cb;
 			activeTool.Activate();
-			description.text = activeTool.GetDescription();
+			if (description != null) {
+				description.text = activeTool.GetDescription();
+			}
 		}
 	}
 

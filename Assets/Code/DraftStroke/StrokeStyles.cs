@@ -6,31 +6,23 @@ using System.Linq;
 
 [System.Serializable]
 public class StrokeStyle {
-	public string name;
+	public string name = System.Guid.NewGuid().ToString();
 	public float width = 1f;
 
-	public double scale {
-		get { 
-			return (inPixels) ? 1.0 : 1.0 / DraftStroke.getPixelSize();
-		}
+	public double scale(double pixelSize) {
+		return (inPixels) ? 1.0 : 1.0 / pixelSize;
 	}
 
-	public double dashesScale {
-		get { 
-			return (dashesInPixels) ? 1.0 : 1.0 / DraftStroke.getPixelSize();
-		}
+	public double dashesScale(double pixelSize) {
+		return (dashesInPixels) ? 1.0 : 1.0 / pixelSize;
 	}
 
-	public double scaleMm {
-		get { 
-			return (inPixels) ? DraftStroke.getPixelSize() : 1.0;
-		}
+	public double scaleMm(double pixelSize) {
+		return (inPixels) ? pixelSize : 1.0;
 	}
 
-	public double dashesScaleMm {
-		get { 
-			return (dashesInPixels) ? DraftStroke.getPixelSize() : 1.0;
-		}
+	public double dashesScaleMm(double pixelSize) {
+		return (dashesInPixels) ? pixelSize : 1.0;
 	}
 
 	public bool depthTest = true;
@@ -38,7 +30,7 @@ public class StrokeStyle {
 	public bool inPixels = true;
 
 	public bool dashesInPixels = true;
-	
+
 	public int queue = 2002;
 
 	public Color color = Color.white;
@@ -69,8 +61,9 @@ public class StrokeStyle {
 		dashes = style.dashes;
 	}
 
-	public static bool operator==(StrokeStyle a, StrokeStyle b) {
-		if(object.ReferenceEquals(a, b)) return true;
+	public static bool operator ==(StrokeStyle a, StrokeStyle b) {
+		if (object.ReferenceEquals(a, b)) return true;
+		if(object.ReferenceEquals(a, null) || object.ReferenceEquals(b, null)) return false;
 		return
 			a.width == b.width &&
 			//a.stippleWidth == b.stippleWidth &&
@@ -86,38 +79,38 @@ public class StrokeStyle {
 		return this == (StrokeStyle)obj;
 	}
 
-	public static bool operator!=(StrokeStyle a, StrokeStyle b) {
-		if(object.ReferenceEquals(a, b)) return false;
+	public static bool operator !=(StrokeStyle a, StrokeStyle b) {
+		if (object.ReferenceEquals(a, b)) return false;
 		return !(a == b);
 	}
 
-	public static bool operator<(StrokeStyle a, StrokeStyle b) {
-		if(a.width != b.width) return a.width < b.width;
+	public static bool operator <(StrokeStyle a, StrokeStyle b) {
+		if (a.width != b.width) return a.width < b.width;
 		//if(a.stippleWidth != b.stippleWidth) return a.stippleWidth < b.stippleWidth;
-		if(a.depthTest != b.depthTest) return a.depthTest == false;
-		if(a.inPixels != b.inPixels) return a.inPixels == false;
-		if(a.dashesInPixels != b.dashesInPixels) return a.dashesInPixels == false;
-		if(a.queue != b.queue) return a.queue < b.queue;
-		if(a.color.r != b.color.r) return a.color.r < b.color.r;
-		if(a.color.g != b.color.g) return a.color.g < b.color.g;
-		if(a.color.b != b.color.b) return a.color.b < b.color.b;
-		if(!a.dashes.SequenceEqual(b.dashes)) {
-			if(a.dashes.Length != b.dashes.Length) return a.dashes.Length < b.dashes.Length;
-			for(int i = 0; i < a.dashes.Length; i++) {
-				if(a.dashes[i] != b.dashes[i]) return a.dashes[i] < b.dashes[i];
+		if (a.depthTest != b.depthTest) return a.depthTest == false;
+		if (a.inPixels != b.inPixels) return a.inPixels == false;
+		if (a.dashesInPixels != b.dashesInPixels) return a.dashesInPixels == false;
+		if (a.queue != b.queue) return a.queue < b.queue;
+		if (a.color.r != b.color.r) return a.color.r < b.color.r;
+		if (a.color.g != b.color.g) return a.color.g < b.color.g;
+		if (a.color.b != b.color.b) return a.color.b < b.color.b;
+		if (!a.dashes.SequenceEqual(b.dashes)) {
+			if (a.dashes.Length != b.dashes.Length) return a.dashes.Length < b.dashes.Length;
+			for (int i = 0; i < a.dashes.Length; i++) {
+				if (a.dashes[i] != b.dashes[i]) return a.dashes[i] < b.dashes[i];
 			}
 		}
 		return false;
 	}
 
-	public static bool operator>(StrokeStyle a, StrokeStyle b) {
+	public static bool operator >(StrokeStyle a, StrokeStyle b) {
 		return b < a;
 	}
 
 	static public float GetPatternLength(float[] pattern) {
-		if(pattern == null) return 0f;
+		if (pattern == null) return 0f;
 		float patternLen = 0f;
-		foreach(var s in pattern) {
+		foreach (var s in pattern) {
 			patternLen += s;
 		}
 		return patternLen;
@@ -125,7 +118,7 @@ public class StrokeStyle {
 
 	public float GetPatternLength() {
 		var result = GetPatternLength(dashes);
-		if(result == 0f) return 1f;
+		if (result == 0f) return 1f;
 		return result;
 	}
 
@@ -136,5 +129,5 @@ public class StrokeStyle {
 }
 
 public class StrokeStyles : MonoBehaviour {
-	public StrokeStyle[] styles = new StrokeStyle[0]; 
+	public StrokeStyle[] styles = new StrokeStyle[0];
 }

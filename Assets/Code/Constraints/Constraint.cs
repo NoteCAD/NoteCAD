@@ -255,7 +255,7 @@ public class Constraint : SketchObject {
 	}
 
 	public static float getPixelSize() {
-		return (float)DraftStroke.getPixelSize();
+		return (float)DraftStroke.getGlobalPixelSize();
 	}
 
 	protected bool shouldDrawLink => drawLink || DetailEditor.instance.hovered == this || DetailEditor.instance.selection.Count == 1 && DetailEditor.instance.IsSelected(this);

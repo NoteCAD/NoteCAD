@@ -174,7 +174,7 @@ public class Tool : MonoBehaviour {
 		if(construction) {
 			entity.style = editor.GetDetail().styles.GetStyles().FirstOrDefault(s => s.construction);
 		} else {
-			entity.style = StylesUI.instance.selectedStyle;
+			entity.style = StylesUI.instance ? StylesUI.instance.selectedStyle : editor.GetDetail().styles.GetStyles().FirstOrDefault();
 		}
 		return entity;
 	}
