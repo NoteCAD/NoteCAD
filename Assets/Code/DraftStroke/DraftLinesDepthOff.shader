@@ -25,22 +25,23 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma multi_compile_instancing				
+			#pragma multi_compile_instancing
 			
-			//#include "UnityCG.cginc"
+			#include "UnityCG.cginc"
 
 			struct appdata {
 				float4 vertex : POSITION;
 				float2 uv : TEXCOORD0;
 				float4 tangent: NORMAL;
 				float4 params: TANGENT;
-				//UNITY_VERTEX_INPUT_INSTANCE_ID
+				UNITY_VERTEX_INPUT_INSTANCE_ID
 			};
 
 			struct v2f
 			{
-				float2 uv : TEXCOORD0;
-				float2 cap: TEXCOORD1;
+				noperspective float2 uv : TEXCOORD0;
+				noperspective float3 cap: TEXCOORD1;
+
 				float4 vertex : SV_POSITION;
 			};
 
@@ -55,31 +56,49 @@
 			fixed4 _Color;
 
 			v2f vert (appdata v) {
-				const float feather = 0.7;
 				v2f o;
-				//UNITY_SETUP_INSTANCE_ID(v);
-				float pix = _Pixel / 2.0;
-				float3 tang = normalize(v.tangent.xyz);
-				float3 dir = mul((float3x3)unity_WorldToObject, (float3)_CamDir);
-				if (all(v.tangent.xyz == float3(0, 0, 0))) {
-					tang = normalize(mul((float3x3)unity_WorldToObject, (float3)_CamRight));
+				UNITY_SETUP_INSTANCE_ID(v);
+
+				const float feather = 0.7;
+				float aspect = _ScreenParams.y / _ScreenParams.x;
+				float4 projected = UnityObjectToClipPos(float4(v.vertex.xyz, 1.0));
+				float pixel = 2.0 * projected.w / _ScreenParams.y;
+
+				float3 tang = float3(1.0, 0.0, 0.0);
+				float tangLen = 1.0;
+				if (!all(v.tangent.xyz == float3(0, 0, 0))) {
+					float4 projectedTang = UnityObjectToClipPos(float4(v.vertex.xyz + normalize(v.tangent.xyz), 1.0));
+					tang = projectedTang.xyz / projectedTang.w - projected.xyz / projected.w;
+					if((projected.w >= 0) != (projectedTang.w >= 0)) tang = -tang;
+					//tang.z = 0.0;
+					tang.x /= aspect;
+					tangLen = length(tang.xy);
+					tang /= tangLen;
 				}
-				float cap = _Width * pix + feather * _Pixel;
+				float3 perp = cross(tang, float3(0.0, 0.0, 1.0));
+
+				perp.x *= aspect;
+				tang.x *= aspect;
+
+				float cap = (_Width / 2.0 + feather) * pixel;
+
 				float3 x = tang * cap;
-				float3 y = normalize(cross(dir, tang)) * cap;
+				float3 y = perp * cap;
+				o.vertex = projected + float4(v.params.x * x + v.params.y * y, 0.0);
+				
+				cap /= tangLen * projected.w;
+				pixel /= tangLen * projected.w; 
 
-				float3 pos = v.vertex + v.params.x * x + v.params.y * y;
-
-				o.vertex = UnityObjectToClipPos(pos);
 				float2 uv = v.uv;
-				uv.x += v.params.x * cap;
-				float len = length(v.tangent.xyz);
+				uv.x += v.params.x * (_Width / 2.0 + feather) * pixel;
+				float scale = length(float3(unity_ObjectToWorld[0].x, unity_ObjectToWorld[1].x, unity_ObjectToWorld[2].x));
+				float len = length(v.tangent.xyz) * scale;
 				if(v.params.x == -1.0) {
-					o.cap = float2(-cap / cap, len / cap);
+					o.cap = float3(-1.0, len / cap, pixel);
 				} else {
-					o.cap = float2((len + cap) / cap, len / cap);
+					o.cap = float3(len / cap + 1.0, len / cap, pixel);
 				}
-
+				//o.uv = TRANSFORM_TEX(uv, _MainTex);
 				o.uv = uv;
 				return o;
 			}
@@ -89,16 +108,17 @@
 				float patternScale = _PatternLength * _StippleWidth * _Pixel;
 				fixed4 v = tex2D(_MainTex, float2(i.uv.x / patternScale, 0.0));
 				float val = dot(v, float4(1.0, 1.0 / 255.0, 1.0 / 65025.0, 1.0 / 160581375.0));
-				float pix = _Pixel / 2.0;
+				float pix = i.cap.z / 2.0;
 				float pat = val * patternScale / (_Width * pix);
 				float c = (_Width / 2.0 + feather) / (_Width / 2.0);
-				float cap = (max(i.cap.x - i.cap.y, 0.0) - min(i.cap.x, 0.0)) * c;
-				float dist = length(float2(max(cap, pat), i.uv.y * c));
+				float cap = max(max(i.cap.x - i.cap.y, 0.0), abs(min(i.cap.x, 0.0))) * c;
+				float dist = length(float2(max(pat, cap), i.uv.y * c));
 
 				float f = 2.0 * feather / (_Width / 2.0 + feather);
 				float k = smoothstep(1.0 - f, 1.0+ f, dist);
 				if (k == 1.0) discard;
 				return float4(_Color.rgb, _Color.a * (1.0 - k));
+				return float4(_Color.rgb, 1.0);
 			}
 			ENDCG
 
