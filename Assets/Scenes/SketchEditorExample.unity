@@ -173,9 +173,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   toolbar: {fileID: 0}
-  hotkeys: 1b00000044010000
+  hotkeys: 
   ctrl: 0
-  text: MoveTool
+  text: 
   icon: {fileID: 0}
   canActivateWhenActive: 0
   input: {fileID: 0}
@@ -565,9 +565,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   toolbar: {fileID: 0}
-  hotkeys: 73000000
+  hotkeys: 
   ctrl: 0
-  text: Line
+  text: 
   icon: {fileID: 0}
   canActivateWhenActive: 0
 --- !u!114 &1305125863
