@@ -9,6 +9,8 @@
 		[HideInInspector]
 		_Pixel("Pixel", Float) = 1.0
 		[HideInInspector]
+		_DpiScale("DpiScale", Float) = 1.0
+		[HideInInspector]
 		_CamDir("CamDir", Vector) = (1,1,1,0)
 		_CamRight("CamRight", Vector) = (1,0,1,0)
 		_Color("Color", Color) = (1,1,1,1)
@@ -25,7 +27,7 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma multi_compile_instancing
+			#pragma multi_compile_instancing				
 			
 			#include "UnityCG.cginc"
 
@@ -51,6 +53,7 @@
 			float _StippleWidth;
 			float _PatternLength;
 			float _Pixel;
+			float _DpiScale;
 			float4 _CamDir;
 			float4 _CamRight;
 			fixed4 _Color;
@@ -62,7 +65,7 @@
 				const float feather = 0.7;
 				float aspect = _ScreenParams.y / _ScreenParams.x;
 				float4 projected = UnityObjectToClipPos(float4(v.vertex.xyz, 1.0));
-				float pixel = 2.0 * projected.w / _ScreenParams.y;
+				float pixel = _DpiScale * 2.0 * projected.w / _ScreenParams.y;
 
 				float3 tang = float3(1.0, 0.0, 0.0);
 				float tangLen = 1.0;

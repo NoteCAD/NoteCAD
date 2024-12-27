@@ -184,11 +184,15 @@ public class DraftStroke : MonoBehaviour {
 	public double getPixelSize() {
 		//var transformScale = transform.localToWorldMatrix.GetColumn(0).magnitude;
 		//return 1.0 / (Camera.nonJitteredProjectionMatrix.GetColumn(0).magnitude * transformScale) / (double)Camera.pixelWidth * 2.0 * (Screen.dpi / 120f);
-		return 1.0 / Camera.main.nonJitteredProjectionMatrix.GetColumn(0).magnitude / (double)Camera.main.pixelWidth * 2.0 * (Screen.dpi / 120f);
+		return getGlobalPixelSize();
+	}
+
+	public static double dpiScale() {
+		return Screen.dpi / 120f;
 	}
 	
 	public static double getGlobalPixelSize() {
-		return 1.0 / Camera.main.nonJitteredProjectionMatrix.GetColumn(0).magnitude / (double)Camera.main.pixelWidth * 2.0 * (Screen.dpi / 120f);
+		return 1.0 / Camera.main.nonJitteredProjectionMatrix.GetColumn(0).magnitude / (double)Camera.main.pixelWidth * 2.0 * dpiScale();
 	}
 
 	public void UpdateDirty()
@@ -219,6 +223,7 @@ public class DraftStroke : MonoBehaviour {
 
 				var material = m.GetComponent<MeshRenderer>().sharedMaterial;
 				material.SetFloat("_Pixel", (float)pixel);
+				material.SetFloat("_DpiScale", (float)dpiScale());
 				material.SetVector("_CamDir", dir);
 				material.SetVector("_CamRight", right);
 				material.SetFloat("_Width", (float)(style.width * style.scale(pixel)));
