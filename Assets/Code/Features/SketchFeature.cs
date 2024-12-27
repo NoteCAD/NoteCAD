@@ -80,10 +80,12 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		}
 	}
 
+	public Matrix4x4 defaultTransfrom = Matrix4x4.identity;
+
 	Matrix4x4 CalculateTransform() {
 		if(u == null) {
 			transformDirty = false;
-			return Matrix4x4.identity;
+			return defaultTransfrom;
 		}
 		var ud = u.GetDirectionInPlane(null).Eval().normalized;
 		var vd = v.GetDirectionInPlane(null).Eval();
