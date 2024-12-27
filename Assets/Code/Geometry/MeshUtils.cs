@@ -477,7 +477,7 @@ public static class MeshUtils {
 		var verts = mesh.vertices;
 
 		for(int i = 0; i < verts.Length; i++) {
-			result.AppendVertex(verts[i]);
+			result.AppendVertex(verts[i].ToVector3d());
 		}
 
 		for(int i = 0; i < indices.Length / 3; i++) {
