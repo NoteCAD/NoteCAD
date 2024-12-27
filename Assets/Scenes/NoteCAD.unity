@@ -488,7 +488,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: NoteCAD v0.4
+  m_Text: NoteCAD v0.5
 --- !u!222 &100462705
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -10101,7 +10101,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 281396480}
   m_HandleRect: {fileID: 281396479}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
