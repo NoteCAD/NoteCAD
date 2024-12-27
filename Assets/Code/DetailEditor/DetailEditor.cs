@@ -16,6 +16,9 @@ public class DetailEditor : MonoBehaviour {
 	static DetailEditor instance_;
 
 	public TextAsset newFile;
+	public Vector3 defaultPlaneU = Vector3.right;
+	public Vector3 defaultPlaneV = Vector3.up;
+	public Vector3 defaultPlanePos = Vector3.zero;
 
 	public static DetailEditor instance {
 		get {
@@ -424,6 +427,14 @@ public class DetailEditor : MonoBehaviour {
 	}
 		
 
+	UnityEngine.Matrix4x4 GetDefaultTransform() {
+		var ud = defaultPlaneU;
+		var vd = defaultPlaneV;
+		var nd = Vector3.Cross(ud, vd).normalized;
+		vd = Vector3.Cross(nd, ud).normalized;
+		return UnityExt.Basis(ud, vd, nd, defaultPlanePos);
+	}
+
 	public void New() {
 		if(detail != null) {
 			detail.Clear();
@@ -439,12 +450,14 @@ public class DetailEditor : MonoBehaviour {
 			var style = detail.styles.AddStyle();
 			style.stroke.Set(EntityConfig.instance.styles.styles.First(s => s.name == "entities"));
 			style.stroke.name = "Default";
-
+			var defTf = GetDefaultTransform();
 			var sk = new SketchFeature();
 			sk.shouldHoverWhenInactive = true;
+			sk.defaultTransfrom = defTf;
 			new PointEntity(sk.GetSketch());
 			detail.AddFeature(sk);
 			sk = new SketchFeature();
+			sk.defaultTransfrom = defTf;
 			detail.AddFeature(sk);
 			UpdateFeatures();
 			StylesUI.instance?.UpdateStyles();
