@@ -61,10 +61,14 @@ public class DraftStroke : MonoBehaviour {
 		SetStyle(new StrokeStyle());
 	}
 
+	public Material material;
+	public Material materialDepthOff;
+	
 	Mesh CreateMesh(Lines lines, StrokeStyle ss) {
 		var go = new GameObject(lines.style.name);
 		go.transform.SetParent(parent != null ? parent.transform : gameObject.transform, false);
 		var mr = go.AddComponent<MeshRenderer>();
+		mr.sharedMaterial = ss.depthTest ? material : materialDepthOff;
 		mr.sharedMaterial = new Material(ss.depthTest ? Shader.Find("NoteCAD/DraftLines") : Shader.Find("NoteCAD/DraftLinesDepthOff"));
 		lines.material = mr.sharedMaterial;
 		var mf = go.AddComponent<MeshFilter>();
