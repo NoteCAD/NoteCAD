@@ -8,6 +8,7 @@ using Csg;
 using RuntimeInspectorNamespace;
 using System.IO;
 using System.Xml;
+using UnityEngine.Networking;
 
 public delegate bool HoverFilter(ICADObject co);
 
@@ -204,7 +205,80 @@ public class DetailEditor : MonoBehaviour {
 	public bool suppressCombine = false;
 	public bool suppressHovering = false;
 	public bool suppressSolve = false;
-	private void Update() {
+
+	private void UpdateMesh() {
+		mesh.Clear();
+		Solid result = null;
+		int combinedCount = 0;
+		foreach(var f in detail.features) {
+			var mf = f as MeshFeature;
+			if(mf != null) {
+				if(result == null) {
+					result = mf.solid;
+				} else {
+					if(mf.combined == null) {
+						//#if UNITY_WEBGL
+							//if(combinedCount > 0) {
+							//	break;
+							//}
+						//#endif
+						switch(mf.operation) {
+							case CombineOp.Union: mf.combined = Solids.Union(result, mf.solid); break;
+							case CombineOp.Difference: mf.combined = Solids.Difference(result, mf.solid); break;
+							case CombineOp.Intersection: mf.combined = Solids.Intersection(result, mf.solid); break;
+							case CombineOp.Assembly: mf.combined = Solids.Assembly(result, mf.solid); break;
+						}
+						combinedCount++;
+					}
+					result = mf.combined;
+				}
+			}
+			if(f == activeFeature) break;
+		}
+		//UnityEngine.Debug.Log("combined " + combinedCount + " meshes");
+		solid = result;
+		if(result != null) {
+			mesh.FromSolid(result);
+		}
+	}
+
+	IEnumerator UpdateMeshFromServer() {
+		var url = detail.settings.meshProvider;
+		var format = detail.settings.providerFormat == DetailSettings.MeshProviderFormat.JSON ? "application/json" : "application/xml";
+		var data = detail.settings.providerFormat == DetailSettings.MeshProviderFormat.JSON ? detail.WriteJsonAsString() : detail.WriteXmlAsString(false);
+		using(var req = UnityWebRequest.Post(url, data, format)) {
+			yield return req.SendWebRequest();
+
+			switch (req.result)
+            {
+                case UnityWebRequest.Result.ConnectionError:
+                case UnityWebRequest.Result.DataProcessingError:
+                    Debug.LogError("Request mesh error");
+                    break;
+                case UnityWebRequest.Result.ProtocolError:
+                    Debug.LogError("HTTP Error: " + req.error);
+                    break;
+                case UnityWebRequest.Result.Success:
+					MemoryStream ms = new MemoryStream(req.downloadHandler.data);
+					var meshes = Parabox.STL.pb_Stl_Importer.Import(ms);
+					mesh.Clear();
+					if (meshes != null) {
+						mesh.indexFormat = meshes[0].indexFormat;
+						mesh.vertices = meshes[0].vertices;
+						mesh.normals = meshes[0].normals;
+						mesh.triangles = meshes[0].triangles;
+						mesh.uv = meshes[0].uv;
+						mesh.tangents = meshes[0].tangents;
+						mesh.RecalculateBounds();
+						mesh.RecalculateNormals();
+						mesh.RecalculateTangents();
+					}
+                    break;
+            }
+		}
+	}
+
+	public void Update() {
 		if(activeFeature != null) {
 			if(currentSketch != null && (currentSketch.GetSketch().IsConstraintsChanged() || currentSketch.GetSketch().IsEntitiesChanged()) || sys.IsDirty) {
 				suppressSolve = false;
@@ -260,41 +334,12 @@ public class DetailEditor : MonoBehaviour {
 		detail.UpdateDirtyUntil(activeFeature);
 		if(meshDirty && !suppressCombine) {
 			meshDirty = false;
-			mesh.Clear();
-			Solid result = null;
-			int combinedCount = 0;
-			foreach(var f in detail.features) {
-				var mf = f as MeshFeature;
-				if(mf != null) {
-					if(result == null) {
-						result = mf.solid;
-					} else {
-						if(mf.combined == null) {
-							//#if UNITY_WEBGL
-								//if(combinedCount > 0) {
-								//	break;
-								//}
-							//#endif
-							switch(mf.operation) {
-								case CombineOp.Union: mf.combined = Solids.Union(result, mf.solid); break;
-								case CombineOp.Difference: mf.combined = Solids.Difference(result, mf.solid); break;
-								case CombineOp.Intersection: mf.combined = Solids.Intersection(result, mf.solid); break;
-								case CombineOp.Assembly: mf.combined = Solids.Assembly(result, mf.solid); break;
-							}
-							combinedCount++;
-						}
-						result = mf.combined;
-					}
-				}
-				if(f == activeFeature) break;
-			}
-			//UnityEngine.Debug.Log("combined " + combinedCount + " meshes");
-			solid = result;
-			if(result != null) {
-				mesh.FromSolid(result);
+			if (detail.settings.useMeshProvider) {
+				StartCoroutine(UpdateMeshFromServer());
+			} else {
+				UpdateMesh();
 			}
 		}
-		
 		
 		if(!CameraController.instance.IsMoving && !suppressHovering) {
 			double dist = -1.0;

@@ -16,6 +16,12 @@ public enum LengthMeasurementSystem {
 
 [Serializable]
 public class DetailSettings {
+
+	public enum MeshProviderFormat {
+		JSON,
+		XML
+	}
+
 	public LengthMeasurementSystem lengthMeasurement = LengthMeasurementSystem.Millimetre;
 	public bool showConstraints = true;
 	public bool showDimensions = true;
@@ -23,6 +29,9 @@ public class DetailSettings {
 	public bool drawingDimensions = true;
 	public bool checkSketchErros = true;
 	public bool detectContours = true;
+	public bool useMeshProvider = false;
+	public string meshProvider = "http://localhost:8070/api?method=GenerateMesh";
+	public MeshProviderFormat providerFormat = MeshProviderFormat.JSON;
 	
 	public void Write(Writer xml) {
 		xml.WriteBeginElement("settings");
