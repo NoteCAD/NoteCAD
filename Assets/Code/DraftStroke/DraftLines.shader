@@ -23,6 +23,7 @@
 
 		Pass {
 			Offset -1, -1
+			Cull Off
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag

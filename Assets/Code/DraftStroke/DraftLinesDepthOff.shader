@@ -24,6 +24,7 @@
 		Pass {
 			Offset -1, -1
 			ZTest Always
+			Cull Off
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
