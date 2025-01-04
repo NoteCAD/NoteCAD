@@ -40,11 +40,11 @@ public class DraftStroke : MonoBehaviour {
 
 		public void ClearMeshes() {
 			foreach (var m in meshes) {
-				DestroyImmediate(m);
+				Destroy(m);
 			}
 			foreach (var m in objects) {
-				DestroyImmediate(m.GetComponent<MeshRenderer>().sharedMaterial);
-				DestroyImmediate(m);
+				Destroy(m.GetComponent<MeshRenderer>().material);
+				Destroy(m);
 			}
 			objects.Clear();
 			meshes.Clear();
@@ -68,14 +68,13 @@ public class DraftStroke : MonoBehaviour {
 		var go = new GameObject(lines.style.name);
 		go.transform.SetParent(parent != null ? parent.transform : gameObject.transform, false);
 		var mr = go.AddComponent<MeshRenderer>();
-		mr.sharedMaterial = ss.depthTest ? material : materialDepthOff;
-		mr.sharedMaterial = new Material(ss.depthTest ? Shader.Find("NoteCAD/DraftLines") : Shader.Find("NoteCAD/DraftLinesDepthOff"));
-		lines.material = mr.sharedMaterial;
+		mr.material = ss.depthTest ? material : materialDepthOff;
+		lines.material = mr.material;
 		var mf = go.AddComponent<MeshFilter>();
 		var mesh = new Mesh();
 		mesh.name = "lines";
 		mf.sharedMesh = mesh;
-		lines.objects.Add(go);
+		lines.objects.Add(go);	
 		lines.meshes.Add(mesh);
 		return mesh;
 	}
