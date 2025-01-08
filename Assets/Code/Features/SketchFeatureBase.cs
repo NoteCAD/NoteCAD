@@ -93,7 +93,7 @@ public class SketchFeatureBase : Feature {
 		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
 		canvas.name = "SketchFeatureCanvas";
 		go = new GameObject(GetType().Name);
-		//canvas.transform.SetParent(go.transform, false);
+		canvas.transform.SetParent(go.transform, false);
 		canvas.parent = go;
 	}
 

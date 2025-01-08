@@ -27,6 +27,7 @@ public class Tool : MonoBehaviour {
 	}
 
 	void Click() {
+		if(!DetailEditor.instance.isActiveAndEnabled) return;
 		toolbar.ActiveTool = this;
 	}
 

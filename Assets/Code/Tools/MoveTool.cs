@@ -179,6 +179,7 @@ public class MoveTool : Tool {
 	}
 
 	private void Update() {
+		if(!DetailEditor.instance.isActiveAndEnabled) return;
 		UpdateInputPosition();
 	}
 

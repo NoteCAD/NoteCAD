@@ -49,6 +49,7 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 	}
 
 	public void LateUpdate() {
+		if(!DetailEditor.instance.isActiveAndEnabled) return;
 		if(!settings.activated) return;
 		settings.activated = false;
 		StopTool();

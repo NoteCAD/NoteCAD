@@ -48,6 +48,7 @@ public class ToolBar : MonoBehaviour {
 	float doubleClickTime;
 	int doubleClickFrame;
 	void Update() {
+		if(!DetailEditor.instance.isActiveAndEnabled) return;
 		doubleClickTime += Time.deltaTime;
 		doubleClickFrame++;
 		if(!IsInputFieldFocused()) {
