@@ -103,9 +103,14 @@ public class WriterJSON : Writer
 					break;
 				}
 				case JsonType.Value: {
-					builder.Append("\"");
+					var key = parent.str;
+					
+					bool nonStr = key != "id" && key != "activeFeature" && 
+						(int.TryParse(str, out _) || double.TryParse(str, out _));
+
+					if (!nonStr) builder.Append("\"");
 					builder.Append(str);
-					builder.Append("\"");
+					if (!nonStr) builder.Append("\"");
 					return;
 				}
 				case JsonType.Array: {
