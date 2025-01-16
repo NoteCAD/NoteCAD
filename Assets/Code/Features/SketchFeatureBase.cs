@@ -231,9 +231,9 @@ public class SketchFeatureBase : Feature {
 
 
 	protected sealed override void OnWrite(Writer xml) {
-		xml.WriteAttribute("solveParent", solveParent.ToString());
+		xml.WriteAttribute("solveParent", solveParent);
 		if(shouldHoverWhenInactive) {
-			xml.WriteAttribute("alwaysHover", shouldHoverWhenInactive.ToString());
+			xml.WriteAttribute("alwaysHover", shouldHoverWhenInactive);
 		}
 		OnWriteSketchFeatureBase(xml);
 		sketch.Write(xml);

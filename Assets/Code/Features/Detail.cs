@@ -36,12 +36,12 @@ public class DetailSettings {
 	public void Write(Writer xml) {
 		xml.WriteBeginElement("settings");
 		xml.WriteAttribute("lengthMeasurement", lengthMeasurement.ToString());
-		xml.WriteAttribute("showConstraints", showConstraints.ToString());
-		xml.WriteAttribute("showDimensions", showDimensions.ToString());
-		xml.WriteAttribute("autoconstraining", showDimensions.ToString());
-		xml.WriteAttribute("drawingDimensions", drawingDimensions.ToString());
-		xml.WriteAttribute("checkSketchErros", checkSketchErros.ToString());
-		xml.WriteAttribute("detectContours", detectContours.ToString());
+		xml.WriteAttribute("showConstraints", showConstraints);
+		xml.WriteAttribute("showDimensions", showDimensions);
+		xml.WriteAttribute("autoconstraining", showDimensions);
+		xml.WriteAttribute("drawingDimensions", drawingDimensions);
+		xml.WriteAttribute("checkSketchErros", checkSketchErros);
+		xml.WriteAttribute("detectContours", detectContours);
 		xml.WriteEndElement();
 	}
 
@@ -229,7 +229,7 @@ public class Detail : Feature {
 		wrt.WriteAttribute("name", name);
 		wrt.WriteAttribute("viewPos", Camera.main.transform.position.ToStr());
 		wrt.WriteAttribute("viewRot", Camera.main.transform.rotation.ToStr());
-		wrt.WriteAttribute("viewSize", Camera.main.orthographicSize.ToStr());
+		wrt.WriteAttribute("viewSize", Camera.main.orthographicSize);
 		wrt.WriteAttribute("activeFeature", DetailEditor.instance.activeFeature.id.ToString());
 		settings.Write(wrt);
 		styles.Write(wrt);

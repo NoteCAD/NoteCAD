@@ -514,7 +514,7 @@ public class Sketch : CADObject  {
 			foreach(var p in parameters) {
 				xml.WriteBeginArrayElement("param");
 				xml.WriteAttribute("name", p.name);
-				xml.WriteAttribute("value", p.value.ToStr());
+				xml.WriteAttribute("value", p.value);
 				xml.WriteEndArrayElement();
 			}
 			xml.WriteEndArray();

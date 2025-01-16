@@ -206,11 +206,11 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 	protected override void OnWrite(Writer xml) {
 		xml.WriteAttribute("x", x.source);
 		xml.WriteAttribute("y", y.source);
-		xml.WriteAttribute("t0", t0.value.ToStr());
-		xml.WriteAttribute("t1", t1.value.ToStr());
-		xml.WriteAttribute("t0fix", tBeginFixed_.ToString());
-		xml.WriteAttribute("t1fix", tEndFixed_.ToString());
-		xml.WriteAttribute("subdiv", subdivision_.ToString());
+		xml.WriteAttribute("t0", t0.value);
+		xml.WriteAttribute("t1", t1.value);
+		xml.WriteAttribute("t0fix", tBeginFixed_);
+		xml.WriteAttribute("t1fix", tEndFixed_);
+		xml.WriteAttribute("subdiv", subdivision_);
 		xml.WriteAttribute("basis", basis.ToString());
 	}
 

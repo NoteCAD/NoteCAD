@@ -66,7 +66,7 @@ public class Diameter : ValueConstraint {
 	}
 
 	protected override void OnWriteValueConstraint(Writer xml) {
-		xml.WriteAttribute("showAsRadius", showAsRadius.ToString());
+		xml.WriteAttribute("showAsRadius", showAsRadius);
 	}
 
 	protected override void OnReadValueConstraint(XmlNode xml) {

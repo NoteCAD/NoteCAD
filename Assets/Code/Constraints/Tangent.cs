@@ -175,9 +175,9 @@ public class Tangent : Constraint {
 	}
 
 	protected override void OnWrite(Writer xml) {
-		xml.WriteAttribute("t0", t0.value.ToStr());
-		xml.WriteAttribute("t1", t1.value.ToStr());
-		if(perpendicular) xml.WriteAttribute("perpendicular", perpendicular_.ToString());
+		xml.WriteAttribute("t0", t0.value);
+		xml.WriteAttribute("t1", t1.value);
+		if(perpendicular) xml.WriteAttribute("perpendicular", perpendicular_);
 	}
 
 	protected override void OnRead(XmlNode xml) {

@@ -107,7 +107,7 @@ public class OffsetEntity : Entity, ISegmentaryEntity {
 
 	protected override void OnWrite(Writer xml) {
 		xml.WriteAttribute("offset", offset.source);
-		xml.WriteAttribute("subdiv", subdivision_.ToString());
+		xml.WriteAttribute("subdiv", subdivision_);
 		xml.WriteAttribute("source", source.id.ToString());
 	}
 

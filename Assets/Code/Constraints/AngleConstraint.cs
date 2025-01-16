@@ -219,6 +219,6 @@ public class AngleConstraint : ValueConstraint {
 	}
 
 	protected override void OnWriteValueConstraint(Writer xml) {
-		xml.WriteAttribute("supplementary", supplementary.ToString());
+		xml.WriteAttribute("supplementary", supplementary);
 	}
 }

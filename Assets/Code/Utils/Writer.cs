@@ -15,6 +15,9 @@ public abstract class Writer
 	public abstract void WriteBeginElement(string name);
 	public abstract void WriteEndElement();
 	public abstract void WriteAttribute(string name, string value);
+	public abstract void WriteAttribute(string name, int value);
+	public abstract void WriteAttribute(string name, double value);
+	public abstract void WriteAttribute(string name, bool value);
 	public abstract void WriteBeginFakeArray(string name);
 	public abstract void WriteEndFakeArray();
 }
@@ -55,11 +58,25 @@ public class WriterXml : Writer
 		xml.WriteAttributeString(name, value);
 	}
 
+	public override void WriteAttribute(string name, int value) {
+		WriteAttribute(name, value.ToString());
+	}
+
+	public override void WriteAttribute(string name, double value) {
+		WriteAttribute(name, value.ToStr());
+	}
+
+	public override void WriteAttribute(string name, bool value) {
+		WriteAttribute(name, value.ToString());
+	}
+
 	public override void WriteBeginFakeArray(string v) {
 	}
 	
 	public override void WriteEndFakeArray() {
 	}
+
+
 }
 
 public class WriterJSON : Writer
@@ -68,12 +85,13 @@ public class WriterJSON : Writer
 		Root,
 		Key,
 		Value,
+		ValueString,
 		Object,
 		Array
 	};
 
 	class Json {
-		public JsonType type = JsonType.Value;
+		public JsonType type = JsonType.ValueString;
 		public string str;
 		public List<Json> list = new();
 		public Json parent;
@@ -104,14 +122,14 @@ public class WriterJSON : Writer
 				}
 				case JsonType.Value: {
 					var key = parent.str;
-					
-					bool nonStr = key != "id" && key != "activeFeature" && 
-						key != "style" &&
-						(int.TryParse(str, out _) || double.TryParse(str, out _));
-
-					if (!nonStr) builder.Append("\"");
 					builder.Append(str);
-					if (!nonStr) builder.Append("\"");
+					return;
+				}
+				case JsonType.ValueString: {
+					var key = parent.str;
+					builder.Append("\"");
+					builder.Append(str);
+					builder.Append("\"");
 					return;
 				}
 				case JsonType.Array: {
@@ -213,9 +231,25 @@ public class WriterJSON : Writer
 		cur = cur.parent.parent;
 	}
 
-	public override void WriteAttribute(string name, string value) {
+	private void WriteAttribute(string name, string value, bool isString) {
 		Json key = new(name, JsonType.Key, cur);
-		new Json(value, JsonType.Value, key);
+		new Json(value, isString ? JsonType.ValueString : JsonType.Value, key);
+	}
+
+	public override void WriteAttribute(string name, string value) {
+		WriteAttribute(name, value, isString: true);
+	}
+
+	public override void WriteAttribute(string name, int value) {
+		WriteAttribute(name, value.ToString(), isString: false);
+	}
+
+	public override void WriteAttribute(string name, double value) {
+		WriteAttribute(name, value.ToString(), isString: false);
+	}
+
+	public override void WriteAttribute(string name, bool value) {
+		WriteAttribute(name, value ? "true" : "false", isString: false);
 	}
 
 	public override void WriteBeginFakeArray(string name) {

@@ -265,7 +265,7 @@ public class ExtrusionFeature : MeshFeature {
 	}
 
 	protected override void OnWriteMeshFeature(Writer xml) {
-		xml.WriteAttribute("length", extrude.value.ToStr());
+		xml.WriteAttribute("length", extrude.value);
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {

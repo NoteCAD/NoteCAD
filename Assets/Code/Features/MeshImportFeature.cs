@@ -303,7 +303,7 @@ public class MeshImportFeature : MeshFeature {
 		}
 		xml.WriteAttribute("basis", basis.ToString());
 		xml.WriteAttribute("mesh", sb.ToString());
-		xml.WriteAttribute("useThreshold", useThreshold.ToString());
+		xml.WriteAttribute("useThreshold", useThreshold);
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {

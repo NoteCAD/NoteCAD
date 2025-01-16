@@ -783,15 +783,15 @@ public abstract class ValueConstraint : Constraint {
 	}
 
 	protected sealed override void OnWrite(Writer xml) {
-		xml.WriteAttribute("x", pos.x.ToStr());
-		xml.WriteAttribute("y", pos.y.ToStr());
-		xml.WriteAttribute("z", pos.z.ToStr());
-		xml.WriteAttribute("value", GetValue().ToStr());
+		xml.WriteAttribute("x", pos.x);
+		xml.WriteAttribute("y", pos.y);
+		xml.WriteAttribute("z", pos.z);
+		xml.WriteAttribute("value", GetValue());
 		if(expression.Exist()) {
 			xml.WriteAttribute("expression", expression.source);
 		}
-		xml.WriteAttribute("reference", reference.ToString());
-		xml.WriteAttribute("solvable", solvable.ToString());
+		xml.WriteAttribute("reference", reference);
+		xml.WriteAttribute("solvable", solvable);
 		OnWriteValueConstraint(xml);
 	}
 
