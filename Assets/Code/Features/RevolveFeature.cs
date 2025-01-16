@@ -394,20 +394,20 @@ public class RevolveFeature : MeshFeature {
 	}
 
 	protected override void OnWriteMeshFeature(Writer xml) {
-		xml.WriteAttributeString("angle", angle.value.ToStr());
-		xml.WriteAttributeString("step", step.value.ToStr());
-		xml.WriteAttributeString("meshAngleStep", meshAngleStep.ToStr());
-		xml.WriteAttributeString("axis", axisId.ToString());
-		xml.WriteAttributeString("origin", originId.ToString());
-		xml.WriteAttributeString("angleFixed", angleFixed.ToString());
-		xml.WriteAttributeString("stepFixed", stepFixed.ToString());
+		xml.WriteAttribute("angle", angle.value.ToStr());
+		xml.WriteAttribute("step", step.value.ToStr());
+		xml.WriteAttribute("meshAngleStep", meshAngleStep.ToStr());
+		xml.WriteAttribute("axis", axisId.ToString());
+		xml.WriteAttribute("origin", originId.ToString());
+		xml.WriteAttribute("angleFixed", angleFixed.ToString());
+		xml.WriteAttribute("stepFixed", stepFixed.ToString());
 
 		xml.WriteBeginElement("generated");
 		xml.WriteBeginElement("axis");
 		var ax = axis.GetDirectionInPlane(null).Eval().normalized;
 		var o = GetOrigin(null).Eval();
-		xml.WriteAttributeString("dir", ax.ToStr());
-		xml.WriteAttributeString("pos", o.ToStr());
+		xml.WriteAttribute("dir", ax.ToStr());
+		xml.WriteAttribute("pos", o.ToStr());
 		xml.WriteEndElement();
 		xml.WriteEndElement();
 	}

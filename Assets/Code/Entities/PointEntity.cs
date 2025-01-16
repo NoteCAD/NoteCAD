@@ -159,9 +159,9 @@ public class PointEntity : Entity {
 	}
 
 	protected override void OnWrite(Writer xml) {
-		xml.WriteAttributeString("x", x.value.ToStr());
-		xml.WriteAttributeString("y", y.value.ToStr());
-		if(is3d) xml.WriteAttributeString("z", z.value.ToStr());
+		xml.WriteAttribute("x", x.value.ToStr());
+		xml.WriteAttribute("y", y.value.ToStr());
+		if(is3d) xml.WriteAttribute("z", z.value.ToStr());
 	}
 
 	protected override void OnRead(XmlNode xml) {

@@ -102,7 +102,7 @@ public class HVConstraint : Constraint {
 	}*/
 
 	protected override void OnWrite(Writer xml) {
-		xml.WriteAttributeString("orientation", orientation.ToString());
+		xml.WriteAttribute("orientation", orientation.ToString());
 	}
 
 	protected override void OnRead(XmlNode xml) {

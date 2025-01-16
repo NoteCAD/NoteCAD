@@ -101,8 +101,8 @@ public class Equal : ValueConstraint {
 	}
 
 	protected override void OnWriteValueConstraint(Writer xml) {
-		xml.WriteAttributeString("firstLength", lengthType[0].ToString());
-		xml.WriteAttributeString("secondLength", lengthType[1].ToString());
+		xml.WriteAttribute("firstLength", lengthType[0].ToString());
+		xml.WriteAttribute("secondLength", lengthType[1].ToString());
 	}
 
 	protected override void OnReadValueConstraint(XmlNode xml) {

@@ -538,9 +538,9 @@ public class DetailEditor : MonoBehaviour {
 		xmlW.WriteStartDocument();
 		var xml = new WriterXml(xmlW);
 		xml.WriteBeginElement("copy");
-		xml.WriteAttributeString("program", "NoteCAD");
-		xml.WriteAttributeString("version", "0");
-		xml.WriteAttributeString("pos", Tool.MousePos.ToStr());
+		xml.WriteAttribute("program", "NoteCAD");
+		xml.WriteAttribute("version", "0");
+		xml.WriteAttribute("pos", Tool.MousePos.ToStr());
 
 		var sk = currentSketch.GetSketch();
 		var objects = new HashSet<SketchObject>(

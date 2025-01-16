@@ -74,9 +74,9 @@ public class CircleEntity : Entity, ILoopEntity {
 	}
 
 	protected override void OnWrite(Writer xml) {
-		xml.WriteAttributeString("r", Math.Abs(r.value).ToStr());
-		if(a.value != 0.0) xml.WriteAttributeString("a", a.value.ToStr());
-		if(angleFixed_ == false) xml.WriteAttributeString("angleFixed", angleFixed_.ToString());
+		xml.WriteAttribute("r", Math.Abs(r.value).ToStr());
+		if(a.value != 0.0) xml.WriteAttribute("a", a.value.ToStr());
+		if(angleFixed_ == false) xml.WriteAttribute("angleFixed", angleFixed_.ToString());
 	}
 
 	protected override void OnRead(XmlNode xml) {

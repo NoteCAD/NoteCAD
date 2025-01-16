@@ -204,14 +204,14 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 	}
 
 	protected override void OnWrite(Writer xml) {
-		xml.WriteAttributeString("x", x.source);
-		xml.WriteAttributeString("y", y.source);
-		xml.WriteAttributeString("t0", t0.value.ToStr());
-		xml.WriteAttributeString("t1", t1.value.ToStr());
-		xml.WriteAttributeString("t0fix", tBeginFixed_.ToString());
-		xml.WriteAttributeString("t1fix", tEndFixed_.ToString());
-		xml.WriteAttributeString("subdiv", subdivision_.ToString());
-		xml.WriteAttributeString("basis", basis.ToString());
+		xml.WriteAttribute("x", x.source);
+		xml.WriteAttribute("y", y.source);
+		xml.WriteAttribute("t0", t0.value.ToStr());
+		xml.WriteAttribute("t1", t1.value.ToStr());
+		xml.WriteAttribute("t0fix", tBeginFixed_.ToString());
+		xml.WriteAttribute("t1fix", tEndFixed_.ToString());
+		xml.WriteAttribute("subdiv", subdivision_.ToString());
+		xml.WriteAttribute("basis", basis.ToString());
 	}
 
 	protected override void OnRead(XmlNode xml) {

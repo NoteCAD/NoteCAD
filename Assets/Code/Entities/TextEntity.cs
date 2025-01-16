@@ -235,7 +235,7 @@ public class TextEntity : Entity, ILoopEntity {
 	}
 
 	protected override void OnWrite(Writer xml) {
-		xml.WriteAttributeString("text", text_);
+		xml.WriteAttribute("text", text_);
 	}
 
 	protected override void OnRead(XmlNode xml) {

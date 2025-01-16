@@ -99,10 +99,10 @@ public abstract class Feature : CADObject {
 
 	public void Write(Writer xml) {
 		xml.WriteBeginArrayElement("feature");
-		xml.WriteAttributeString("type", this.GetType().Name);
-		xml.WriteAttributeString("id", guid.ToString());
+		xml.WriteAttribute("type", this.GetType().Name);
+		xml.WriteAttribute("id", guid.ToString());
 		if(source != null) {
-			xml.WriteAttributeString("source", source.guid.ToString());
+			xml.WriteAttribute("source", source.guid.ToString());
 		}
 		OnWrite(xml);
 		xml.WriteEndArrayElement();
@@ -282,7 +282,7 @@ public abstract class MeshFeature : SketchFeatureBase {
 	}
 
 	protected sealed override void OnWriteSketchFeatureBase(Writer xml) {
-		xml.WriteAttributeString("op", operation.ToString());
+		xml.WriteAttribute("op", operation.ToString());
 		OnWriteMeshFeature(xml);
 	}
 

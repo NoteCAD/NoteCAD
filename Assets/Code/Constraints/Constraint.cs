@@ -131,15 +131,15 @@ public class Constraint : SketchObject {
 
 	public override void Write(Writer xml) {
 		xml.WriteBeginArrayElement("constraint");
-		xml.WriteAttributeString("type", this.GetType().Name);
+		xml.WriteAttribute("type", this.GetType().Name);
 		if(Enum.GetNames(optionInternal.GetType()).Length >= 2) {
-			xml.WriteAttributeString("chirality", optionInternal.ToString());
+			xml.WriteAttribute("chirality", optionInternal.ToString());
 		}
 		base.Write(xml);
 		xml.WriteBeginFakeArray("links");
 		foreach(var id in ids) {
 			xml.WriteBeginArrayElement("link");
-			xml.WriteAttributeString("path", id.ToString());
+			xml.WriteAttribute("path", id.ToString());
 			xml.WriteEndArrayElement();
 		}
 		xml.WriteEndFakeArray();
@@ -783,15 +783,15 @@ public abstract class ValueConstraint : Constraint {
 	}
 
 	protected sealed override void OnWrite(Writer xml) {
-		xml.WriteAttributeString("x", pos.x.ToStr());
-		xml.WriteAttributeString("y", pos.y.ToStr());
-		xml.WriteAttributeString("z", pos.z.ToStr());
-		xml.WriteAttributeString("value", GetValue().ToStr());
+		xml.WriteAttribute("x", pos.x.ToStr());
+		xml.WriteAttribute("y", pos.y.ToStr());
+		xml.WriteAttribute("z", pos.z.ToStr());
+		xml.WriteAttribute("value", GetValue().ToStr());
 		if(expression.Exist()) {
-			xml.WriteAttributeString("expression", expression.source);
+			xml.WriteAttribute("expression", expression.source);
 		}
-		xml.WriteAttributeString("reference", reference.ToString());
-		xml.WriteAttributeString("solvable", solvable.ToString());
+		xml.WriteAttribute("reference", reference.ToString());
+		xml.WriteAttribute("solvable", solvable.ToString());
 		OnWriteValueConstraint(xml);
 	}
 

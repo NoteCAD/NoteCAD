@@ -155,10 +155,10 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		xml.WriteBeginElement("generated");
 		xml.WriteBeginElement("transform");
 		var plane = this as IPlane;
-		xml.WriteAttributeString("u", plane.u.ToStr());
-		xml.WriteAttributeString("v", plane.v.ToStr());
-		xml.WriteAttributeString("n", plane.n.ToStr());
-		xml.WriteAttributeString("o", plane.o.ToStr());
+		xml.WriteAttribute("u", plane.u.ToStr());
+		xml.WriteAttribute("v", plane.v.ToStr());
+		xml.WriteAttribute("n", plane.n.ToStr());
+		xml.WriteAttribute("o", plane.o.ToStr());
 		xml.WriteEndElement();
 		xml.WriteEndElement();
 		if(uId.Empty() && vId.Empty() && pId.Empty()) return;

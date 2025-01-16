@@ -54,27 +54,27 @@ public class Style {
 
 	public void Write(Writer xml) {
 		xml.WriteBeginArrayElement("style");
-		xml.WriteAttributeString("name", stroke.name);
-		xml.WriteAttributeString("id", guid.ToString());
-		xml.WriteAttributeString("width", stroke.width.ToStr());
+		xml.WriteAttribute("name", stroke.name);
+		xml.WriteAttribute("id", guid.ToString());
+		xml.WriteAttribute("width", stroke.width.ToStr());
 		//xml.WriteAttributeString("stipple", stroke.stippleWidth.ToStr());
-		xml.WriteAttributeString("depth", stroke.depthTest.ToString());
-		xml.WriteAttributeString("inPixels", stroke.inPixels.ToString());
-		xml.WriteAttributeString("dashesInPixels", stroke.dashesInPixels.ToString());
-		xml.WriteAttributeString("queue", stroke.queue.ToString());
-		xml.WriteAttributeString("r", stroke.color.r.ToStr());
-		xml.WriteAttributeString("g", stroke.color.g.ToStr());
-		xml.WriteAttributeString("b", stroke.color.b.ToStr());
-		xml.WriteAttributeString("a", stroke.color.a.ToStr());
-		xml.WriteAttributeString("pen", pen.ToString());
-		xml.WriteAttributeString("construction", construction.ToString());
-		xml.WriteAttributeString("export", export.ToString());
+		xml.WriteAttribute("depth", stroke.depthTest.ToString());
+		xml.WriteAttribute("inPixels", stroke.inPixels.ToString());
+		xml.WriteAttribute("dashesInPixels", stroke.dashesInPixels.ToString());
+		xml.WriteAttribute("queue", stroke.queue.ToString());
+		xml.WriteAttribute("r", stroke.color.r.ToStr());
+		xml.WriteAttribute("g", stroke.color.g.ToStr());
+		xml.WriteAttribute("b", stroke.color.b.ToStr());
+		xml.WriteAttribute("a", stroke.color.a.ToStr());
+		xml.WriteAttribute("pen", pen.ToString());
+		xml.WriteAttribute("construction", construction.ToString());
+		xml.WriteAttribute("export", export.ToString());
 		string dashes = "";
 		for(int i = 0; i < stroke.dashes.Length; i++) {
 			if(i != 0) dashes += " ";
 			dashes += stroke.dashes[i].ToStr();
 		}
-		xml.WriteAttributeString("dashes", dashes);
+		xml.WriteAttribute("dashes", dashes);
 		xml.WriteEndArrayElement();
 	}
 

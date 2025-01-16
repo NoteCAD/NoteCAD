@@ -301,9 +301,9 @@ public class MeshImportFeature : MeshFeature {
 			if(i != 0) sb.Append(" ");
 			sb.Append(verts[indices[i]].ToStr());
 		}
-		xml.WriteAttributeString("basis", basis.ToString());
-		xml.WriteAttributeString("mesh", sb.ToString());
-		xml.WriteAttributeString("useThreshold", useThreshold.ToString());
+		xml.WriteAttribute("basis", basis.ToString());
+		xml.WriteAttribute("mesh", sb.ToString());
+		xml.WriteAttribute("useThreshold", useThreshold.ToString());
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {

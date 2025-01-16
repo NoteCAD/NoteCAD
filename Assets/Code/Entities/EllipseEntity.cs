@@ -60,9 +60,9 @@ public class EllipseEntity : Entity, ILoopEntity {
 	}
 
 	protected override void OnWrite(Writer xml) {
-		xml.WriteAttributeString("r0", Math.Abs(r0.value).ToStr());
-		xml.WriteAttributeString("r1", Math.Abs(r1.value).ToStr());
-		xml.WriteAttributeString("basis", basis.ToString());
+		xml.WriteAttribute("r0", Math.Abs(r0.value).ToStr());
+		xml.WriteAttribute("r1", Math.Abs(r1.value).ToStr());
+		xml.WriteAttribute("basis", basis.ToString());
 	}
 
 	protected override void OnRead(XmlNode xml) {

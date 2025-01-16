@@ -35,13 +35,13 @@ public class DetailSettings {
 	
 	public void Write(Writer xml) {
 		xml.WriteBeginElement("settings");
-		xml.WriteAttributeString("lengthMeasurement", lengthMeasurement.ToString());
-		xml.WriteAttributeString("showConstraints", showConstraints.ToString());
-		xml.WriteAttributeString("showDimensions", showDimensions.ToString());
-		xml.WriteAttributeString("autoconstraining", showDimensions.ToString());
-		xml.WriteAttributeString("drawingDimensions", drawingDimensions.ToString());
-		xml.WriteAttributeString("checkSketchErros", checkSketchErros.ToString());
-		xml.WriteAttributeString("detectContours", detectContours.ToString());
+		xml.WriteAttribute("lengthMeasurement", lengthMeasurement.ToString());
+		xml.WriteAttribute("showConstraints", showConstraints.ToString());
+		xml.WriteAttribute("showDimensions", showDimensions.ToString());
+		xml.WriteAttribute("autoconstraining", showDimensions.ToString());
+		xml.WriteAttribute("drawingDimensions", drawingDimensions.ToString());
+		xml.WriteAttribute("checkSketchErros", checkSketchErros.ToString());
+		xml.WriteAttribute("detectContours", detectContours.ToString());
 		xml.WriteEndElement();
 	}
 
@@ -225,12 +225,12 @@ public class Detail : Feature {
 
 	public void WriteWrt(Writer wrt) {
 		wrt.WriteBeginElement("detail");
-		wrt.WriteAttributeString("id", guid.ToString());
-		wrt.WriteAttributeString("name", name);
-		wrt.WriteAttributeString("viewPos", Camera.main.transform.position.ToStr());
-		wrt.WriteAttributeString("viewRot", Camera.main.transform.rotation.ToStr());
-		wrt.WriteAttributeString("viewSize", Camera.main.orthographicSize.ToStr());
-		wrt.WriteAttributeString("activeFeature", DetailEditor.instance.activeFeature.id.ToString());
+		wrt.WriteAttribute("id", guid.ToString());
+		wrt.WriteAttribute("name", name);
+		wrt.WriteAttribute("viewPos", Camera.main.transform.position.ToStr());
+		wrt.WriteAttribute("viewRot", Camera.main.transform.rotation.ToStr());
+		wrt.WriteAttribute("viewSize", Camera.main.orthographicSize.ToStr());
+		wrt.WriteAttribute("activeFeature", DetailEditor.instance.activeFeature.id.ToString());
 		settings.Write(wrt);
 		styles.Write(wrt);
 		wrt.WriteBeginFakeArray("features");

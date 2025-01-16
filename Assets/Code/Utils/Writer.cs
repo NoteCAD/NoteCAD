@@ -14,7 +14,7 @@ public abstract class Writer
 	public abstract void WriteEndArrayElement();
 	public abstract void WriteBeginElement(string name);
 	public abstract void WriteEndElement();
-	public abstract void WriteAttributeString(string name, string value);
+	public abstract void WriteAttribute(string name, string value);
 	public abstract void WriteBeginFakeArray(string name);
 	public abstract void WriteEndFakeArray();
 }
@@ -51,7 +51,7 @@ public class WriterXml : Writer
 		xml.WriteEndElement();
 	}
 
-	public override void WriteAttributeString(string name, string value) {
+	public override void WriteAttribute(string name, string value) {
 		xml.WriteAttributeString(name, value);
 	}
 
@@ -106,6 +106,7 @@ public class WriterJSON : Writer
 					var key = parent.str;
 					
 					bool nonStr = key != "id" && key != "activeFeature" && 
+						key != "style" &&
 						(int.TryParse(str, out _) || double.TryParse(str, out _));
 
 					if (!nonStr) builder.Append("\"");
@@ -212,7 +213,7 @@ public class WriterJSON : Writer
 		cur = cur.parent.parent;
 	}
 
-	public override void WriteAttributeString(string name, string value) {
+	public override void WriteAttribute(string name, string value) {
 		Json key = new(name, JsonType.Key, cur);
 		new Json(value, JsonType.Value, key);
 	}

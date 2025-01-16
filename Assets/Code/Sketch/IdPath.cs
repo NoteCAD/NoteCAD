@@ -148,8 +148,8 @@ public class IdPath {
 		var data = ToString();
 		if(data == "") return;
 		xml.WriteBeginArrayElement("ref");
-		xml.WriteAttributeString("name", name);
-		xml.WriteAttributeString("path", data);
+		xml.WriteAttribute("name", name);
+		xml.WriteAttribute("path", data);
 		xml.WriteEndArrayElement();
 	}
 

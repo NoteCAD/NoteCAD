@@ -107,9 +107,9 @@ public abstract class SketchObject : CADObject, ICADObject {
 	}
 
 	public virtual void Write(Writer xml) {
-		xml.WriteAttributeString("id", guid.ToString());
-		if(style != null) xml.WriteAttributeString("style", style.guid.ToString());
-		if(isVisible == false) xml.WriteAttributeString("visible", isVisible.ToString());
+		xml.WriteAttribute("id", guid.ToString());
+		if(style != null) xml.WriteAttribute("style", style.guid.ToString());
+		if(isVisible == false) xml.WriteAttribute("visible", isVisible.ToString());
 		OnWrite(xml);
 	}
 

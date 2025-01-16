@@ -379,16 +379,16 @@ public class LinearArrayFeature : SketchFeature {
 	}
 
 	protected override void OnWriteSketchFeature(Writer xml) {
-		xml.WriteAttributeString("repeatCount", repeatCount.ToString());
-		xml.WriteAttributeString("translate", translate.ToString());
-		xml.WriteAttributeString("rotate", rotate.ToString());
-		xml.WriteAttributeString("scale", scale.ToString());
+		xml.WriteAttribute("repeatCount", repeatCount.ToString());
+		xml.WriteAttribute("translate", translate.ToString());
+		xml.WriteAttribute("rotate", rotate.ToString());
+		xml.WriteAttribute("scale", scale.ToString());
 
-		xml.WriteAttributeString("dx", dx.value.ToStr());
-		xml.WriteAttributeString("dy", dy.value.ToStr());
-		xml.WriteAttributeString("da", da.value.ToStr());
-		xml.WriteAttributeString("dsx", dsx.value.ToStr());
-		xml.WriteAttributeString("dsy", dsy.value.ToStr());
+		xml.WriteAttribute("dx", dx.value.ToStr());
+		xml.WriteAttribute("dy", dy.value.ToStr());
+		xml.WriteAttribute("da", da.value.ToStr());
+		xml.WriteAttribute("dsx", dsx.value.ToStr());
+		xml.WriteAttribute("dsy", dsy.value.ToStr());
 	}
 
 }
