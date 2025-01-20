@@ -404,7 +404,8 @@ public class RevolveFeature : MeshFeature {
 
 		xml.WriteBeginElement("generated");
 		xml.WriteBeginElement("axis");
-		var ax = axis.GetDirectionInPlane(null).Eval().normalized;
+		
+		var ax = GetAxis().Eval().normalized;
 		var o = GetOrigin(null).Eval();
 		xml.WriteAttribute("dir", ax.ToStr());
 		xml.WriteAttribute("pos", o.ToStr());
