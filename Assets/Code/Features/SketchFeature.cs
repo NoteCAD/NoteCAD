@@ -104,6 +104,7 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		var mf = loopObj.AddComponent<MeshFilter>();
 		var mr = loopObj.AddComponent<MeshRenderer>();
 		loopObj.transform.SetParent(canvas.gameObject.transform, false);
+		loopObj.SetActive(false);
 		mf.mesh = mainMesh;
 		mr.material = EntityConfig.instance.loopMaterial;
 	}
@@ -122,7 +123,6 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		if(loopsChanged || sketch.topologyChanged) {
 			CreateLoops();
 		}
-		loopObj.transform.SetMatrix(transform);
 	}
 
 	void CreateLoops() {
