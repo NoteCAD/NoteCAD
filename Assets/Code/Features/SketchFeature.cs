@@ -172,13 +172,24 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 	protected virtual void OnReadSketchFeature(XmlNode xml) { }
 	protected override sealed void OnReadSketchFeatureBase(XmlNode xml) {
 		foreach(XmlNode nodeKind in xml.ChildNodes) {
-			if(nodeKind.Name != "references") continue;
-			foreach(XmlNode idNode in nodeKind.ChildNodes) {
-				var name = idNode.Attributes["name"].Value;
-				switch(name) {
-					case "u": uId.Read(idNode); break;
-					case "v": vId.Read(idNode); break;
-					case "o": pId.Read(idNode); break;
+			if(nodeKind.Name == "references") {
+				foreach(XmlNode idNode in nodeKind.ChildNodes) {
+					var name = idNode.Attributes["name"].Value;
+					switch(name) {
+						case "u": uId.Read(idNode); break;
+						case "v": vId.Read(idNode); break;
+						case "o": pId.Read(idNode); break;
+					}
+				}
+			} else
+			if(nodeKind.Name == "generated") {
+				foreach(XmlNode tfNode in nodeKind.ChildNodes) {
+					if(tfNode.Name != "transform") continue;
+					var u = tfNode.Attributes["u"].Value.ToVector3();
+					var v = tfNode.Attributes["v"].Value.ToVector3();
+					var n = tfNode.Attributes["n"].Value.ToVector3();
+					var o = tfNode.Attributes["o"].Value.ToVector3();
+					defaultTransfrom = UnityExt.Basis(u, v, n, o);
 				}
 			}
 		}
