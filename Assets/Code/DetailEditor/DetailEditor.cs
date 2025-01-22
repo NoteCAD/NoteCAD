@@ -524,7 +524,7 @@ public class DetailEditor : MonoBehaviour {
 		if(active.IsNull()) active = detail.features.Last().id;
 		UpdateFeatures();
 		ActivateFeature(active);
-		StylesUI.instance.UpdateStyles();
+		StylesUI.instance?.UpdateStyles();
 	}
 
 	public string CopySelection() {
