@@ -12,14 +12,17 @@ public class MoveTool : Tool {
 	Vector3 worldClick;
 	Vector3 firstClickCenter;
 	double deltaR;
+	double editingValue;
 	List<Exp> drag = new List<Exp>();
 	Param dragXP = new Param("dragX", reduceable: false);
 	Param dragYP = new Param("dragY", reduceable: false);
 	Param dragZP = new Param("dragZ", reduceable: false);
 	ValueConstraint valueConstraint;
 	bool shouldPushUndo = true;
+	bool canFinish = true;
 	bool rectSelection = false;
 	bool rectInvertedX = false;
+	bool valueChanged = false;
 	public InputField input;
 	public static MoveTool instance;
 	//bool canMove = true;
@@ -29,6 +32,7 @@ public class MoveTool : Tool {
 	protected override void OnStart() {
 		if (input != null) {
 			input.onEndEdit.AddListener(OnEndEdit);
+			input.onValueChanged.AddListener(OnValueChanged);
 		}
 		instance = this;
 	}
@@ -153,13 +157,41 @@ public class MoveTool : Tool {
 		ClearDrag();
 	}
 	
-	public void EditConstraintValue(ValueConstraint constraint, bool pushUndo = true) {
+	public void EditConstraintValue(ValueConstraint constraint, bool pushUndo = true, bool canFinish = true) {
 		valueConstraint = constraint;
-		this.shouldPushUndo = pushUndo;
-		input.gameObject.SetActive(true);
-		input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
-		input.Select();
-		UpdateInputPosition();
+		if(valueConstraint != null) {
+			input.gameObject.SetActive(true);
+			this.shouldPushUndo = pushUndo;
+			this.canFinish = canFinish;
+			input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
+			input.Select();
+			UpdateInputPosition();
+		} else {
+			input.text = "";
+			input.gameObject.SetActive(false);
+		}
+		valueChanged = false;
+	}
+
+	public double GetEditingValue() {
+		return editingValue;
+	}
+
+	public void SetEditingValue(double value) {
+		input.text = Math.Abs(value).ToStr();
+	}
+
+	public void UpdateEditingValue() {
+		if(valueConstraint != null) {
+			var vc = valueChanged;
+			input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
+			valueChanged = vc;
+			input.MoveTextStart(true);
+		}
+	}
+
+	public bool HasEditingValueChanged() {
+		return valueChanged;
 	}
 
 	public bool IsConstraintEditing(ValueConstraint constraint) {
@@ -189,8 +221,19 @@ public class MoveTool : Tool {
 		if(sign == 0) sign = 1;
 		if(shouldPushUndo) editor.PushUndo();
 		valueConstraint.SetValue(sign * value.ToDouble());
+		if(!canFinish) {
+			return;
+		}
 		valueConstraint = null;
 		input.gameObject.SetActive(false);
+	}
+
+	void OnValueChanged(string value) {
+		valueChanged = true;
+		try {
+			editingValue = input.text.ToDouble();
+		} catch (Exception e) {
+		}
 	}
 
 	protected override string OnGetDescription() {

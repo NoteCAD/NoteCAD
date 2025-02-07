@@ -24,6 +24,7 @@ public class LineTool : Tool {
 	LineEntity current;
 	LineEntity prev;
 	bool canCreate = true;
+	public bool editDimensionWhileCreate = true;
 
 	LineTool() {
 		enableHoverFilter = true;
@@ -49,14 +50,18 @@ public class LineTool : Tool {
 			prev = current;
 			displayLink?.Destroy();
 			displayLink = null;
-			dimension?.Destroy();
-			dimension = null;
-			if (snapConstraint != null) {
+			if(snapConstraint != null) {
 				snapConstraint.enabled = true;
 				snapConstraint.drawLink = false;
 				snapConstraint = null;
 				snapType = SnapType.None;
 			}
+			if(EditValueNotChanged()) {
+				dimension?.Destroy();
+			} else if(dimension != null) {
+				dimension.enabled = true;
+			}
+			dimension = null;
 			if(AutoConstrainCoincident(current.p1, sko as IEntity)) {
 				current = null;
 				StopTool();
@@ -69,10 +74,13 @@ public class LineTool : Tool {
 		var newLine = SpawnEntity(new LineEntity(sk.GetSketch()));
 		newLine.p0.SetPosition(pos);
 		newLine.p1.SetPosition(pos);
-		if (editor.GetDetail().settings.drawingDimensions) {
+		if(editor.GetDetail().settings.drawingDimensions) {
 			dimension = new PointsDistance(newLine.sketch, newLine.p0, newLine.p1);
-			dimension.labelY = 0.001f;
+			dimension.labelY = -0.001f;
 			dimension.enabled = false;
+			if(editDimensionWhileCreate) {
+				MoveTool.instance.EditConstraintValue(dimension, pushUndo: false, canFinish: false);
+			}
 		}
 		if(current == null) {
 			AutoConstrainCoincident(newLine.p0, sko as IEntity);
@@ -128,10 +136,10 @@ public class LineTool : Tool {
 			if(!res) {
 				return false;
 			}
-			if (type == SnapType.Horizontal || type == SnapType.Vertical) {
+			if(type == SnapType.Horizontal || type == SnapType.Vertical) {
 				diff -= 0.2f;
 			}
-			if (type == SnapType.Parallel || type == SnapType.Perpendicular) {
+			if(type == SnapType.Parallel || type == SnapType.Perpendicular) {
 				diff -= 0.1f;
 			}
 			return true;
@@ -172,14 +180,18 @@ public class LineTool : Tool {
 			return;
 		}
 		
+		var sk = DetailEditor.instance.currentSketch.GetSketch();
+		var p0 = current.GetLineP0(sk.plane).Eval();
+		if (EditValueChanged()) {
+			pos = p0 + (p0 - pos).normalized * (float)MoveTool.instance.GetEditingValue();
+		}
 		var newPos = pos;
 		Constraint newSnapConstraint = null;
 		displayLink?.Destroy();
 		displayLink = null;
 		SnapData snap = null;
-		var sk = DetailEditor.instance.currentSketch.GetSketch();
 		
-		if (editor.GetDetail().settings.autoconstraining && !sk.is3d) {
+		if(editor.GetDetail().settings.autoconstraining && !sk.is3d) {
 			var snaps = new List<SnapData>();
 
 			// snap to horizontality / verticality
@@ -205,14 +217,14 @@ public class LineTool : Tool {
 				}
 				var eP0 = e.GetLineP0(sk.plane).Eval();
 				var eDir = e.GetLineP1(sk.plane).Eval() - eP0;
-				if (eDir == Vector3.zero) {
+				if(eDir == Vector3.zero) {
 					continue;
 				}
 				var eDirN = eDir.normalized;
 				if(dirs.TryGetValue(eDirN, out var dir) || dirs.TryGetValue(-eDirN, out dir)) {
 					var ePos = eP0 + eDir / 2f;
 					var eDist = (pos - ePos).sqrMagnitude;
-					if (dir.dist < eDist) {
+					if(dir.dist < eDist) {
 						continue;
 					} else {
 						dir.dist = eDist;
@@ -224,14 +236,12 @@ public class LineTool : Tool {
 			}
 			snaps.AddRange(dirs.Values);
 		
-			var p0 = current.GetLineP0(sk.plane).Eval();
-
 			snap = snaps
 				.Where(s => s.check(p0, pos, out var _))
 				.OrderBy(s => { s.check(p0, pos, out var diff); return diff; })
 				.FirstOrDefault();
 			
-			if(snap != null) {
+			if(snap != null) { 
 				var proj = GeomUtils.projectPointToLine(pos, p0, p0 + snap.dir);
 				newPos = proj;
 				
@@ -277,14 +287,23 @@ public class LineTool : Tool {
 			}
 
 		}
-		if (snap == null || newSnapConstraint != null) {
+		if(snap == null || newSnapConstraint != null) {
 			snapConstraint?.Destroy();
 			snapConstraint = null;
 			snapType = SnapType.None;
 		}
 		snapConstraint = newSnapConstraint;
+		if(EditValueChanged()) {
+			newPos = p0 + (p0 - newPos).normalized * (float)MoveTool.instance.GetEditingValue();
+		}
 		current.p1.SetPosition(newPos);
+		if(EditValueNotChanged()) {
+			MoveTool.instance.UpdateEditingValue();
+		}
 	}
+
+	bool EditValueChanged() => editDimensionWhileCreate && MoveTool.instance.HasEditingValueChanged();
+	bool EditValueNotChanged() => editDimensionWhileCreate && !MoveTool.instance.HasEditingValueChanged();
 
 	protected override void OnMouseMove(Vector3 pos, ICADObject entity) {
 		if(current != null) {
@@ -309,6 +328,9 @@ public class LineTool : Tool {
 		displayLink = null;
 		dimension?.Destroy();
 		dimension = null;
+		if(editDimensionWhileCreate) {
+			MoveTool.instance.EditConstraintValue(null);
+		}
 	}
 
 	protected override string OnGetDescription() {
