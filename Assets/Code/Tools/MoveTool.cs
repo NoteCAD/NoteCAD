@@ -19,7 +19,7 @@ public class MoveTool : Tool {
 	Param dragZP = new Param("dragZ", reduceable: false);
 	ValueConstraint valueConstraint;
 	bool shouldPushUndo = true;
-	bool canFinish = true;
+	bool dynamicEditing = true;
 	bool rectSelection = false;
 	bool rectInvertedX = false;
 	bool valueChanged = false;
@@ -157,12 +157,12 @@ public class MoveTool : Tool {
 		ClearDrag();
 	}
 	
-	public void EditConstraintValue(ValueConstraint constraint, bool pushUndo = true, bool canFinish = true) {
+	public void EditConstraintValue(ValueConstraint constraint, bool pushUndo = true, bool dynamicEditing = false) {
 		valueConstraint = constraint;
 		if(valueConstraint != null) {
 			input.gameObject.SetActive(true);
 			this.shouldPushUndo = pushUndo;
-			this.canFinish = canFinish;
+			this.dynamicEditing = dynamicEditing;
 			input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
 			input.Select();
 			UpdateInputPosition();
@@ -171,6 +171,10 @@ public class MoveTool : Tool {
 			input.gameObject.SetActive(false);
 		}
 		valueChanged = false;
+		var graphics = input.gameObject.GetComponentsInChildren<Graphic>();
+		foreach(var g in graphics) {
+			g.raycastTarget = !dynamicEditing;
+		}
 	}
 
 	public double GetEditingValue() {
@@ -187,6 +191,7 @@ public class MoveTool : Tool {
 			input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
 			valueChanged = vc;
 			input.MoveTextStart(true);
+			input.Select();
 		}
 	}
 
@@ -221,7 +226,7 @@ public class MoveTool : Tool {
 		if(sign == 0) sign = 1;
 		if(shouldPushUndo) editor.PushUndo();
 		valueConstraint.SetValue(sign * value.ToDouble());
-		if(!canFinish) {
+		if(dynamicEditing) {
 			return;
 		}
 		valueConstraint = null;

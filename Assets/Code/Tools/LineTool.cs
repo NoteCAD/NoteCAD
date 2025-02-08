@@ -79,7 +79,7 @@ public class LineTool : Tool {
 			dimension.labelY = -0.001f;
 			dimension.enabled = false;
 			if(editDimensionWhileCreate) {
-				MoveTool.instance.EditConstraintValue(dimension, pushUndo: false, canFinish: false);
+				MoveTool.instance.EditConstraintValue(dimension, pushUndo: false, dynamicEditing: true);
 			}
 		}
 		if(current == null) {
