@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-class LoopId {
+public class LoopId {
 	
 	static readonly char[] loopSeparator = new char[] {'|'};
 	private List<IdPath> loopPaths = new List<IdPath>();
@@ -48,6 +48,10 @@ class LoopId {
 		}
 
 		return false;
+	}
+
+	public override bool Equals(object obj) {
+		return this == obj as LoopId;
 	}
 
 	public static bool operator!=(LoopId a, LoopId b) {
