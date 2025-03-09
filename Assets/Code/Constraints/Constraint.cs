@@ -800,12 +800,12 @@ public abstract class ValueConstraint : Constraint {
 	}
 
 	protected sealed override void OnRead(XmlNode xml) {
+		SetValue(xml.Attributes["value"].Value.ToDouble());
 		Vector3 pos;
 		pos.x = xml.Attributes["x"].Value.ToFloat();
 		pos.y = xml.Attributes["y"].Value.ToFloat();
 		pos.z = xml.Attributes["z"].Value.ToFloat();
 		this.pos = pos;
-		SetValue(xml.Attributes["value"].Value.ToDouble());
 		if(xml.Attributes["expression"] != null) {
 			expression.source = xml.Attributes["expression"].Value;
 		}
