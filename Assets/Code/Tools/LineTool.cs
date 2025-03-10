@@ -18,6 +18,12 @@ public class LineTool : Tool {
 	Constraint snapConstraint;
 	Constraint displayLink;
 	PointsDistance dimension;
+	AngleConstraint angle;
+	bool dimensionValueNotChanged = true;
+	bool angleValueNotChanged = true;
+	double dimensionValue = 0.0;
+	double angleValue = 0.0;
+	bool editAngle = false;
 
 	SnapType snapType;
 
@@ -39,6 +45,25 @@ public class LineTool : Tool {
 		return CanConstrainCoincident(e);
 	}
 
+	void EditValue() {
+		if (editAngle && angle == null) {
+			editAngle = false;
+		}
+		if (editAngle) {
+			MoveTool.instance.EditConstraintValue(angle, pushUndo: false, dynamicEditing: true);
+		} else {
+			MoveTool.instance.EditConstraintValue(dimension, pushUndo: false, dynamicEditing: true);
+		}
+	}
+
+	protected override void OnUpdate()
+	{
+		if (editDimensionWhileCreate && angle != null && Input.GetKeyDown(KeyCode.Tab)) {
+			editAngle = !editAngle;
+			EditValue();
+		}
+	}
+
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
 		if(current != null) {
@@ -56,12 +81,19 @@ public class LineTool : Tool {
 				snapConstraint = null;
 				snapType = SnapType.None;
 			}
-			if(EditValueNotChanged()) {
+			if(dimensionValueNotChanged) {
 				dimension?.Destroy();
 			} else if(dimension != null) {
 				dimension.enabled = true;
+				dimension.SetValue(dimensionValue);
 			}
-			dimension = null;
+			if(angleValueNotChanged) {
+				angle?.Destroy();
+			} else if(dimension != null) {
+				angle.enabled = true;
+				angle.SetValue(angleValue);
+			}
+			CleanUp();
 			if(AutoConstrainCoincident(current.p1, sko as IEntity)) {
 				current = null;
 				StopTool();
@@ -78,8 +110,13 @@ public class LineTool : Tool {
 			dimension = new PointsDistance(newLine.sketch, newLine.p0, newLine.p1);
 			dimension.labelY = -0.001f;
 			dimension.enabled = false;
+			if (prev != null) {
+				angle = new AngleConstraint(newLine.sketch, prev, newLine);
+				angle.labelY = 0.001f;
+				angle.enabled = false;
+			}
 			if(editDimensionWhileCreate) {
-				MoveTool.instance.EditConstraintValue(dimension, pushUndo: false, dynamicEditing: true);
+				EditValue();
 			}
 		}
 		if(current == null) {
@@ -174,6 +211,23 @@ public class LineTool : Tool {
 		return null;
 	}
 	
+
+	Vector3 getNewPos(Vector3 p0, Vector3 pos) {
+		var sk = DetailEditor.instance.currentSketch.GetSketch();
+		var mouseDir = (pos - p0).normalized;
+		var mouseLen = (pos - p0).magnitude;
+		if (!angleValueNotChanged) {
+			if(prev != null) {	
+				var pdir = (prev.GetLineP0(sk.plane).Eval() - prev.GetLineP1(sk.plane).Eval()).normalized;
+				mouseDir = Matrix4x4.Rotate(Quaternion.Euler(0.0f, 0.0f, (float)angleValue)) * pdir;
+			}
+		}
+		if (!dimensionValueNotChanged) {
+			mouseLen = (float)dimensionValue;
+		}
+		return p0 + mouseDir * mouseLen;
+	}
+
 	void setCurrentPosition(Vector3 pos, ICADObject entity)
 	{
 		if(current == null) {
@@ -181,17 +235,22 @@ public class LineTool : Tool {
 		}
 		
 		var sk = DetailEditor.instance.currentSketch.GetSketch();
-		var p0 = current.GetLineP0(sk.plane).Eval();
 		if (EditValueChanged()) {
-			pos = p0 + (p0 - pos).normalized * (float)MoveTool.instance.GetEditingValue();
+			if (editAngle) {
+				angleValue = MoveTool.instance.GetEditingValue();
+				angleValueNotChanged = false;
+			} else {
+				dimensionValue = MoveTool.instance.GetEditingValue();
+				dimensionValueNotChanged = false;
+			}
 		}
-		var newPos = pos;
+		var p0 = current.GetLineP0(sk.plane).Eval();
+		var newPos = getNewPos(p0, pos);
 		Constraint newSnapConstraint = null;
 		displayLink?.Destroy();
 		displayLink = null;
 		SnapData snap = null;
-		
-		if(editor.GetDetail().settings.autoconstraining && !sk.is3d) {
+		if(editor.GetDetail().settings.autoconstraining && !sk.is3d && angleValueNotChanged) {
 			var snaps = new List<SnapData>();
 
 			// snap to horizontality / verticality
@@ -293,9 +352,7 @@ public class LineTool : Tool {
 			snapType = SnapType.None;
 		}
 		snapConstraint = newSnapConstraint;
-		if(EditValueChanged()) {
-			newPos = p0 + (p0 - newPos).normalized * (float)MoveTool.instance.GetEditingValue();
-		}
+		newPos = getNewPos(p0, newPos);
 		current.p1.SetPosition(newPos);
 		if(EditValueNotChanged()) {
 			MoveTool.instance.UpdateEditingValue();
@@ -316,6 +373,13 @@ public class LineTool : Tool {
 		}
 	}
 
+	void CleanUp() {
+		dimension = null;
+		angle = null;
+		angleValueNotChanged = true;
+		dimensionValueNotChanged = true;
+	}
+
 	protected override void OnDeactivate() {
 		if(current != null) {
 			current.Destroy();
@@ -327,7 +391,9 @@ public class LineTool : Tool {
 		displayLink?.Destroy();
 		displayLink = null;
 		dimension?.Destroy();
-		dimension = null;
+		angle?.Destroy();
+		CleanUp();
+
 		if(editDimensionWhileCreate) {
 			MoveTool.instance.EditConstraintValue(null);
 		}
