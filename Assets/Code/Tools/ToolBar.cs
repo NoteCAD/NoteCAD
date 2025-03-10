@@ -51,7 +51,9 @@ public class ToolBar : MonoBehaviour {
 		if(!DetailEditor.instance.isActiveAndEnabled) return;
 		doubleClickTime += Time.deltaTime;
 		doubleClickFrame++;
-		if(!IsInputFieldFocused()) {
+		// if input field is focued, esc defocuses it, but also
+		// we need reaction from the tool which activates by esc hotkey
+		if(!IsInputFieldFocused() || Input.GetKeyDown(KeyCode.Escape)) {
 			foreach(var t in tools) {
 				bool activated = false;
 				foreach(var hk in t.hotkeys) {
