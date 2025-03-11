@@ -647,6 +647,10 @@ public class DetailEditor : MonoBehaviour {
 		return mesh.ExportSTL();
 	}
 
+	public string ExportOBJ() {
+		return mesh.ExportOBJ();
+	}
+
 	public string ExportCurrentSTL() {
 		if(activeFeature is MeshFeature) {
 			return (activeFeature as MeshFeature).solid.ToStlString(activeFeature.GetType().Name);

@@ -9,6 +9,7 @@ public class ExportSTLTool : Tool {
 
 	enum FileType {
 		Stl,
+		Obj,
 		Hpgl,
 		Replay
 	};
@@ -31,6 +32,11 @@ public class ExportSTLTool : Tool {
 				case FileType.Stl: {
 					var data = DetailEditor.instance.ExportSTL(); 
 					NoteCADJS.SaveData(data, "NoteCADExport.stl", "stl");
+					break;
+				}
+				case FileType.Obj: {
+					var data = DetailEditor.instance.ExportOBJ(); 
+					NoteCADJS.SaveData(data, "NoteCADExport.obj", "obj");
 					break;
 				}
 				case FileType.Hpgl: {
