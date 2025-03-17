@@ -50,9 +50,9 @@ public class LineTool : Tool {
 			editAngle = false;
 		}
 		if (editAngle) {
-			MoveTool.instance.EditConstraintValue(angle, pushUndo: false, dynamicEditing: true);
+			MoveTool.instance.EditConstraintValue(angle, pushUndo: false, dynamicEditing: true, valueChanged: !angleValueNotChanged);
 		} else {
-			MoveTool.instance.EditConstraintValue(dimension, pushUndo: false, dynamicEditing: true);
+			MoveTool.instance.EditConstraintValue(dimension, pushUndo: false, dynamicEditing: true, valueChanged: !dimensionValueNotChanged);
 		}
 	}
 
@@ -235,14 +235,16 @@ public class LineTool : Tool {
 		}
 		
 		var sk = DetailEditor.instance.currentSketch.GetSketch();
-		if (EditValueChanged()) {
-			if (editAngle) {
+		if (editAngle) {
+			if (EditValueChanged()) {
 				angleValue = MoveTool.instance.GetEditingValue();
-				angleValueNotChanged = false;
-			} else {
-				dimensionValue = MoveTool.instance.GetEditingValue();
-				dimensionValueNotChanged = false;
 			}
+			angleValueNotChanged = !EditValueChanged();
+		} else {
+			if (EditValueChanged()) {
+				dimensionValue = MoveTool.instance.GetEditingValue();
+			}
+			dimensionValueNotChanged = !EditValueChanged();
 		}
 		var p0 = current.GetLineP0(sk.plane).Eval();
 		var newPos = getNewPos(p0, pos);

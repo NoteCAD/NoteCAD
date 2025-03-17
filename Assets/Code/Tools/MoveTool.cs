@@ -157,7 +157,7 @@ public class MoveTool : Tool {
 		ClearDrag();
 	}
 	
-	public void EditConstraintValue(ValueConstraint constraint, bool pushUndo = true, bool dynamicEditing = false) {
+	public void EditConstraintValue(ValueConstraint constraint, bool pushUndo = true, bool dynamicEditing = false, bool valueChanged = false) {
 		valueConstraint = constraint;
 		if(valueConstraint != null) {
 			input.gameObject.SetActive(true);
@@ -165,12 +165,13 @@ public class MoveTool : Tool {
 			this.dynamicEditing = dynamicEditing;
 			input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
 			input.Select();
+			UpdateEditingValue();
 			UpdateInputPosition();
 		} else {
 			input.text = "";
 			input.gameObject.SetActive(false);
 		}
-		valueChanged = false;
+		this.valueChanged = valueChanged;
 		var graphics = input.gameObject.GetComponentsInChildren<Graphic>();
 		foreach(var g in graphics) {
 			g.raycastTarget = !dynamicEditing;
@@ -188,7 +189,7 @@ public class MoveTool : Tool {
 	public void UpdateEditingValue() {
 		if(valueConstraint != null) {
 			var vc = valueChanged;
-			input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
+			input.text = valueConstraint.GetValue().ToString("0.#####");
 			valueChanged = vc;
 			input.MoveTextStart(true);
 			input.Select();
@@ -235,9 +236,14 @@ public class MoveTool : Tool {
 
 	void OnValueChanged(string value) {
 		valueChanged = true;
+		// special case when we are typing negative values
+		if(value == "-") {
+			return;
+		}
 		try {
 			editingValue = input.text.ToDouble();
 		} catch (Exception e) {
+			valueChanged = false;
 		}
 	}
 
