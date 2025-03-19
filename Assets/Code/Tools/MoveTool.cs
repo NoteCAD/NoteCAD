@@ -189,7 +189,15 @@ public class MoveTool : Tool {
 	public void UpdateEditingValue() {
 		if(valueConstraint != null) {
 			var vc = valueChanged;
-			input.text = valueConstraint.GetValue().ToString("0.#####");
+			double value = valueConstraint.GetValue();
+
+			// if not dynamic editing, show values without sign.
+			// negative values will be considered as sign reversion.
+			if(!dynamicEditing) {
+				value = Math.Abs(value);
+			}
+
+			input.text = value.ToString("0.#####");
 			valueChanged = vc;
 			input.MoveTextStart(true);
 			input.Select();
