@@ -10,7 +10,8 @@ public class EquationSystem  {
 		DIDNT_CONVEGE,
 		REDUNDANT,
 		POSTPONE,
-		INTERNAL_FAILURE
+		INTERNAL_FAILURE,
+		JUMP
 	}
 
 	bool isDirty = true;
@@ -19,6 +20,8 @@ public class EquationSystem  {
 	public int maxSteps = 20;
 	public int dragSteps = 3;
 	public bool revertWhenNotConverged = true;
+	public bool avoidJumping = true;
+	public double jumpFactor = 20.0;
 
 	Exp[,] J;
 	List<int>[] nzColumns;
@@ -121,6 +124,14 @@ public class EquationSystem  {
 		for(int i = 0; i < parameters.Count; i++) {
 			parameters[i].value = oldParamValues[i];
 		}
+	}
+	
+	double GetMaxParamChange() {
+		double result = 0.0;
+		for(int i = 0; i < parameters.Count; i++) {
+			result = Math.Max(Math.Abs(parameters[i].value - oldParamValues[i]), result);
+		}
+		return result;
 	}
 
 	Exp[,] WriteJacobian(List<Exp> equations, List<Param> parameters) {
@@ -398,11 +409,15 @@ public class EquationSystem  {
 		dofChanged = false;
 		UpdateDirty();
 		StoreParams();
+		double deviation = 0.0;
 		try {
 			int steps = 0;
 			do {
 				bool isDragStep = steps <= dragSteps;
 				Eval(ref B, clearDrag: !isDragStep);
+				if (steps == 0 && avoidJumping) {
+					deviation = B.Aggregate(0.0, (a, b) => Math.Max(a, Math.Abs(b)));
+				}
 				/*
 				if(steps > 0) {
 					BackSubstitution(subs);
@@ -410,6 +425,18 @@ public class EquationSystem  {
 				}
 				*/
 				if(IsConverged(checkDrag: isDragStep)) {
+					if(avoidJumping) {
+						var maxChange = GetMaxParamChange();
+						if(maxChange > jumpFactor * deviation) {
+							Debug.Log(String.Format("check jumping: inital deviation: {0}, max param change {1}", deviation, maxChange));
+							if(revertWhenNotConverged) {
+								RevertParams();
+								dofChanged = false;
+							}
+							return SolveResult.JUMP;
+
+						}
+					}
 					if(steps > 0) {
 						dofChanged = true;
 						Debug.Log(String.Format("solved {0} equations with {1} unknowns in {2} steps", equations.Count, currentParams.Count, steps));
@@ -424,18 +451,23 @@ public class EquationSystem  {
 					if (double.IsNaN(X[i])) {
 						continue;
 					}
+					if(X[i] > jumpFactor * deviation) {
+						bool stop = true;
+					}
 					currentParams[i].value -= X[i];
 				}
 			} while(steps++ <= maxSteps);
-			IsConverged(checkDrag: false, printNonConverged: true);
+			//IsConverged(checkDrag: false, printNonConverged: true);
 			if(revertWhenNotConverged) {
 				RevertParams();
 				dofChanged = false;
 			}
 		} catch (Exception e) {
 			Debug.LogError(e.Message);
-			RevertParams();
-			dofChanged = false;
+			if(revertWhenNotConverged) {
+				RevertParams();
+				dofChanged = false;
+			}
 			return SolveResult.INTERNAL_FAILURE;
 		}
 		return SolveResult.DIDNT_CONVEGE;
