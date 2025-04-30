@@ -216,13 +216,18 @@ public class LineTool : Tool {
 		var sk = DetailEditor.instance.currentSketch.GetSketch();
 		var mouseDir = (pos - p0).normalized;
 		var mouseLen = (pos - p0).magnitude;
-		if (!angleValueNotChanged) {
-			if(prev != null) {	
-				var pdir = (prev.GetLineP0(sk.plane).Eval() - prev.GetLineP1(sk.plane).Eval()).normalized;
-				mouseDir = Matrix4x4.Rotate(Quaternion.Euler(0.0f, 0.0f, (float)angleValue)) * pdir;
-			}
+		if(!angleValueNotChanged && prev != null) {
+			var pdir = (prev.GetLineP0(sk.plane).Eval() - prev.GetLineP1(sk.plane).Eval()).normalized;
+			mouseDir = Matrix4x4.Rotate(Quaternion.Euler(0.0f, 0.0f, (float)angleValue)) * pdir;
+		} else
+		if(Input.GetKey(KeyCode.LeftControl)) {
+			var angle = Mathf.Atan2(mouseDir.y, mouseDir.x);
+			var step = Mathf.PI / 4.0f;
+			angle = Mathf.Floor(angle / step + 0.5f) * step;
+			mouseDir.x = Mathf.Cos(angle);
+			mouseDir.y = Mathf.Sin(angle);
 		}
-		if (!dimensionValueNotChanged) {
+		if(!dimensionValueNotChanged) {
 			mouseLen = (float)dimensionValue;
 		}
 		return p0 + mouseDir * mouseLen;
@@ -252,99 +257,123 @@ public class LineTool : Tool {
 		displayLink?.Destroy();
 		displayLink = null;
 		SnapData snap = null;
-		if(editor.GetDetail().settings.autoconstraining && !sk.is3d && angleValueNotChanged) {
-			var snaps = new List<SnapData>();
+		bool isDirectionFixed = !angleValueNotChanged;
+		if(editor.GetDetail().settings.autoconstraining && !sk.is3d) {
+			if(!isDirectionFixed) {
+				var snaps = new List<SnapData>();
 
-			// snap to horizontality / verticality
-			snaps.Add(new SnapData(SnapType.Horizontal, Vector3.right));
-			snaps.Add(new SnapData(SnapType.Vertical, Vector3.up));
+				// snap to horizontality / verticality
+				snaps.Add(new SnapData(SnapType.Horizontal, Vector3.right));
+				snaps.Add(new SnapData(SnapType.Vertical, Vector3.up));
 		
-			// snap to previous segment
-			if(prev != null) {	
-				var pdir = prev.GetLineP0(sk.plane).Eval() - prev.GetLineP1(sk.plane).Eval();
-				snaps.Add(new SnapData(SnapType.Parallel, pdir));
-				var pperp = new Vector3(-pdir.y, pdir.x, pdir.z);
-				snaps.Add(new SnapData(SnapType.Perpendicular, pperp));
-			}
+				// snap to previous segment
+				if(prev != null) {	
+					var pdir = prev.GetLineP0(sk.plane).Eval() - prev.GetLineP1(sk.plane).Eval();
+					snaps.Add(new SnapData(SnapType.Parallel, pdir));
+					var pperp = new Vector3(-pdir.y, pdir.x, pdir.z);
+					snaps.Add(new SnapData(SnapType.Perpendicular, pperp));
+				}
 		
-			// snap parallelity to existing sketch segments
-			var dirs = new Dictionary<Vector3, SnapData>();
-			foreach(var e in current.sketch.entityList) {
-				if(e.type != IEntityType.Line) {
-					continue;
-				}
-				if(e == current) {
-					continue;
-				}
-				var eP0 = e.GetLineP0(sk.plane).Eval();
-				var eDir = e.GetLineP1(sk.plane).Eval() - eP0;
-				if(eDir == Vector3.zero) {
-					continue;
-				}
-				var eDirN = eDir.normalized;
-				if(dirs.TryGetValue(eDirN, out var dir) || dirs.TryGetValue(-eDirN, out dir)) {
-					var ePos = eP0 + eDir / 2f;
-					var eDist = (pos - ePos).sqrMagnitude;
-					if(dir.dist < eDist) {
+				// snap parallelity to existing sketch segments
+				var dirs = new Dictionary<Vector3, SnapData>();
+				foreach(var e in current.sketch.entityList) {
+					if(e.type != IEntityType.Line) {
 						continue;
-					} else {
-						dir.dist = eDist;
-						dir.entity = e;
 					}
-				} else {
-					dirs.Add(eDirN, new SnapData(SnapType.ParallelOther, eDir, e, (pos - (eP0 + eDir / 2f)).sqrMagnitude));
+					if(e == current) {
+						continue;
+					}
+					var eP0 = e.GetLineP0(sk.plane).Eval();
+					var eDir = e.GetLineP1(sk.plane).Eval() - eP0;
+					if(eDir == Vector3.zero) {
+						continue;
+					}
+					var eDirN = eDir.normalized;
+					if(dirs.TryGetValue(eDirN, out var dir) || dirs.TryGetValue(-eDirN, out dir)) {
+						var ePos = eP0 + eDir / 2f;
+						var eDist = (newPos - ePos).sqrMagnitude;
+						if(dir.dist < eDist) {
+							continue;
+						} else {
+							dir.dist = eDist;
+							dir.entity = e;
+						}
+					} else {
+						dirs.Add(eDirN, new SnapData(SnapType.ParallelOther, eDir, e, (pos - (eP0 + eDir / 2f)).sqrMagnitude));
+					}
+				}
+				snaps.AddRange(dirs.Values);
+		
+				snap = snaps
+					.Where(s => s.check(p0, newPos, out var _))
+					.OrderBy(s => { s.check(p0, newPos, out var diff); return diff; })
+					.FirstOrDefault();
+			
+				if(snap != null) { 
+					var proj = GeomUtils.projectPointToLine(newPos, p0, p0 + snap.dir);
+					newPos = proj;
+					if(snapType != snap.type) {
+						snapType = snap.type;
+						newSnapConstraint = createSnapConstraint(snap);
+						newSnapConstraint.enabled = false;
+					}
 				}
 			}
-			snaps.AddRange(dirs.Values);
-		
-			snap = snaps
-				.Where(s => s.check(p0, pos, out var _))
-				.OrderBy(s => { s.check(p0, pos, out var diff); return diff; })
-				.FirstOrDefault();
-			
-			if(snap != null) { 
-				var proj = GeomUtils.projectPointToLine(pos, p0, p0 + snap.dir);
-				newPos = proj;
-				
-				if(snapType != snap.type) {
-					snapType = snap.type;
-					newSnapConstraint = createSnapConstraint(snap);
-					newSnapConstraint.enabled = false;
-					
-					// find the second snapping for constraining perpendicular alignment to points
-					var perp = new Vector3(-snap.dir.y, snap.dir.x, snap.dir.z);
+			// find the second snapping for constraining perpendicular/h/v alignment to points
+			var newDir = (newPos - p0).normalized;
+			var perp = new Vector3(-newDir.y, newDir.x, newDir.z);
+			var secondDirs = new List<Vector3>{perp};
+			if(snap == null || snap.type != SnapType.Horizontal) {
+				secondDirs.Add(Vector3.right);
+			}
+			if(snap == null || snap.type != SnapType.Vertical) {
+				secondDirs.Add(Vector3.up);
+			}
 
-					float minDiff = -1f;
-					float minDist = -1f;
-					IEntity snapPoint = null;
+			float minDiff = -1f;
+			float minDist = -1f;
+			IEntity snapPoint = null;
+			Vector3 secondDir = Vector3.zero;
 
-					foreach(var e in current.sketch.entityList) {
-						if(e.type != IEntityType.Point) {
-							continue;
-						}
-						if(e == current.p0 || e == current.p1) {
-							continue;
-						}
-						var pt = e.GetPointPos(sk.plane);
+			foreach(var sDir in secondDirs) {
+				foreach(var e in current.sketch.entityList) {
+					if(e.type != IEntityType.Point) {
+						continue;
+					}
+					if(e == current.p0 || e == current.p1) {
+						continue;
+					}
+					var point = e as PointEntity;
+					if(point.GetConicidentPoints().Contains(current.p0)) {
+						continue;
+					}
+					var pt = e.GetPointPos(sk.plane);
 
-						if(SnapData.checkPointLine(newPos, pt, perp, out var diff)) {
-							if(minDiff < 0f || diff < minDiff + Mathf.Epsilon) {
-								if(Mathf.Abs(diff - minDiff) > Mathf.Epsilon || minDist < 0f || (newPos - pt).sqrMagnitude < minDist)
-								{
-									minDiff = diff;
-									minDist = (newPos - pt).sqrMagnitude;
-									snapPoint = e;
-								}
+					if(SnapData.checkPointLine(newPos, pt, sDir, out var diff)) {
+						if(minDiff < 0f || diff < minDiff + Mathf.Epsilon) {
+							if(Mathf.Abs(diff - minDiff) > Mathf.Epsilon || minDist < 0f || (newPos - pt).sqrMagnitude < minDist)
+							{
+								minDiff = diff;
+								minDist = (newPos - pt).sqrMagnitude;
+								snapPoint = e;
+								secondDir = sDir;
 							}
 						}
 					}
+				}
+			}
 
-					if(snapPoint != null) {
-						var snapPt = snapPoint.GetPointPos(sk.plane);
-						newPos = GeomUtils.projectPointToLine(newPos, snapPt, snapPt + perp);
-						displayLink = new DisplayLink(current.sketch, snapPoint, current.p1);
+			if(snapPoint != null) {
+				var snapPt = snapPoint.GetPointPos(sk.plane);
+				if(snap == null && !isDirectionFixed) {
+					newPos = GeomUtils.projectPointToLine(newPos, snapPt, snapPt + secondDir);
+				} else {
+					Vector3 itr = Vector3.zero;
+					if(GeomUtils.isLinesCrossed(p0, newPos, snapPt, snapPt + secondDir, ref itr, 1e-6f)) {
+						newPos = itr;
 					}
 				}
+				displayLink = new DisplayLink(current.sketch, snapPoint, current.p1);
 			}
 
 		}
