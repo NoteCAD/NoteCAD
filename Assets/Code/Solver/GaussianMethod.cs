@@ -88,15 +88,17 @@ public static class GaussianMethod {
 
 			if(max < epsilon) continue;
 
-			for(int c = 0; c < cols; c++) {
-				t = A[r, c];
-				A[r, c] = A[mr, c];
-				A[mr, c] = t;
-			}
+			if (mr != r) {
+				for(int c = r; c < cols; c++) {
+					t = A[r, c];
+					A[r, c] = A[mr, c];
+					A[mr, c] = t;
+				}
 
-			t = B[r];
-			B[r] = B[mr];
-			B[mr] = t;
+				t = B[r];
+				B[r] = B[mr];
+				B[mr] = t;
+			}
 
 			// normalize
 			/*
@@ -109,8 +111,10 @@ public static class GaussianMethod {
 
 			// 
 			for(int rr = r + 1; rr < rows; rr++) {
-				double coef = A[rr, r] / A[r, r];
-				if(coef == 0.0) continue;
+				double Arrr = A[rr, r];
+				if(Arrr == 0.0) continue;
+				double coef = Arrr / A[r, r];
+
 				/*
 				for(int c = r + 1; c < cols; c++) {
 					A[rr, c] -= A[r, c] * coef;
