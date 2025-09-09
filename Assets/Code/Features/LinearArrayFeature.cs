@@ -168,9 +168,9 @@ public class LinearArrayFeature : SketchFeature {
 		//Draw(GeometryUtility.CalculateFrustumPlanes(Camera.main), bounds, tf, 0, repeatCount - 1);
 	}
 
-	public override void DrawEntities(ICanvas canvas) {
+	public override void DrawEntities(ICanvas canvas, Func<Entity, bool> filter = null) {
 
-		base.DrawEntities(canvas);
+		base.DrawEntities(canvas, filter);
 	}
 
 	/*

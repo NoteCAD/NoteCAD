@@ -26,6 +26,14 @@ public static class SystemExt {
 		return value.ToString(nfi);
 	}
 
+	public static string ToLStr(this double value) {
+		return value.ToString(nfi).ToLower();
+	}
+
+	public static string ToLStr(this float value) {
+		return value.ToString(nfi).ToLower();
+	}
+
 	public static void ToEnum<T>(this string str, ref T e) {
 		e = (T)Enum.Parse(e.GetType(), str);
 	}

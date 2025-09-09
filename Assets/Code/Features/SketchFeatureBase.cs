@@ -145,9 +145,10 @@ public class SketchFeatureBase : Feature {
 		return sketch.IsEntitiesChanged() || sketch.IsConstraintsChanged();
 	}
 
-	public virtual void DrawEntities(ICanvas canvas) {
+	public virtual void DrawEntities(ICanvas canvas, Func<Entity, bool> filter = null) {
 		foreach(var e in sketch.entityList) {
 			if(!e.isVisible) continue;
+			if(filter != null && !filter(e)) continue;
 			if(e.style == null) {
 				canvas.SetStyle("entities");
 			} else {

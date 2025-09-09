@@ -22,6 +22,7 @@ public class Style {
 	public bool construction = false;
 	public bool export = true;
 	public int pen = 0;
+	public int speed = 0;
 	public StrokeStyle stroke = new StrokeStyle();
 
 
@@ -42,6 +43,7 @@ public class Style {
 		stroke.color.b = xml.Attributes["b"].Value.ToFloat();
 		stroke.color.a = xml.Attributes["a"].Value.ToFloat();
 		if(xml.Attributes["pen"] != null) pen = Convert.ToInt32(xml.Attributes["pen"].Value);
+		if(xml.Attributes["speed"] != null) pen = Convert.ToInt32(xml.Attributes["speed"].Value);
 		if(xml.Attributes["construction"] != null) construction = Convert.ToBoolean(xml.Attributes["construction"].Value);
 		if(xml.Attributes["export"] != null) export = Convert.ToBoolean(xml.Attributes["export"].Value);
 		var sep = new char[1] { ' ' };
@@ -67,6 +69,7 @@ public class Style {
 		xml.WriteAttribute("b", stroke.color.b);
 		xml.WriteAttribute("a", stroke.color.a);
 		xml.WriteAttribute("pen", pen);
+		xml.WriteAttribute("speed", speed);
 		xml.WriteAttribute("construction", construction);
 		xml.WriteAttribute("export", export);
 		string dashes = "";

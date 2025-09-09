@@ -923,6 +923,11 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 114924300170107960, guid: e382519b57d9f484993da1e0c026a1f0,
+        type: 3}
+      propertyPath: font
+      value: 
+      objectReference: {fileID: 4900000, guid: 46fe8f6365e8d1242928746f8e5152c8, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -10219,7 +10224,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 281396480}
   m_HandleRect: {fileID: 281396479}
   m_Direction: 2
-  m_Value: 1
+  m_Value: 0
   m_Size: 1
   m_NumberOfSteps: 0
   m_OnValueChanged:
