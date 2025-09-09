@@ -12,18 +12,69 @@ public class TextEntity : Entity, ILoopEntity {
 	[NonSerialized]
 	public PointEntity[] p = new PointEntity[4];
 	
+	[Flags]
+	public enum Alignment {
+		Fit		= 0 << 0,
+		Stretch	= 1 << 0,
+		
+		Left	= 1 << 1,
+		Right	= 1 << 2,
+		Top		= 1 << 3,
+		Bottom	= 1 << 4,
+
+		TopLeft		= Top | Left,
+		TopRight	= Top | Right,
+		BottomLeft	= Bottom | Left,
+		BottomRight	= Bottom | Right,
+
+		Center		= Top | Bottom | Left | Right,
+	}
+
+
 	string text_ = "";
 	public string text {
 		get {
 			return text_;
 		}
-
 		set {
 			text_ = value;
 			UpdateText();
 		}
-
 	}
+
+	double fontSize_ = 1.0f;
+	public double fontSize {
+		get {
+			return fontSize_;
+		}
+		set {
+			fontSize_ = value;
+			sketch.MarkDirtySketch(topo: true);
+		}
+	}
+
+	double margin_ = 0.0f;
+	public double margin {
+		get {
+			return margin_;
+		}
+		set {
+			margin_ = value;
+			sketch.MarkDirtySketch(topo: true);
+		}
+	}
+
+	Alignment alignment_ = Alignment.Fit;
+	public Alignment alignment {
+		get {
+			return alignment_;
+		}
+		set {
+			alignment_ = value;
+			sketch.MarkDirtySketch(topo: true);
+		}
+	}
+
 
 	public TextEntity(Sketch sk) : base(sk) {
 		for(int i = 0; i < p.Length; i++) {
@@ -75,7 +126,7 @@ public class TextEntity : Entity, ILoopEntity {
 			points = new List<Vector3>();
 			loops.Add(points);
 			points.Add(cur);
-			Debug.Log("MoveTo");
+			//Debug.Log("MoveTo");
 		}
 		
 		UnityEngine.Vector3 Bezier(UnityEngine.Vector3 p0, UnityEngine.Vector3 p1, UnityEngine.Vector3 p2, float t) {
@@ -183,6 +234,9 @@ public class TextEntity : Entity, ILoopEntity {
 	}
 
 	public void UpdatePoints() {
+		if (alignment_ != Alignment.Fit) {
+			return;
+		}
 		var v = p[3].pos - p[0].pos;
 		var ext = bound.size;
 		var u = new Vector3(v.y, -v.x, v.z) * ext.x / ext.y;
@@ -193,25 +247,64 @@ public class TextEntity : Entity, ILoopEntity {
 
 	public override IEnumerable<Exp> equations {
 		get {
-			var u = p[1].exp - p[0].exp;
-			var ext = bound.size;
-			var v = new ExpVector(-u.y, u.x, u.z) * ext.y / ext.x;
+			if (alignment_ == Alignment.Fit) {
+				var u = p[1].exp - p[0].exp;
+				var ext = bound.size;
+				var v = new ExpVector(-u.y, u.x, u.z) * ext.y / ext.x;
 
-			var eq0 = p[3].exp - (p[0].exp + v);
-			yield return eq0.x;
-			yield return eq0.y;
+				var eq0 = p[3].exp - (p[0].exp + v);
+				yield return eq0.x;
+				yield return eq0.y;
 
-			var eq1 = p[2].exp - (p[0].exp + v + u);
-			yield return eq1.x;
-			yield return eq1.y;
+				var eq1 = p[2].exp - (p[0].exp + v + u);
+				yield return eq1.x;
+				yield return eq1.y;
+			} else {
+				var u = p[1].exp - p[0].exp;
+				var v = p[3].exp - p[0].exp;
+
+				var cross = ExpVector.Cross(u, v);
+				var dot = ExpVector.Dot(u, v);
+				yield return Exp.Atan2(cross.Magnitude(), dot) - Math.PI / 2;
+
+				var eq = p[2].exp - (p[1].exp + v);
+				yield return eq.x;
+				yield return eq.y;
+			}
 		}
+	}
+
+	float alignCoeff(bool min, bool max) {
+		return min ? (max ? 0.5f : 0.0f) : (max ? 1.0f : 0.5f);
 	}
 
 	public IEnumerable<IEnumerable<Vector3>> loopPoints {
 		get {
-			var pos = p[0].pos;
-			var u = (p[1].pos - pos) / (bound.size.x);
-			var v = (p[3].pos - pos) / (bound.size.y);
+			Vector3 pos;
+			Vector3 u;
+			Vector3 v;
+			float m = (float)margin;
+			if (alignment_ == Alignment.Fit || alignment_ == Alignment.Stretch) {
+				pos = p[0].pos;
+				u = (p[1].pos - pos) / (bound.size.x);
+				v = (p[3].pos - pos) / (bound.size.y);
+			} else {
+				var ud = p[1].pos - p[0].pos;
+				var vd = p[3].pos - p[0].pos;
+				var un = ud.normalized;
+				var vn = vd.normalized;
+				u = un * (float)fontSize_;
+				v = vn * (float)fontSize_;
+				
+				float ku = alignCoeff(alignment_.HasFlag(Alignment.Left), alignment_.HasFlag(Alignment.Right));
+				float kv = alignCoeff(alignment_.HasFlag(Alignment.Bottom), alignment_.HasFlag(Alignment.Top));
+
+				pos = p[0].pos 
+					- un * (ku * 2.0f - 1.0f) * m
+					- vn * (kv * 2.0f - 1.0f) * m
+					+ ud * ku - u * ku * bound.size.x
+					+ vd * kv - v * kv * bound.size.y;
+			}
 			foreach(var l in fontRenderer.loops) {
 				yield return transform(u, v, pos, l);
 			}
@@ -236,10 +329,22 @@ public class TextEntity : Entity, ILoopEntity {
 
 	protected override void OnWrite(Writer xml) {
 		xml.WriteAttribute("text", text_);
+		xml.WriteAttribute("fontSize", fontSize_);
+		if (margin_ != 0.0) xml.WriteAttribute("margin", margin_);
+		if (alignment_ != Alignment.Fit) xml.WriteAttribute("alignment", alignment_.ToString());
 	}
 
 	protected override void OnRead(XmlNode xml) {
 		text = xml.Attributes["text"].Value;
+		if (xml.Attributes["fontSize"] != null) {
+			fontSize_ = xml.Attributes["fontSize"].Value.ToDouble();
+		}
+		if (xml.Attributes["margin"] != null) {
+			margin_ = xml.Attributes["margin"].Value.ToDouble();
+		}
+		if (xml.Attributes["alignment"] != null) {
+			xml.Attributes["alignment"].Value.ToEnum(ref alignment_);
+		}
 	}
 
 }
