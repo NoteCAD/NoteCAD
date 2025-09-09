@@ -290,7 +290,7 @@ public class DetailEditor : MonoBehaviour {
 			if(res == EquationSystem.SolveResult.DIDNT_CONVEGE) {
 				suppressSolve = true;
 			}
-			if(currentSketch.GetSketch().HasNonSolvable()) {
+			if(currentSketch != null && currentSketch.GetSketch().HasNonSolvable()) {
 				Debug.Log("Resolve because of non solvable");
 				UpdateSystem();
 
