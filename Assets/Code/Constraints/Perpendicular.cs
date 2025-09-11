@@ -36,6 +36,8 @@ public class Perpendicular : Constraint {
 			//yield return (ExpVector.Cross(d0, d1) / d0.Magnitude() / d1.Magnitude()).Magnitude() - 1.0;
 			//yield return ExpVector.Dot(d0, d1) / d0.Magnitude() / d1.Magnitude();
 			//yield return ExpVector.Dot(d0, d1);
+			//yield return (d1 - d0).MagnitudeSqr() - (d0.MagnitudeSqr() + d1.MagnitudeSqr());
+			//yield break;
 			
 			Exp angle = sketch.is3d ? ConstraintExp.angle3d(d0, d1) : ConstraintExp.angle2d(d0, d1);
 			switch(option) {
