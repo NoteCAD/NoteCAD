@@ -431,6 +431,7 @@ public class DetailEditor : MonoBehaviour {
 
 	private void OnGUI() {
 		GUIStyle style = new GUIStyle();
+		style.richText = false;
 		style.alignment = TextAnchor.MiddleCenter;
 		style.font = EntityConfig.instance.systemFont;
 		style.fontSize = (int)(16f * (Screen.dpi / 100f));
