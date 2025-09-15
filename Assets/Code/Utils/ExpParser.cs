@@ -235,9 +235,9 @@ public class ExpParser {
     
     bool ParseAlphas(ref string alphas) {
 		if(!HasNext()) error("operand exepted");
-        if(!IsAlpha(next)) return false;
+        if(!IsAlpha(next) && next != '_') return false;
         var start = index;
-        while(HasNext() && (IsAlpha(next) || IsDigit(next))) index++;
+        while(HasNext() && (IsAlpha(next) || IsDigit(next) || next == '_')) index++;
         alphas = toParse.Substring(start, index - start);
 		return true;
     }
