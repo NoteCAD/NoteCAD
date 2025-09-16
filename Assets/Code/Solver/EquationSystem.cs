@@ -231,6 +231,8 @@ public class EquationSystem  {
 		UnityEngine.Profiling.Profiler.BeginSample("MakeAAT: A^T * A");
 		//var time = Time.realtimeSinceStartup;
 
+		//Array.Clear(AAT, 0, AAT.Length);
+		
 		for(int r = 0; r < rows; r++) {
 			for(int c = 0; c < rows; c++) {
 				AAT[r, c] = 0.0;
@@ -246,7 +248,7 @@ public class EquationSystem  {
 			}
 		}
 
-		//Debug.Log("MakeAAT time " + (Time.realtimeSinceStartup - time) * 1000);
+		//Debug.Log($"MakeAAT({rows}x{cols}) time " + (Time.realtimeSinceStartup - time) * 1000);
 		UnityEngine.Profiling.Profiler.EndSample();
 	}
 
