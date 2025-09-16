@@ -180,7 +180,7 @@ public static class GaussianMethod {
 			X[r] = xx;
 		}
 		UnityEngine.Profiling.Profiler.EndSample();
-		//Debug.Log("GaussianMethod.Solve time " + (Time.realtimeSinceStartup - time) * 1000);
+		//Debug.Log($"GaussianMethod.Solve({rows}x{cols}) time " + (Time.realtimeSinceStartup - time) * 1000);
 	}
 
 }
