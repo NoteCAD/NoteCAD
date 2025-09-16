@@ -28,6 +28,62 @@ public class ExportSTLTool : Tool {
 			tool = t;
 		}
 
+		[RuntimeInspectorNamespace.RuntimeInspectorButton("TextFillup", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
+		public void TextFillup() {
+			if (DetailEditor.instance.currentSketch == null) {
+				return;
+			}
+			NoteCADJS.LoadData(FillupLoaded, "isp");
+		}
+
+		void FillupLoaded(string data) {
+			if (DetailEditor.instance.currentSketch == null) {
+				return;
+			}
+			DetailEditor.instance.PushUndo();
+			var lines = data.Split('\n');
+			var fillup = new Dictionary<string, string>();
+			foreach(var l in lines) {
+				var assignIndex = l.IndexOf("=");
+				if(assignIndex == -1) {
+					continue;
+				}
+				var key = l.Substring(0, assignIndex).Trim();
+				var endIndex = l.IndexOfAny(new char[] {'\n', '\r', '#'});
+				if(endIndex == -1) {
+					endIndex = l.Length;
+				}
+				var value = l.Substring(assignIndex + 1, endIndex - assignIndex - 1).Trim();
+				Debug.Log($"{key} = {value}");
+				fillup[key] = value;
+			}
+
+			foreach(var e in DetailEditor.instance.currentSketch.GetSketch().entityList) {
+				if (e is TextEntity text) {
+					var str = text.text;
+					int ampIndex;
+					while ((ampIndex = str.IndexOf("&")) != -1) {
+						var endIndex = str.IndexOfAny(new char[] {' ', '\n', '\r', '#'}, ampIndex);
+						if(endIndex == -1) {
+							endIndex = str.Length;
+						}
+						var key = str.Substring(ampIndex + 1, endIndex - ampIndex - 1);
+						if(!fillup.ContainsKey(key)) {
+							Debug.Log($"Unknown fillup key \"{key}\"");
+							var sb = new StringBuilder(str);
+							sb[ampIndex] = '?';
+							str = sb.ToString();
+							continue;
+						}
+						var replacer = fillup[key];//.Replace('3', '5');
+						str = str.Replace("&" + key, replacer);
+					}
+					text.text = str;
+				}
+			}
+			DetailEditor.instance.currentSketch.GetSketch().MarkDirtySketch(topo:true);
+		}
+
 		[RuntimeInspectorNamespace.RuntimeInspectorButton("Export", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
 		public void Export() {
 			tool.StopTool();
