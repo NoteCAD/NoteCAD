@@ -33,7 +33,7 @@ public class Param {
 		exp = new Exp(this);
 	}
 
-	public string ToString() {
+	public override string ToString() {
 		return name;
 	}
 
