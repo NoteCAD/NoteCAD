@@ -20,8 +20,9 @@ public class EquationSystem  {
 	public int maxSteps = 20;
 	public int dragSteps = 3;
 	public bool revertWhenNotConverged = true;
-	public bool avoidJumping = true;
+	public bool avoidJumping = false;
 	public double jumpFactor = 20.0;
+	public int perturbationSteps = 0;
 
 	Exp[,] J;
 	List<int>[] nzColumns;
@@ -96,6 +97,10 @@ public class EquationSystem  {
 				continue;
 			}
 			B[i] = equations[i].Eval();
+			if(double.IsNaN(B[i])) {
+				Debug.Log("B[i] Nan for equation " + equations[i].ToString());
+				B[i] = 0.0;
+			}
 		}
 	}
 
@@ -106,7 +111,7 @@ public class EquationSystem  {
 			}
 			if(Math.Abs(B[i]) < GaussianMethod.epsilon) continue;
 			if(printNonConverged) {
-				//Debug.Log("Not converged: " + equations[i].ToString());
+				Debug.Log($"Not converged {Math.Abs(B[i])}: " + equations[i].ToString());
 				continue;
 			}
 			return false;
@@ -123,6 +128,13 @@ public class EquationSystem  {
 	void RevertParams() {
 		for(int i = 0; i < parameters.Count; i++) {
 			parameters[i].value = oldParamValues[i];
+		}
+	}
+
+	void PerturbParams(double range) {
+		var random = new System.Random(Guid.NewGuid().GetHashCode());
+		for(int i = 0; i < parameters.Count; i++) {
+			parameters[i].value += (random.NextDouble() * 2.0 - 1.0) * range;
 		}
 	}
 	
@@ -413,56 +425,62 @@ public class EquationSystem  {
 		StoreParams();
 		double deviation = 0.0;
 		try {
-			int steps = 0;
-			do {
-				bool isDragStep = steps <= dragSteps;
-				Eval(ref B, clearDrag: !isDragStep);
-				if (steps == 0 && avoidJumping) {
-					deviation = B.Aggregate(0.0, (a, b) => Math.Max(a, Math.Abs(b)));
-				}
-				/*
-				if(steps > 0) {
-					BackSubstitution(subs);
-					return SolveResult.POSTPONE;
-				}
-				*/
-				if(IsConverged(checkDrag: isDragStep)) {
-					if(avoidJumping) {
-						var maxChange = GetMaxParamChange();
-						if(maxChange > jumpFactor * deviation) {
-							Debug.Log(String.Format("check jumping: inital deviation: {0}, max param change {1}", deviation, maxChange));
-							if(revertWhenNotConverged) {
-								RevertParams();
-								dofChanged = false;
-							}
-							return SolveResult.JUMP;
-
-						}
+			for(int p = 0; p <= perturbationSteps; p++) {
+				int steps = 0;
+				do {
+					bool isDragStep = steps <= dragSteps;
+					Eval(ref B, clearDrag: !isDragStep);
+					if (steps == 0 && avoidJumping) {
+						deviation = B.Aggregate(0.0, (a, b) => Math.Max(a, Math.Abs(b)));
 					}
+					/*
 					if(steps > 0) {
-						dofChanged = true;
-						Debug.Log(String.Format("solved {0} equations with {1} unknowns in {2} steps", equations.Count, currentParams.Count, steps));
+						BackSubstitution(subs);
+						return SolveResult.POSTPONE;
 					}
-					stats = String.Format("eqs:{0}\nunkn: {1}", equations.Count, currentParams.Count);
+					*/
+					if(IsConverged(checkDrag: isDragStep)) {
+						if(avoidJumping) {
+							var maxChange = GetMaxParamChange();
+							if(maxChange > jumpFactor * deviation) {
+								Debug.Log(String.Format("check jumping: inital deviation: {0}, max param change {1}", deviation, maxChange));
+								if(revertWhenNotConverged) {
+									RevertParams();
+									dofChanged = false;
+								}
+								return SolveResult.JUMP;
+
+							}
+						}
+						if(steps > 0) {
+							dofChanged = true;
+							Debug.Log(String.Format("solved {0} equations with {1} unknowns in {2} steps", equations.Count, currentParams.Count, steps));
+						}
+						stats = String.Format("eqs:{0}\nunkn: {1}", equations.Count, currentParams.Count);
+						BackSubstitution(subs);
+						return SolveResult.OKAY;
+					}
+					EvalJacobian(J, ref A, clearDrag: !isDragStep);
+					SolveLeastSquares(A, B, ref X);
+					for(int i = 0; i < currentParams.Count; i++) {
+						if (double.IsNaN(X[i])) {
+							continue;
+						}
+						currentParams[i].value -= X[i];
+					}
+				} while(steps++ <= maxSteps);
+				//IsConverged(checkDrag: false, printNonConverged: true);
+				if(revertWhenNotConverged) {
+					RevertParams();
+					if(p < perturbationSteps) {
+						Debug.Log("Solve Failed, perforoming perturbation");
+						PerturbParams(0.01);
+					}
+					dofChanged = false;
+				} else {
 					BackSubstitution(subs);
-					return SolveResult.OKAY;
+					IsConverged(checkDrag: false, printNonConverged: true);
 				}
-				EvalJacobian(J, ref A, clearDrag: !isDragStep);
-				SolveLeastSquares(A, B, ref X);
-				for(int i = 0; i < currentParams.Count; i++) {
-					if (double.IsNaN(X[i])) {
-						continue;
-					}
-					if(X[i] > jumpFactor * deviation) {
-						bool stop = true;
-					}
-					currentParams[i].value -= X[i];
-				}
-			} while(steps++ <= maxSteps);
-			//IsConverged(checkDrag: false, printNonConverged: true);
-			if(revertWhenNotConverged) {
-				RevertParams();
-				dofChanged = false;
 			}
 		} catch (Exception e) {
 			Debug.LogError(e.Message);
