@@ -339,7 +339,7 @@ public class Exp {
 			case Op.Cos:	return Math.Cos(a.Eval());
 			case Op.ACos:	return Math.Acos(a.Eval());
 			case Op.ASin:	return Math.Asin(a.Eval());
-			case Op.Sqrt:	return Math.Sqrt(a.Eval());
+			case Op.Sqrt:	return Math.Sqrt(Math.Max(a.Eval(), 0.0));
 			case Op.Sqr:	{  double av = a.Eval(); return av * av; }
 			case Op.Atan2:	return Math.Atan2(a.Eval(), b.Eval());
 			case Op.Abs:	return Math.Abs(a.Eval());
