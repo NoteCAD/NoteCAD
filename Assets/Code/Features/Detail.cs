@@ -22,39 +22,52 @@ public class DetailSettings {
 		XML
 	}
 
+	public enum DisplayPoints {
+		All,
+		CentersAndPoints,
+		Points,
+		None
+	}
+
 	public LengthMeasurementSystem lengthMeasurement = LengthMeasurementSystem.Millimetre;
 	public bool showConstraints = true;
 	public bool showDimensions = true;
+	public DisplayPoints displayPoints = DisplayPoints.All;
 	public bool autoconstraining = true;
 	public bool drawingDimensions = true;
-	public bool checkSketchErros = true;
+	public bool checkSketchErrors = true;
 	public bool detectContours = true;
 	public bool useMeshProvider = false;
+	public bool suppressSolver = false;
 	public string meshProvider = "http://localhost:8070/api?method=GenerateMesh";
 	public MeshProviderFormat providerFormat = MeshProviderFormat.JSON;
 	
 	public void Write(Writer xml) {
 		xml.WriteBeginElement("settings");
-		xml.WriteAttribute("lengthMeasurement", lengthMeasurement.ToString());
-		xml.WriteAttribute("showConstraints", showConstraints);
-		xml.WriteAttribute("showDimensions", showDimensions);
-		xml.WriteAttribute("autoconstraining", showDimensions);
-		xml.WriteAttribute("drawingDimensions", drawingDimensions);
-		xml.WriteAttribute("checkSketchErros", checkSketchErros);
-		xml.WriteAttribute("detectContours", detectContours);
+		xml.WriteAttribute(nameof(lengthMeasurement), lengthMeasurement.ToString());
+		xml.WriteAttribute(nameof(showConstraints), showConstraints);
+		xml.WriteAttribute(nameof(showDimensions), showDimensions);
+		xml.WriteAttribute(nameof(displayPoints), displayPoints);
+		xml.WriteAttribute(nameof(autoconstraining), showDimensions);
+		xml.WriteAttribute(nameof(drawingDimensions), drawingDimensions);
+		xml.WriteAttribute(nameof(checkSketchErrors), checkSketchErrors);
+		xml.WriteAttribute(nameof(detectContours), detectContours);
+		xml.WriteAttribute(nameof(suppressSolver), suppressSolver);
 		xml.WriteEndElement();
 	}
 
 	public void Read(XmlNode xml) {
 		foreach(XmlNode xmlChild in xml.ChildNodes) {
 			if(xmlChild.Name != "settings") continue;
-			xmlChild.Attributes["lengthMeasurement"].Value.ToEnum(ref lengthMeasurement);
-			if(xmlChild.Attributes["showConstraints"] != null) showConstraints = Convert.ToBoolean(xmlChild.Attributes["showConstraints"].Value);
-			if(xmlChild.Attributes["showDimensions"] != null) showDimensions = Convert.ToBoolean(xmlChild.Attributes["showDimensions"].Value);
-			if(xmlChild.Attributes["autoconstraining"] != null) autoconstraining = Convert.ToBoolean(xmlChild.Attributes["autoconstraining"].Value);
-			if(xmlChild.Attributes["drawingDimensions"] != null) drawingDimensions = Convert.ToBoolean(xmlChild.Attributes["drawingDimensions"].Value);
-			if(xmlChild.Attributes["checkSketchErros"] != null) checkSketchErros = Convert.ToBoolean(xmlChild.Attributes["checkSketchErros"].Value);
-			if(xmlChild.Attributes["detectContours"] != null) detectContours = Convert.ToBoolean(xmlChild.Attributes["detectContours"].Value);
+			xmlChild.GetAttribute(nameof(lengthMeasurement), ref lengthMeasurement);
+			xmlChild.GetAttribute(nameof(showConstraints), ref showConstraints);
+			xmlChild.GetAttribute(nameof(showDimensions), ref showDimensions);
+			xmlChild.GetAttribute(nameof(displayPoints), ref displayPoints);
+			xmlChild.GetAttribute(nameof(autoconstraining), ref autoconstraining);
+			xmlChild.GetAttribute(nameof(drawingDimensions), ref drawingDimensions);
+			xmlChild.GetAttribute(nameof(checkSketchErrors), ref checkSketchErrors);
+			xmlChild.GetAttribute(nameof(detectContours), ref detectContours);
+			xmlChild.GetAttribute(nameof(suppressSolver), ref suppressSolver);
 		}
 	}
 

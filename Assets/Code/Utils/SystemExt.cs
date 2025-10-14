@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Xml;
 
 public static class SystemExt {
 	static NumberFormatInfo nfi = new NumberFormatInfo();
@@ -34,11 +35,11 @@ public static class SystemExt {
 		return value.ToString(nfi).ToLower();
 	}
 
-	public static void ToEnum<T>(this string str, ref T e) {
+	public static void ToEnum<T>(this string str, ref T e) where T: Enum {
 		e = (T)Enum.Parse(e.GetType(), str);
 	}
 
-	public static T ToEnum<T>(this string str) {
+	public static T ToEnum<T>(this string str) where T: Enum {
 		return (T)Enum.Parse(typeof(T), str);
 	}
 
@@ -53,4 +54,36 @@ public static class SystemExt {
 		a = b;
 		b = t;
 	}
+
+	public static void GetAttribute(this XmlNode xml, string key, ref bool value) {
+		if(xml.Attributes[key] != null) {
+			value = Convert.ToBoolean(xml.Attributes[key].Value);
+		}
+	}
+
+	public static void GetAttribute(this XmlNode xml, string key, ref int value) {
+		if(xml.Attributes[key] != null) {
+			value = Convert.ToInt32(xml.Attributes[key].Value);
+		}
+	}
+
+	public static void GetAttribute(this XmlNode xml, string key, ref double value) {
+		if(xml.Attributes[key] != null) {
+			value = Convert.ToDouble(xml.Attributes[key].Value);
+		}
+	
+	}
+
+	public static void GetAttribute(this XmlNode xml, string key, ref string value) {
+		if(xml.Attributes[key] != null) {
+			value = xml.Attributes[key].Value;
+		}
+	}
+
+	public static void GetAttribute<T>(this XmlNode xml, string key, ref T value) where T: Enum {
+		if(xml.Attributes[key] != null) {
+			xml.Attributes[key].Value.ToEnum(ref value);
+		}
+	}
+
 }

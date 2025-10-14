@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Xml;
+using NoteCAD;
 
 [Serializable]
 public class FunctionEntity : Entity, ISegmentaryEntity {

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
 [Serializable]
 public class LineEntity : Entity, ISegmentaryEntity {

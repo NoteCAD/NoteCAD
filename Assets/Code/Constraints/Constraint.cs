@@ -4,15 +4,18 @@ using System;
 using UnityEngine;
 using System.Xml.Serialization;
 using System.Linq;
+using NoteCAD;
 
-public abstract partial class Entity {
+namespace NoteCAD {
+	public abstract partial class Entity {
 
-	internal void AddConstraint(Constraint c) {
-		usedInConstraints.Add(c);
-	}
+		internal void AddConstraint(Constraint c) {
+			usedInConstraints.Add(c);
+		}
 
-	internal void RemoveConstraint(Constraint c) {
-		usedInConstraints.Remove(c);
+		internal void RemoveConstraint(Constraint c) {
+			usedInConstraints.Remove(c);
+		}
 	}
 }
 

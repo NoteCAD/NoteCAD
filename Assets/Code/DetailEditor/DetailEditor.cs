@@ -9,6 +9,7 @@ using RuntimeInspectorNamespace;
 using System.IO;
 using System.Xml;
 using UnityEngine.Networking;
+using NoteCAD;
 
 public delegate bool HoverFilter(ICADObject co);
 
@@ -163,7 +164,7 @@ public class DetailEditor : MonoBehaviour {
 		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas, transform);
 		if(NoteCADJS.GetParam("filename") != "") {
 			var uri = new Uri(Application.absoluteURL);
-			var url = "http://" + uri.Host + ":" + uri.Port + "/Files/" + NoteCADJS.GetParam("filename");
+			var url = "https://" + uri.Host + ":" + uri.Port + "/Files/" + NoteCADJS.GetParam("filename");
 			StartCoroutine(LoadWWWFile(url));
 		}
 	}
@@ -279,7 +280,7 @@ public class DetailEditor : MonoBehaviour {
 	}
 
 	public void Update() {
-		if(activeFeature != null) {
+		if(activeFeature != null && ! detail.settings.suppressSolver) {
 			if(currentSketch != null && (currentSketch.GetSketch().IsConstraintsChanged() || currentSketch.GetSketch().IsEntitiesChanged()) || sys.IsDirty) {
 				suppressSolve = false;
 			}
@@ -320,6 +321,10 @@ public class DetailEditor : MonoBehaviour {
 			//result += sys.stats;
 			if (resultText != null) {
 				resultText.text = result.ToString();
+			}
+		} else {
+			if (resultText != null) {
+				resultText.text = "Solver suppressed";
 			}
 		}
 		if (detailName != null) {
@@ -362,7 +367,7 @@ public class DetailEditor : MonoBehaviour {
 		canvas.ClearStyle("hovered");
 		canvas.ClearStyle("hoveredPoints");
 		if(hovered != null) {
-			DrawCadObject(hovered, "hovered");
+			DrawCadObject(hovered, "hovered", true);
 		}
 
 		canvas.ClearStyle("selected");
@@ -370,7 +375,7 @@ public class DetailEditor : MonoBehaviour {
 		foreach(var idp in selection) {
 			var obj = detail.GetObjectById(idp);
 			if(obj == null) continue;
-			DrawCadObject(obj, "selected");
+			DrawCadObject(obj, "selected", selection.Count == 1);
 		}
 
 		if(!toolInspector) {
@@ -393,13 +398,19 @@ public class DetailEditor : MonoBehaviour {
 		}
 	}
 
-	void DrawCadObject(ICADObject obj, string style) {
+	void DrawCadObject(ICADObject obj, string style, bool drawPoints) {
 		var sko = obj as SketchObject;
 		if(sko != null && !sko.isVisible) return;
 		var he = obj as IEntity;
 		canvas.SetStyle((he != null && he.type == IEntityType.Point) ? style + "Points" : style);
 		if(he != null) {
 			canvas.DrawSegments((obj as IEntity).SegmentsInPlane(null));
+			if (drawPoints && detail.settings.displayPoints != DetailSettings.DisplayPoints.All) {
+				canvas.SetStyle(style + "Points");
+				foreach(var p in he.points) {
+					canvas.DrawPoint(p.Eval());
+				}
+			}
 		} else
 		if(sko != null) {
 			sko.Draw(canvas);

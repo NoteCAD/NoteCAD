@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 [Serializable]
 public class SketchFeature : SketchFeatureBase, IPlane {
@@ -126,7 +127,7 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 	}
 
 	void CreateLoops() {
-		if(detail.settings.checkSketchErros) {
+		if(detail.settings.checkSketchErrors) {
 			var itr = new Vector3();
 			foreach(var l in loops) {
 				var loop = l.OfType<Entity>();

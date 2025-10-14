@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Xml;
 using System.Linq;
+using NoteCAD;
 
 [Serializable]
 public class OffsetEntity : Entity, ISegmentaryEntity {

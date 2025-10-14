@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Xml;
 using System;
 using System.Text;
+using NoteCAD;
 
 public class ExportSTLTool : Tool {
 

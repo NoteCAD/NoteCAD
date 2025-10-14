@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 class ArrayEntity : IEntity {
 	IEntity entity;

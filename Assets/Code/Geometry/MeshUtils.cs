@@ -5,6 +5,7 @@ using System.Linq;
 using Csg;
 using g3;
 using System;
+using NoteCAD;
 
 public static class MeshUtils {
 

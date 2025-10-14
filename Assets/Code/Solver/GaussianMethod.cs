@@ -69,7 +69,8 @@ public static class GaussianMethod {
 	}
 
 	public static void Solve(double[,] A, double[] B, ref double[] X) {
-
+		//var A0 = A.Clone() as double[,];
+		//var B0 = B.Clone() as double[];
 		UnityEngine.Profiling.Profiler.BeginSample("GaussianMethod.Solve");
 		//var time = Time.realtimeSinceStartup;
 		var rows = A.GetLength(0);
@@ -179,8 +180,25 @@ public static class GaussianMethod {
 			}
 			X[r] = xx;
 		}
+		//Debug.Log("Solution success: " + CheckSolution(A0, B0, X));
 		UnityEngine.Profiling.Profiler.EndSample();
 		//Debug.Log($"GaussianMethod.Solve({rows}x{cols}) time " + (Time.realtimeSinceStartup - time) * 1000);
+	}
+	
+	public static bool CheckSolution(double[,] A, double[] B, double[] X) {
+		var rows = A.GetLength(0);
+		var cols = A.GetLength(1);
+
+		for(int r = 0; r < rows; r++) {
+			double sum = 0.0;
+			for(int c = 0; c < cols; c++) {
+				sum += A[r, c] * X[c];
+			}
+			if(Math.Abs(sum - B[r]) > epsilon) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 }

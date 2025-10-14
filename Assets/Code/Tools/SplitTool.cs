@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
 public class SplitTool : Tool {
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {

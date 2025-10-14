@@ -2,6 +2,7 @@
 using UnityEngine;
 using System;
 using System.Xml;
+using NoteCAD;
 
 [Serializable]
 public class Diameter : ValueConstraint {

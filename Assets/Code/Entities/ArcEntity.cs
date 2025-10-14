@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
 [Serializable]
 public class ArcEntity : Entity, ISegmentaryEntity {

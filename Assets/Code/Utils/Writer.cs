@@ -20,6 +20,11 @@ public abstract class Writer
 	public abstract void WriteAttribute(string name, bool value);
 	public abstract void WriteBeginFakeArray(string name);
 	public abstract void WriteEndFakeArray();
+
+	public void WriteAttribute<T>(string name, T value) where T: Enum {
+		WriteAttribute(name, value.ToString());
+	}
+
 }
 
 public class WriterXml : Writer

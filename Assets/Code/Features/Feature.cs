@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 public abstract class Feature : CADObject {
 	IEnumerator<Entity> entities { get { yield break; } }

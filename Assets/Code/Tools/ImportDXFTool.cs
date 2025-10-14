@@ -4,16 +4,20 @@ using UnityEngine;
 using System.Xml;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using netDxf;
 using System.IO;
 using System;
 using System.Text;
 using System.Linq;
+using NoteCAD;
+
+using ACadSharp;
+using ACadSharp.IO;
 
 public class ImportDXFTool : Tool, IPointerDownHandler {
 
 	enum FileType {
 		Dxf,
+		Dwg,
 		Hpgl,
 		Slvs,
 		Replay
@@ -24,6 +28,7 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 		ImportDXFTool tool;
 		public FileType fileType;
 		public bool autoconstrain = false;
+		public bool chooseLayers = false;
 		[NonSerialized]
 		public bool activated = false;
 
@@ -32,45 +37,112 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 		}
 
 		[RuntimeInspectorNamespace.RuntimeInspectorButton("Import", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
-		public void Export() {
+		public void Import() {
 			activated = true;
 		}
 
 	}
+	
+	[Serializable]
+	class Layer {
+		public string name;
+		public bool import = true;
+	}
+	
+	[Serializable]
+	class Layers {
+		ImportDXFTool tool;
+		CadDocument document;
+
+		public List<Layer> layers = new();
+		
+		[NonSerialized]
+		public Dictionary<string, Layer> map = new();
+
+		public Layers(ImportDXFTool t) {
+			tool = t;
+		}
+
+		public void SetDocument(CadDocument doc) {
+			document = doc;
+			layers.Clear();
+			map.Clear();
+			foreach(var l in doc.Layers) {
+				var layer = new Layer { name = l.Name, import = true };
+				layers.Add(layer);
+				map.Add(layer.name, layer);
+			}
+		}
+
+		[RuntimeInspectorNamespace.RuntimeInspectorButton("Import", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
+		public void Import() {
+			tool.ImportDocument(document);
+			tool.StopTool();
+		}
+	}
 
 	Settings settings;
+	Layers layers;
+	Style currentStyle = null;
+	Dictionary<string, Style> styles = new();
+
 
 	ImportDXFTool() {
 		settings = new Settings(this);
+		layers = new Layers(this);
 	}
 
 	protected override void OnActivate() {
 		Inspect(settings);
 	}
 
+	void Clear() {
+		settings.activated = false;
+		layers.layers.Clear();
+		styles.Clear();
+		currentStyle = null;
+	}
+	
+	T Spawn<T>(T e) where T: Entity {
+		if(currentStyle != null) {
+			e.style = currentStyle;
+		}
+		return e;
+	}
+
 	public void LateUpdate() {
 		if(!DetailEditor.instance.isActiveAndEnabled) return;
 		if(!settings.activated) return;
 		settings.activated = false;
-		StopTool();
 		switch(settings.fileType) {
 			case FileType.Dxf: {
 				NoteCADJS.LoadBinaryData(DxfDataLoaded, "dxf");
 				break;
 			}
+			case FileType.Dwg: {
+				NoteCADJS.LoadBinaryData(DwgDataLoaded, "dwg");
+				break;
+			}
 			case FileType.Hpgl: {
 				NoteCADJS.LoadBinaryData(HpglDataLoaded, "hpgl");
+				StopTool();
 				break;
 			}
 			case FileType.Slvs: {
 				NoteCADJS.LoadBinaryData(SlvsDataLoaded, "slvs");
+				StopTool();
 				break;
 			}
 			case FileType.Replay: {
 				NoteCADJS.LoadBinaryData(ReplayDataLoaded, "replay");
+				StopTool();
 				break;
 			}
 		}
+	}
+
+	protected override void OnDeactivate() {
+		Clear();
 	}
 
 	public void OnPointerDown(PointerEventData eventData) {
@@ -85,58 +157,82 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 		}
 	}
 
-	LineEntity AddLine(netDxf.Entities.Line l) {
+	LineEntity AddLine(ACadSharp.Entities.Line l) {
 		var s = l.StartPoint;
 		var e = l.EndPoint;
 		LineEntity line = new LineEntity(DetailEditor.instance.currentSketch.GetSketch());
 		line.p0.SetPosition(new UnityEngine.Vector3((float)s.X, (float)s.Y, (float)s.Z));
 		line.p1.SetPosition(new UnityEngine.Vector3((float)e.X, (float)e.Y, (float)e.Z));
 		AutoConstrain(line);
-		return line;
+		return Spawn(line);
 	}
 
-	ArcEntity AddArc(UnityEngine.Vector3 c, UnityEngine.Vector3 p0, UnityEngine.Vector3 p1) {
+	ArcEntity AddArc(Vector3 c, Vector3 p0, Vector3 p1) {
 		ArcEntity arc = new ArcEntity(DetailEditor.instance.currentSketch.GetSketch());
 		arc.c.SetPosition(c);
 		arc.p0.SetPosition(p0);
 		arc.p1.SetPosition(p1);
 		AutoConstrain(arc);
-		return arc;
+		return Spawn(arc);
 	}
 
-	void AddArc(netDxf.Entities.Arc a) {
-		var c = new UnityEngine.Vector3((float)a.Center.X, (float)a.Center.Y, (float)a.Center.Z);
-		var e = a.StartAngle;
-		float sa = (float)a.StartAngle * Mathf.Deg2Rad;
-		float ea = (float)a.EndAngle * Mathf.Deg2Rad;
-		float r = (float)a.Radius;
-		var rvs = new UnityEngine.Vector3(r * Mathf.Cos(sa), r * Mathf.Sin(sa), c.z) + c;
-		var rve = new UnityEngine.Vector3(r *  Mathf.Cos(ea), r * Mathf.Sin(ea), c.z) + c;
+	Vector3 ToVec(CSMath.XYZ xyz) {
+		return new Vector3((float)xyz.X, (float)xyz.Y, (float)xyz.Z);
+	}
+	
+	Vector3 ToVecOrt(CSMath.XYZ xyz) {
+		return new Vector3(-(float)xyz.Y, (float)xyz.X, (float)xyz.Z);
+	}
+
+	TextEntity AddText(ACadSharp.Entities.IText text) {
+		var result = new TextEntity(DetailEditor.instance.currentSketch.GetSketch());
+		result.p[0].SetPosition(ToVec(text.InsertPoint));
+		//var dir = ToVecOrt(text.AlignmentPoint);
+		var dir = Vector3.up;
+		result.p[3].SetPosition(result.p[0].GetPosition() + dir);
+		result.fontSize = text.Height;
+		result.text = text.Value;
+		result.alignment = TextEntity.Alignment.Fit;
+		result.UpdatePoints();
+		return Spawn(result);
+	}
+
+	ArcEntity AddArc(ACadSharp.Entities.Arc a) {
+		var c = ToVec(a.Center);
+		a.GetEndVertices(out var start, out var end);
 
 		ArcEntity arc = new ArcEntity(DetailEditor.instance.currentSketch.GetSketch());
 		arc.c.SetPosition(c);
-		arc.p0.SetPosition(rvs);
-		arc.p1.SetPosition(rve);
+		arc.p0.SetPosition(ToVec(start));
+		arc.p1.SetPosition(ToVec(end));
 		AutoConstrain(arc);
+		return Spawn(arc);
 	}
 
-	CircleEntity AddCircle(UnityEngine.Vector3 pos, double r) {
+	CircleEntity AddCircle(Vector3 pos, double r) {
 		CircleEntity circle = new CircleEntity(DetailEditor.instance.currentSketch.GetSketch());
 		circle.c.SetPosition(pos);
 		circle.r.value = r;
 		AutoConstrain(circle);
-		return circle;
+		return Spawn(circle);
 	}
 
-	CircleEntity AddCircle(netDxf.Entities.Circle c) {
+	CircleEntity AddCircle(ACadSharp.Entities.Circle c) {
 		var ce = c.Center;
 		CircleEntity circle = new CircleEntity(DetailEditor.instance.currentSketch.GetSketch());
-		circle.c.SetPosition(new UnityEngine.Vector3((float)ce.X, (float)ce.Y, (float)ce.Z));
+		circle.c.SetPosition(new Vector3((float)ce.X, (float)ce.Y, (float)ce.Z));
 		circle.r.value = c.Radius;
 		AutoConstrain(circle);
-		return circle;
+		return Spawn(circle);
 	}
-	
+
+	void AddPolyline(ACadSharp.Entities.IPolyline pl) {
+		foreach(var ple in ACadSharp.Entities.Polyline2D.Explode(pl)) {
+			if(ple is ACadSharp.Entities.Line pll) AddLine(pll);
+			if(ple is ACadSharp.Entities.Arc pla) AddArc(pla);
+		}
+	}
+
 	void HpglDataLoaded(byte[] data) {
 		editor.PushUndo();
 		var str = Encoding.UTF8.GetString(data, 0, data.Length);
@@ -160,63 +256,126 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 		}
 	}
 
-	PointEntity AddPoint(UnityEngine.Vector3 pt) {
+	PointEntity AddPoint(Vector3 pt) {
 		var point = new PointEntity(DetailEditor.instance.currentSketch.GetSketch());
 		point.SetPosition(pt);
 		AutoConstrain(point);
-		return point;
+		return Spawn(point);
 	}
 
-	LineEntity AddLine(UnityEngine.Vector3 p0, UnityEngine.Vector3 p1) {
+	LineEntity AddLine(Vector3 p0, Vector3 p1) {
 		LineEntity line = new LineEntity(DetailEditor.instance.currentSketch.GetSketch());
 		line.p0.SetPosition(p0);
 		line.p1.SetPosition(p1);
 		AutoConstrain(line);
-		return line;
+		return Spawn(line);
+	}
+
+	void AddSpline(ACadSharp.Entities.Spline spl) {
+		var vertices = spl.PolygonalVertexes(32);
+		for(int i = 0; i < vertices.Count - 1; i++) {
+			var s = vertices[i];
+			var e = vertices[i + 1];
+			LineEntity line = new LineEntity(DetailEditor.instance.currentSketch.GetSketch());
+			line.p0.SetPosition(new UnityEngine.Vector3((float)s.X, (float)s.Y, (float)s.Z));
+			line.p1.SetPosition(new UnityEngine.Vector3((float)e.X, (float)e.Y, (float)e.Z));
+			AutoConstrain(line);
+			Spawn(line);
+		}
+	}
+
+	void ImportDocumentLayers(CadDocument doc) {
+		if(settings.chooseLayers) {
+			layers.SetDocument(doc);
+			Inspect(layers);
+		} else {
+			ImportDocument(doc);
+			StopTool();
+		}
+	}
+
+	void AddEntity(ACadSharp.Entities.Entity e) {
+		var detail = DetailEditor.instance.GetDetail();
+		if(styles.TryGetValue(e.Layer.Name, out var style)) {
+			currentStyle = style;
+		} else {
+			currentStyle = detail.styles.AddStyle();
+			currentStyle.name = e.Layer.Name;
+			currentStyle.stroke.color = new UnityEngine.Color(e.Layer.Color.R / 255.0f, e.Layer.Color.G / 255.0f, e.Layer.Color.B / 255.0f);
+			currentStyle.stroke.width = 0.7f;
+			styles.Add(e.Layer.Name, currentStyle);
+			
+		}
+
+		switch(e) {
+			case ACadSharp.Entities.Line l:
+				AddLine(l); 
+				break;
+
+			case ACadSharp.Entities.Polyline2D pl:  
+				AddPolyline(pl);
+				break;
+
+			case ACadSharp.Entities.LwPolyline lwpl:
+				AddPolyline(lwpl);
+				break;
+
+			case ACadSharp.Entities.Spline spl:
+				AddSpline(spl);
+				break;
+
+			case ACadSharp.Entities.Arc a:
+				AddArc(a);
+				break;
+
+			case ACadSharp.Entities.Circle c:
+				AddCircle(c);
+				break;
+
+			case ACadSharp.Entities.IText t:
+				AddText(t);
+				break;
+			case ACadSharp.Entities.Insert i:
+				AddInsert(i);
+				break;
+		}
+	}
+
+	void ImportDocument(CadDocument doc) {
+		editor.PushUndo();
+		DetailEditor.instance.GetDetail().settings.suppressSolver = true;
+		DetailEditor.instance.GetDetail().settings.detectContours = false;
+		DetailEditor.instance.GetDetail().settings.displayPoints = DetailSettings.DisplayPoints.None;
+		foreach(var ent in doc.Entities) {
+			if (settings.chooseLayers && layers.map.ContainsKey(ent.Layer.Name) && !layers.map[ent.Layer.Name].import) {
+				continue;
+			}
+			AddEntity(ent);
+		}
+	}
+
+	void AddInsert(ACadSharp.Entities.Insert i) {
+		foreach(var e in i.Explode()) {
+			Debug.Log("AddInsert " + e.GetType().Name);
+			AddEntity(e);
+		}
+	}
+
+	void DwgDataLoaded(byte[] data) {
+		MemoryStream stream = new MemoryStream(data);
+		using (DwgReader reader = new DwgReader(stream))
+		{
+			var doc = reader.Read();
+			ImportDocumentLayers(doc);
+		}
 	}
 
 	void DxfDataLoaded(byte[] data) {
 		MemoryStream stream = new MemoryStream(data);
-		DxfDocument doc = DxfDocument.Load(stream);
-		editor.PushUndo();
-
-		foreach(var l in doc.Entities.Lines) {
-			AddLine(l);
-		}
-
-		/*
-		foreach(var pl in doc.Entities.Polylines2D) {
-			foreach(netDxf.Entities.Line l in pl.Explode()) {
-				AddLine(l);
-			}
-		}
-		*/
-
-		foreach(var pl in doc.Entities.Polylines2D) {
-			foreach(var e in pl.Explode()) {
-				if(e is netDxf.Entities.Line) AddLine((netDxf.Entities.Line)e);
-				if(e is netDxf.Entities.Arc) AddArc((netDxf.Entities.Arc)e);
-			}
-		}
-
-		foreach(var spl in doc.Entities.Splines) {
-			var vertices = spl.PolygonalVertexes(32);
-			for(int i = 0; i < vertices.Count - 1; i++) {
-				var s = vertices[i];
-				var e = vertices[i + 1];
-				LineEntity line = new LineEntity(DetailEditor.instance.currentSketch.GetSketch());
-				line.p0.SetPosition(new UnityEngine.Vector3((float)s.X, (float)s.Y, (float)s.Z));
-				line.p1.SetPosition(new UnityEngine.Vector3((float)e.X, (float)e.Y, (float)e.Z));
-				AutoConstrain(line);
-			}
-		}
-
-		foreach(var c in doc.Entities.Circles) {
-			AddCircle(c);
-		}
-
-		foreach(var a in doc.Entities.Arcs) {
-			AddArc(a);
+		using (DxfReader reader = new DxfReader(stream))
+		{
+			var doc = reader.Read();
+			ImportDocumentLayers(doc);
 		}
 	}
 

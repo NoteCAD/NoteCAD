@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 [Serializable]
 public class EquationConstraint : ValueConstraint {

@@ -6,6 +6,7 @@ using System.Linq;
 using System.IO;
 using System.Xml;
 using System.Collections;
+using NoteCAD;
 
 public interface IPlane {
 	Vector3 u { get; }

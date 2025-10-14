@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 [Serializable]
 public class SketchFeatureBase : Feature {
@@ -168,6 +169,25 @@ public class SketchFeatureBase : Feature {
 		}
 	}
 
+	bool ShouldShowEntity(Entity e) {
+		if (e is PointEntity p) {
+			switch(detail.settings.displayPoints) {
+				case DetailSettings.DisplayPoints.All: 
+					return true;
+				case DetailSettings.DisplayPoints.CentersAndPoints: 
+					return 
+						p.parent == null || 
+						!(p.parent is ISegmentaryEntity seg) || 
+						(p != seg.begin && p != seg.end);
+				case DetailSettings.DisplayPoints.Points: 
+					return p.parent == null;
+				case DetailSettings.DisplayPoints.None:
+					return false;
+			}
+		}
+		return true;
+	}
+
 	public override void UpdateDirty() {
 		if(!dirty) return;
 
@@ -180,7 +200,7 @@ public class SketchFeatureBase : Feature {
 		base.UpdateDirty();
 		go.transform.SetMatrix(transform);
 	
-		DrawEntities(canvas);
+		DrawEntities(canvas, ShouldShowEntity);
 
 		sketch.MarkUnchanged();
 		canvas.UpdateDirty();

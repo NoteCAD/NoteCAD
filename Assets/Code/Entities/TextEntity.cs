@@ -6,6 +6,8 @@ using System.Linq;
 using SharpFont;
 using System.Xml;
 
+namespace NoteCAD {
+
 [Serializable]
 public class TextEntity : Entity, ILoopEntity {
 
@@ -14,13 +16,14 @@ public class TextEntity : Entity, ILoopEntity {
 	
 	[Flags]
 	public enum Alignment {
-		Fit		= 0 << 0,
-		Stretch	= 1 << 0,
+		Scale	= 0 << 0,
+		Stretch	= 1 << 1,
+		Fit		= 1 << 2,
 		
-		Left	= 1 << 1,
-		Right	= 1 << 2,
-		Top		= 1 << 3,
-		Bottom	= 1 << 4,
+		Left	= 1 << 3,
+		Right	= 1 << 4,
+		Top		= 1 << 5,
+		Bottom	= 1 << 7,
 
 		TopLeft		= Top | Left,
 		TopRight	= Top | Right,
@@ -64,7 +67,7 @@ public class TextEntity : Entity, ILoopEntity {
 		}
 	}
 
-	Alignment alignment_ = Alignment.Fit;
+	Alignment alignment_ = Alignment.Scale;
 	public Alignment alignment {
 		get {
 			return alignment_;
@@ -234,10 +237,14 @@ public class TextEntity : Entity, ILoopEntity {
 	}
 
 	public void UpdatePoints() {
-		if (alignment_ != Alignment.Fit) {
+		if (alignment_ != Alignment.Scale && alignment != Alignment.Fit) {
 			return;
 		}
 		var v = p[3].pos - p[0].pos;
+		if(alignment_ == Alignment.Fit) {
+			v = v.normalized * (float)fontSize_;
+			p[3].pos = p[0].pos + v;
+		}
 		var ext = bound.size;
 		var u = new Vector3(v.y, -v.x, v.z) * ext.x / ext.y;
 		
@@ -247,11 +254,13 @@ public class TextEntity : Entity, ILoopEntity {
 
 	public override IEnumerable<Exp> equations {
 		get {
-			if (alignment_ == Alignment.Fit) {
+			if (alignment_ == Alignment.Scale || alignment_ == Alignment.Fit) {
 				var u = p[1].exp - p[0].exp;
 				var ext = bound.size;
 				var v = new ExpVector(-u.y, u.x, u.z) * ext.y / ext.x;
-
+				if(alignment_ == Alignment.Fit) {
+					yield return v.Magnitude() - fontSize;
+				}
 				var eq0 = p[3].exp - (p[0].exp + v);
 				yield return eq0.x;
 				yield return eq0.y;
@@ -284,7 +293,7 @@ public class TextEntity : Entity, ILoopEntity {
 			Vector3 u;
 			Vector3 v;
 			float m = (float)margin;
-			if (alignment_ == Alignment.Fit || alignment_ == Alignment.Stretch) {
+			if (alignment_ == Alignment.Scale || alignment_ == Alignment.Stretch || alignment_ == Alignment.Fit) {
 				pos = p[0].pos;
 				u = (p[1].pos - pos) / (bound.size.x);
 				v = (p[3].pos - pos) / (bound.size.y);
@@ -331,7 +340,7 @@ public class TextEntity : Entity, ILoopEntity {
 		xml.WriteAttribute("text", text_);
 		xml.WriteAttribute("fontSize", fontSize_);
 		if (margin_ != 0.0) xml.WriteAttribute("margin", margin_);
-		if (alignment_ != Alignment.Fit) xml.WriteAttribute("alignment", alignment_.ToString());
+		if (alignment_ != Alignment.Scale) xml.WriteAttribute("alignment", alignment_.ToString());
 	}
 
 	protected override void OnRead(XmlNode xml) {
@@ -346,5 +355,7 @@ public class TextEntity : Entity, ILoopEntity {
 			xml.Attributes["alignment"].Value.ToEnum(ref alignment_);
 		}
 	}
+
+}
 
 }

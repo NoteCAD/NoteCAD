@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System.Xml;
+using NoteCAD;
 
 [Serializable]
 public class AngleConstraint : ValueConstraint {

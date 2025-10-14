@@ -2,6 +2,7 @@
 using UnityEngine;
 using System;
 using System.Linq;
+using NoteCAD;
 
 [Serializable]
 public class PointOn : ValueConstraint {

@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Linq;
 using System;
+using NoteCAD;
 
 [Serializable]
 public class PointsDistance : ValueConstraint {

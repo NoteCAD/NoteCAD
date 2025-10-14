@@ -19,3 +19,6 @@
 [submodule "Assets/Code/External/SharpFont"]
 	path = Assets/Code/External/SharpFont
 	url = https://github.com/NoteCAD/SharpFont.git
+[submodule "Assets/Code/External/ACadSharp"]
+	path = Assets/Code/External/ACadSharp
+	url = https://github.com/NoteCAD/ACadSharp.git

@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Linq;
 using System.Xml;
 using System;
+using NoteCAD;
 
 [Serializable]
 public class PointEntity : Entity {
