@@ -13,7 +13,7 @@ mergeInto(LibraryManager.library, {
             window.URL.revokeObjectURL(url);
         };
     }());
-    saveDataFunc(Pointer_stringify(data), Pointer_stringify(fileName));
+    saveDataFunc(UTF8ToString(data), UTF8ToString(fileName));
   },
   SaveBinaryDataInternal: function(data, dataLength, fileName) {
     var saveDataFunc = (function () {
@@ -29,7 +29,7 @@ mergeInto(LibraryManager.library, {
             window.URL.revokeObjectURL(url);
         };
     }());
-    saveDataFunc(new Uint8Array(HEAPU8.buffer, data, dataLength), Pointer_stringify(fileName));
+    saveDataFunc(new Uint8Array(HEAPU8.buffer, data, dataLength), UTF8ToString(fileName));
   },
   LoadDataInternal: function() {
     if (!document.getElementById('FileUploadingPluginInput'))
@@ -81,7 +81,7 @@ mergeInto(LibraryManager.library, {
             vars[key] = value !== undefined ? value : '';
         }
     );
-    var result = vars[Pointer_stringify(param)];
+    var result = vars[UTF8ToString(param)];
     if(result === undefined) result = '';
     var bufferSize = lengthBytesUTF8(result) + 1;
     var buffer = _malloc(bufferSize);
