@@ -1350,6 +1350,7 @@
     <Compile Include="Assets\Code\External\FileBrowser\Scripts\Wrapper\FileBrowserBase.cs" />
     <Compile Include="Assets\Code\External\geometry3Sharp\core\VectorArray.cs" />
     <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Polyline2DVertex.cs" />
+    <Compile Include="Assets\Code\Constraints\Fixation.cs" />
     <Compile Include="Assets\Code\External\geometry3Sharp\mesh\RegionRemesher.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\Objects\FaceModifierType.cs" />
     <Compile Include="Assets\Code\External\netDxf\netDxf\Tables\LinetypeSegment.cs" />
@@ -1494,6 +1495,7 @@
     <Compile Include="Assets\Code\External\gsSlicer\toolpathing\LayerShellSelector.cs" />
     <Compile Include="Assets\Code\Constraints\HVConstraint.cs" />
     <Compile Include="Assets\Code\External\UnityRuntimeInspector\Plugins\RuntimeInspector\Scripts\RuntimeInspector\Fields\ExposedMethodField.cs" />
+    <Compile Include="Assets\Code\Tools\FixTool.cs" />
     <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\DictionaryCloningFlags.cs" />
     <Compile Include="Assets\Code\External\geometry3Sharp\curve\DGraph2Resampler.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\Entities\InvisibleEdgeFlags.cs" />
