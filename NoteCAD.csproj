@@ -538,6 +538,7 @@
     <Compile Include="Assets\Code\Entities\FunctionEntity.cs" />
     <Compile Include="Assets\Code\External\netDxf\netDxf\Objects\PlotSettings.cs" />
     <Compile Include="Assets\Code\External\geometry3Sharp\distance\DistRay3Ray3.cs" />
+    <Compile Include="Assets\Prefabs\RuntimeInspector\ExpressionField.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\IO\DWG\DwgStreamWriters\DwgStreamWriterAC24.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\Objects\LayoutFlags.cs" />
     <Compile Include="Assets\Code\External\geometry3Sharp\io\OFFReader.cs" />
@@ -1507,18 +1508,21 @@
     <Compile Include="Assets\Code\External\geometry3Sharp\math\Matrix3d.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Assets\Code\Macroshape.NoteCAD.asmdef" />
+    <None Include="Assets\Macroshape.NoteCAD.asmdef" />
     <None Include="Assets\Code\External\FileBrowser\README.txt" />
     <None Include="Assets\Code\External\UnityRuntimeInspector\Plugins\RuntimeInspector\Shaders\ColorPickerAlphaShader.shader" />
     <None Include="Assets\Code\DraftStroke\DraftLinesDepthOff.shader" />
     <None Include="Assets\Code\DraftStroke\DraftLines.shader" />
+    <None Include="Assets\Materials\LoopShader.shader" />
     <None Include="Assets\Code\External\netDxf\doc\Changelog.txt" />
+    <None Include="Assets\TestFiles\sketch_00.xml" />
     <None Include="Assets\Code\External\gsSlicer\thirdparty\clipper_library\License.txt" />
     <None Include="Assets\Code\External\FileBrowser\Native\Windows\System.Windows.Forms.dll" />
     <None Include="Assets\Code\External\UnityRuntimeInspector\Plugins\RuntimeInspector\ExternalResources\ColorWheel\Visuals\ColorWheelShader.shader" />
     <None Include="Assets\Code\External\netDxf\netDxf\netDxf.xml" />
     <None Include="Assets\Code\External\FileBrowser\Native\Windows\Ookii.Dialogs.dll" />
     <None Include="Assets\Code\External\UnityRuntimeInspector\Plugins\RuntimeInspector\ExternalResources\ColorWheel\LICENSE.txt" />
+    <None Include="Assets\BuiltinFiles\LineStyle.xml" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="UnityEngine">
