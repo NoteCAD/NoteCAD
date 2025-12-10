@@ -29,7 +29,7 @@ public class ExportSTLTool : Tool {
 			tool = t;
 		}
 
-		[RuntimeInspectorNamespace.RuntimeInspectorButton("TextFillup", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
+		[RuntimeInspectorNamespace.RuntimeInspectorButton("TextFillupISP", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
 		public void TextFillup() {
 			if (DetailEditor.instance.currentSketch == null) {
 				return;
@@ -37,28 +37,17 @@ public class ExportSTLTool : Tool {
 			NoteCADJS.LoadData(FillupLoaded, "isp");
 		}
 
-		void FillupLoaded(string data) {
+		[RuntimeInspectorNamespace.RuntimeInspectorButton("TextFillupCSV", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
+		public void TextFillupCSV() {
 			if (DetailEditor.instance.currentSketch == null) {
 				return;
 			}
-			DetailEditor.instance.PushUndo();
-			var lines = data.Split('\n');
-			var fillup = new Dictionary<string, string>();
-			foreach(var l in lines) {
-				var assignIndex = l.IndexOf("=");
-				if(assignIndex == -1) {
-					continue;
-				}
-				var key = l.Substring(0, assignIndex).Trim();
-				var endIndex = l.IndexOfAny(new char[] {'\n', '\r', '#'});
-				if(endIndex == -1) {
-					endIndex = l.Length;
-				}
-				var value = l.Substring(assignIndex + 1, endIndex - assignIndex - 1).Trim();
-				Debug.Log($"{key} = {value}");
-				fillup[key] = value;
-			}
+			NoteCADJS.LoadData(FillupCSVLoaded, "csv");
+		}
 
+
+		void DoFillup(Dictionary<string, string> fillup) {
+			DetailEditor.instance.PushUndo();
 			foreach(var e in DetailEditor.instance.currentSketch.GetSketch().entityList) {
 				if (e is TextEntity text) {
 					var str = text.text;
@@ -83,6 +72,52 @@ public class ExportSTLTool : Tool {
 				}
 			}
 			DetailEditor.instance.currentSketch.GetSketch().MarkDirtySketch(topo:true);
+		}
+
+		void FillupCSVLoaded(string data) {
+			if (DetailEditor.instance.currentSketch == null) {
+				return;
+			}
+			var lines = data.Split('\n');
+			var fillup = new Dictionary<string, string>();
+			foreach(var l in lines) {
+				var line = l.Split('\t');
+				if (line.Length < 2) {
+					continue;
+				}
+				var key = line[0];
+				var value = line[1];
+				Debug.Log($"{key} = {value}");
+				fillup[key] = value;
+			}
+
+			DoFillup(fillup);
+
+		}
+
+		void FillupLoaded(string data) {
+			if (DetailEditor.instance.currentSketch == null) {
+				return;
+			}
+			DetailEditor.instance.PushUndo();
+			var lines = data.Split('\n');
+			var fillup = new Dictionary<string, string>();
+			foreach(var l in lines) {
+				var assignIndex = l.IndexOf("=");
+				if(assignIndex == -1) {
+					continue;
+				}
+				var key = l.Substring(0, assignIndex).Trim();
+				var endIndex = l.IndexOfAny(new char[] {'\n', '\r', '#'});
+				if(endIndex == -1) {
+					endIndex = l.Length;
+				}
+				var value = l.Substring(assignIndex + 1, endIndex - assignIndex - 1).Trim();
+				Debug.Log($"{key} = {value}");
+				fillup[key] = value;
+			}
+
+			DoFillup(fillup);
 		}
 
 		[RuntimeInspectorNamespace.RuntimeInspectorButton("Export", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
