@@ -1,52 +1,75 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
-public class Translate {
+public class Trans {
     
-    static Dictionary<string, Dictionary<string, string>> translation;
-    static string currentLang = "RU";
+    static Dictionary<string, Dictionary<string, string>> translation = new();
+    public static string currentLang = "EN";
 
-    static string Tr(string key) {
+    public static string late(string key, string def) {
         if (!translation.ContainsKey(key)) {
-            translation[key][currentLang] = "#" + key;
+            translation[key] = new();
+            translation[key][currentLang] = def; 
+            translation[key]["EN"] = def;
+        }
+        if (!translation[key].ContainsKey(currentLang)) {
+            translation[key][currentLang] = def;
         }
         return translation[key][currentLang];
     }
-    static string Tr(string key, string def) {
-        if (!translation.ContainsKey(key)) {
-            translation[key]["EN"] = key; 
-        }
-        return translation[key][currentLang];
-    }
 
-    public void LoadCsvFile(string filePath) {
+    public static void FromCSV(string csv) {
         translation = new Dictionary<string, Dictionary<string, string>>();
-        
-        using (var reader = new StreamReader(filePath)) {
-            var headerRow = reader.ReadLine().Split('\t');
+        var lines = csv.Split("\n");
+        if(lines.Length == 0) {
+            return;
+        }
+        var headerRow = lines[0].Split('\t');
                         
-            while (!reader.EndOfStream) {
-                string line = reader.ReadLine();
-                var values = line.Split('\t');
+        for(int l = 1; l < lines.Length; l++) {
+            string line = lines[l];
+            var values = line.Split('\t');
                 
-                if (headerRow.Length == values.Length) {
-                    if (!translation.ContainsKey(values[0])) {
-                        translation.Add(values[0], new Dictionary<string, string>());
-                    }
-                    var dict = translation[values[0]];
-                    for (int i = 1; i < values.Length; i++) {
-                       dict[headerRow[i]] = values[i];
-                    }
+            if (headerRow.Length == values.Length) {
+                if (!translation.ContainsKey(values[0])) {
+                    translation.Add(values[0], new Dictionary<string, string>());
+                }
+                var dict = translation[values[0]];
+                for (int i = 1; i < values.Length; i++) {
+                    dict[headerRow[i]] = values[i];
                 }
             }
         }
     }
 
-    public void SaveCsvFile(string filePath) {
+    public static string ToCSV() {
+        HashSet<string> langs = new();
+        foreach(var v in translation.Values) {
+            foreach(var lang in v.Keys) {
+                langs.Add(lang);
+            }
+        }
+        StringBuilder sb = new();
+        sb.Append("Key");
+        foreach(var lang in langs) {
+            sb.Append("\t");
+            sb.Append(lang);
+        }
+        sb.AppendLine();
 
-        var builder = new StringBuilder();
+        foreach(var tr in translation) {
+            sb.Append(tr.Key);
+            foreach(var lang in langs)
+            {
+                sb.Append("\t");
+                if (tr.Value.TryGetValue(lang, out var value)) {
+                    sb.Append(value);
+                }
+            }
+            sb.AppendLine();
+        }
 
+        return sb.ToString();
     }
 
 }

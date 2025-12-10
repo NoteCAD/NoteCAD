@@ -1,0 +1,130 @@
+Key	RU	EN
+EllipseTool_name	Эллипс	EllipseTool
+EllipseTool_description	Кликните мышью там, где хотите создать центр эллипса, после чего с помощью перемещений мыши задайте радиус и кликните мышью, чтобы завершить создание	click where you want to create the center point and then you can control the radius of the ellipse by moving mouse and fix it by clicking left button
+EllipseTool_button	Эллипс	Ellipse
+SketchTool_name	Эскиз	SketchTool
+SketchTool_description	Выберите сначала точку, а потом две непараллельные линии, чтобы задать плоскость эскиза. Линии задают ориентацию плоскости, а точка её положение.	click some point first and then click two non-parallel lines to define a new workplane. The point will be origin of the plane, and plane normal will be perpendicular to lines.
+SketchTool_button	Эскиз	Wrkplne
+TextTool_name	Текст	TextTool
+TextTool_description	Сначала введите текст в окне опций, а затем кликните мышью там, где вы хотите разместить текст.	enter text in option window and then click where you want to create text entity
+TextTool_button	Текст	Text
+PointsCoincidentTool_name	ТочкаНа	PointsCoincidentTool
+PointsCoincidentTool_description	Выберите сначала точку, а затем элемент, чтобы привязать точку к элементу	hover and click point and arbitrary entity for constraining them to be coincident.
+PointsCoincidentTool_button	ТочкаНа	PointOn
+ArcTool_name	Дуга	ArcTool
+ArcTool_description	Кликните мышью сначала первую, а затем вторую точку дуги	click where you want to create the beginning and the ending points of the arc
+ArcTool_button	Дуга	Arc
+CopyTool_name	Копирование	CopyTool
+CopyTool_description	Копирование	
+CopyTool_button	Копир	Copy
+TangentTool_name	Касательность	TangentTool
+TangentTool_description	Выберете два элемента, чтобы создать ограничение касательности	hover and click two different entities.
+TangentTool_button	Касательность	Tangent
+OffsetTool_name	Оффсет	OffsetTool
+OffsetTool_description	click an entity to create offset	click an entity to create offset
+OffsetTool_button	Оффсет	Offset
+FixTool_name	Фиксациия	FixTool
+FixTool_description	click an object to apply fixation.	click an object to apply fixation.
+FixTool_button	Фикс	Fixation
+ParallelTool_name	ParallelTool	ParallelTool
+ParallelTool_description	hover and click two different lines.	hover and click two different lines.
+ParallelTool_button	Паралл	Parallel
+ImportDXFTool_name	ImportDXFTool	ImportDXFTool
+ImportDXFTool_description		
+ImportDXFTool_button	Имп2D	Import2D
+ExtrusionTool_name	ExtrusionTool	ExtrusionTool
+ExtrusionTool_description		
+ExtrusionTool_button	Выдавл	Extrude
+UndoTool_name	UndoTool	UndoTool
+UndoTool_description		
+UndoTool_button	Отмена	Undo
+RedoTool_name	RedoTool	RedoTool
+RedoTool_description		
+RedoTool_button	Повтор	Redo
+PerpendicularTool_name	PerpendicularTool	PerpendicularTool
+PerpendicularTool_description	hover and click two different entities.	hover and click two different entities.
+PerpendicularTool_button	Перп-ляр	Perp-lar
+RemoveTool_name	RemoveTool	RemoveTool
+RemoveTool_description		
+RemoveTool_button	Удалить	Delete
+PointTool_name	PointTool	PointTool
+PointTool_description		
+PointTool_button	Точка	Point
+LoadTool_name	LoadTool	LoadTool
+LoadTool_description		
+LoadTool_button	Открыть	Load
+AngleTool_name	Угол	AngleTool
+AngleTool_description	Наведите курсор и щелкните по дуге или двум разным линиям. Вы можете изменить значение размера, дважды щелкнув по нему, когда активен инструмент перемещения.	hover and click an arc or a two different lines. You can change dimension value by double clicking it when MoveTool is active.
+AngleTool_button	Угол	Angle
+StyleAssignTool_name	StyleAssignTool	StyleAssignTool
+StyleAssignTool_description	Стили	Styles
+StyleAssignTool_button	Назнач	Assign
+HelpTool_name	HelpTool	HelpTool
+HelpTool_description	Для перемещения камеры используйте среднюю кнопку мыши, для масштабирования — колесико мыши, для вращения камеры — правую кнопку мыши. Для создания твердых тел нарисуйте замкнутые контуры примитивов, затем вы можете создавать выдавливания и эскизы в разных рабочих плоскостях. Для отмены текущего инструмента нажмите клавишу Escape или правую кнопку мыши. 	Use middle mouse button for panning camera, scroll for zooming, right button for rotating the camera. For making solid bodies, please draw closed contours of primitives, then you can create extrusion and sketches in different workplanes. For cancelling current tool you can press Escape or right mouse button.
+HelpTool_button	Помощь Опции	Help Options
+RectTool_name	RectTool	RectTool
+RectTool_description	Щелкните в тех местах, где хотите создать точки прямоугольника. 	click where you want to create points of the rectangle
+RectTool_button	Прямоуг	Rectangle
+LengthTool_name	LengthTool	LengthTool
+LengthTool_description	Щелкните по объекту, чтобы ограничить его длину, а затем щелкните в том месте, где хотите задать значение размера. Вы можете изменить значение размера, дважды щелкнув по нему, когда активен инструмент перемещения 	click a entity to constrain length and then click where you want to create dimension value. You can change dimension value by double clicking it when MoveTool is active.
+LengthTool_button	Длина	Length
+HVTool_name	HVTool	HVTool
+HVTool_description	click a two points or a line for constraining horizontal/vertical.	click a two points or a line for constraining horizontal/vertical.
+HVTool_button	Верт	Vert
+ExportSTLTool_name	ExportSTLTool	ExportSTLTool
+ExportSTLTool_description		
+ExportSTLTool_button	Экспорт	Export
+PasteTool_name	PasteTool	PasteTool
+PasteTool_description		
+PasteTool_button	Вставить	Paste
+LineTool_name	LineTool	LineTool
+LineTool_description	click where you want to create the beginning and the ending points of the line	click where you want to create the beginning and the ending points of the line
+LineTool_button	Линия	Segment
+ImportSTLTool_name	ImportSTLTool	ImportSTLTool
+ImportSTLTool_description		
+ImportSTLTool_button	Имп3D	Import3D
+SplineTool_name	SplineTool	SplineTool
+SplineTool_description	click where you want to create the beginning and the ending points of the cubic Bezier spline	click where you want to create the beginning and the ending points of the cubic Bezier spline
+SplineTool_button	Кривая	Spline
+StyleAddTool_name	StyleAddTool	StyleAddTool
+StyleAddTool_description	change options of newly created style	change options of newly created style
+StyleAddTool_button	Добавить	Add
+DistanceTool_name	DistanceTool	DistanceTool
+DistanceTool_description	click a line to constrain length or circle(arc) to constrain daimeter(radius). Click two entities of type point/line/circle/arc to constrain distance or angle between them.	click a line to constrain length or circle(arc) to constrain daimeter(radius). Click two entities of type point/line/circle/arc to constrain distance or angle between them.
+DistanceTool_button	Размер	Dim
+NewTool_name	NewTool	NewTool
+NewTool_description		
+NewTool_button	Новый	New
+CircleTool_name	CircleTool	CircleTool
+CircleTool_description	click where you want to create the center point and then you can control the radius of the circle by moving mouse and fix it by clicking left button	click where you want to create the center point and then you can control the radius of the circle by moving mouse and fix it by clicking left button
+CircleTool_button	Окружн	Circle
+SaveTool_name	SaveTool	SaveTool
+SaveTool_description		
+SaveTool_button	Сохр	Save
+FunctionTool_name	FunctionTool	FunctionTool
+FunctionTool_description	click where you want to create the beginning and the ending points of the segment defined by arbitrary equations	click where you want to create the beginning and the ending points of the segment defined by arbitrary equations
+FunctionTool_button	Функц	Function
+RevolveTool_name	RevolveTool	RevolveTool
+RevolveTool_description	click some point first and then click line to define an axis. The point will be origin of the axis, and line will be direction of an axis.	click some point first and then click line to define an axis. The point will be origin of the axis, and line will be direction of an axis.
+RevolveTool_button	Вращение	Revolve
+PolygonTool_name	PolygonTool	PolygonTool
+PolygonTool_description	click where you want to create center of polygon then you can control size of polygon by moving mouse cursor.	click where you want to create center of polygon then you can control size of polygon by moving mouse cursor.
+PolygonTool_button	Полигон	Polygon
+EquationTool_name	EquationTool	EquationTool
+EquationTool_description	click a entity to constrain length and then click where you want to create dimension value. You can change dimension value by double clicking it when MoveTool is active.	click a entity to constrain length and then click where you want to create dimension value. You can change dimension value by double clicking it when MoveTool is active.
+EquationTool_button	Уравн	Equation
+StyleEditTool_name	StyleEditTool	StyleEditTool
+StyleEditTool_description	change options of selected style	change options of selected style
+StyleEditTool_button	Редакт	Edit
+EqualTool_name	EqualTool	EqualTool
+EqualTool_description	hover and click two different entities or two angle constraints.	hover and click two different entities or two angle constraints.
+EqualTool_button	Равен	Equal
+StyleRemoveTool_name	StyleRemoveTool	StyleRemoveTool
+StyleRemoveTool_description	Стили	Styles
+StyleRemoveTool_button	Удалить	Remove
+MidPointTool_name	Середина	MidPointTool
+MidPointTool_description	Выберите точку и элемент	hover and click point and arbitarary entity
+MidPointTool_button	Серед.	MidPoint
+MoveTool_name	Перемещение	MoveTool
+MoveTool_description	Наведите курсор на объект и удерживайте левую кнопку мыши, чтобы переместить его. Дважды щелкните по любому параметру, чтобы отредактировать его. Щелкните значок справки для получения дополнительной информации.	hover over an entity, hold down left mouse button to move it. Double click on any dimension to edit. Click on Help icon for additional info.
+MoveTool_button	Перемещ	Move

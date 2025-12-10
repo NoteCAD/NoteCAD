@@ -52,4 +52,5 @@ MonoBehaviour:
     type: 3}
   styles: {fileID: 3446126984989665717, guid: 096c60f02a7666c4585c8831e0d52070, type: 3}
   systemFont: {fileID: 12800000, guid: 030396cd6c85cc84ca25b182ef25b164, type: 3}
-  font: {fileID: 4900000, guid: f42958e00156a6948afbaa3cdd550aaf, type: 3}
+  font: {fileID: 4900000, guid: 46fe8f6365e8d1242928746f8e5152c8, type: 3}
+  translation: {fileID: 4900000, guid: bdd5076deabdacf46b4a9b70512c8d91, type: 3}

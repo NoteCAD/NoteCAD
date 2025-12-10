@@ -16,10 +16,12 @@ public class EntityConfig : MonoBehaviour {
 	public Font systemFont;
 
 	public TextAsset font;
+	public TextAsset translation;
 	public FontFace fontFace;
 
-	void Start () {
+	void Start() {
 		instance = this;
 		fontFace = new SharpFont.FontFace(new MemoryStream(font.bytes));
+		Trans.FromCSV(translation.text);
 	}
 }

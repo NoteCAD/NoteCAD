@@ -25,6 +25,8 @@ public class Tool : MonoBehaviour {
 	void Start() {
 		GetComponent<Button>().onClick.AddListener(Click);
 		OnStart();
+		GetDescription();
+		GetRichText();
 	}
 
 	void Click() {
@@ -182,11 +184,14 @@ public class Tool : MonoBehaviour {
 	}
 
 	public string GetDescription() {
-		var result = this.GetType().Name;
+		var typeName = this.GetType().Name;
+		var name = Trans.late(typeName + "_name", typeName);
+		var desc = Trans.late(typeName + "_description", OnGetDescription());
+
+		var result = name;
 		if(hotkeys.Length > 0) {
 			result += " [" + (ctrl ? "Ctrl + " : "") + hotkeys[0].ToString() + "]";
 		}
-		var desc = OnGetDescription();
 		if(desc != "") {
 			result += ": " + desc;
 		}
@@ -194,10 +199,15 @@ public class Tool : MonoBehaviour {
 	}
 
 	public string GetTooltip() {
-		var result = this.GetType().Name + ". " + OnGetDescription();
+		var typeName = this.GetType().Name;
+		var name = Trans.late(typeName + "_name", typeName);
+		var desc = Trans.late(typeName + "_description", OnGetDescription());
+
+		var result = name;
 		if(hotkeys.Length > 0) {
 			result += "[" + (ctrl ? "Ctrl + " : "") + hotkeys[0].ToString() + "]";
 		}
+		result += " " + desc;
 		return result;
 	}
 
@@ -224,14 +234,16 @@ public class Tool : MonoBehaviour {
 	}
 
 	public string GetRichText() {
-		if(hotkeys == null || hotkeys.Length == 0) return text;
+		var typeName = this.GetType().Name;
+		var trText = Trans.late(typeName + "_button", text);
+		if(hotkeys == null || hotkeys.Length == 0) return trText;
 		var hk = hotkeys[0].ToString();
-		if(hk.Length != 1) return text;
-		var index = text.IndexOf(hk, System.StringComparison.InvariantCultureIgnoreCase);
+		if(hk.Length != 1) return trText;
+		var index = trText.IndexOf(hk, System.StringComparison.InvariantCultureIgnoreCase);
 		var openColor = "<color=\"#6ECEEFFF\">";
 		var closeColor = "</color>";
-		if(index < 0 || ctrl) return text + " [" + openColor + (ctrl ? "Ctrl+" : "") + hk  + closeColor + "]";
-		return text.Substring(0, index) + openColor + text[index] + closeColor + text.Substring(index + 1, text.Length - index - 1);
+		if(index < 0 || ctrl) return trText + " [" + openColor + (ctrl ? "Ctrl+" : "") + hk  + closeColor + "]";
+		return trText.Substring(0, index) + openColor + trText[index] + closeColor + trText.Substring(index + 1, trText.Length - index - 1);
 	}
 
 	public static void Inspect(object obj) {

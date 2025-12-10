@@ -41,6 +41,11 @@ public class DetailSettings {
 	public bool suppressSolver = false;
 	public string meshProvider = "http://localhost:8070/api?method=GenerateMesh";
 	public MeshProviderFormat providerFormat = MeshProviderFormat.JSON;
+
+	[RuntimeInspectorNamespace.RuntimeInspectorButton("Save Translation", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
+	void SaveTranslation() {
+		NoteCADJS.SaveData(Trans.ToCSV(), "Translation", "csv");
+	}
 	
 	public void Write(Writer xml) {
 		xml.WriteBeginElement("settings");

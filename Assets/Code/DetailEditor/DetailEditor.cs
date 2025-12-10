@@ -167,6 +167,9 @@ public class DetailEditor : MonoBehaviour {
 			var url = "https://" + uri.Host + ":" + uri.Port + "/Files/" + NoteCADJS.GetParam("filename");
 			StartCoroutine(LoadWWWFile(url));
 		}
+		if(NoteCADJS.GetParam("lang") != "") {
+			Trans.currentLang = NoteCADJS.GetParam("lang");
+		}
 	}
 
 	void UpdateFeatures() {
