@@ -384,9 +384,9 @@ public class DetailEditor : MonoBehaviour {
 		if(!toolInspector) {
 			if(selection.Count == 1) {
 				var obj = detail.GetObjectById(selection.First());
-				inspector?.Inspect(obj);
+				Inspect(obj);
 			} else {
-				inspector?.Inspect(activeFeature);
+				Inspect(activeFeature);
 			}
 		}
 
@@ -643,7 +643,7 @@ public class DetailEditor : MonoBehaviour {
 				btn.colors = cb;
 			}
 			if(!skipActive) activeFeature_.active = true;
-			inspector?.Inspect(activeFeature_);
+			Inspect(activeFeature_);
 			UpdateSystem();
 		}
 		meshDirty = true;
@@ -684,4 +684,19 @@ public class DetailEditor : MonoBehaviour {
 		}
 
 	}
+
+	public void Inspect(object obj) {
+		if(inspector == null) {
+			return;
+		}
+		inspector.Inspect(obj);
+		var texts = inspector.GetComponentsInChildren<Text>();
+		foreach(var t in texts) {
+			if (t.gameObject.GetComponentInParent<InputField>() != null) {
+				continue;
+			}
+			t.text = Trans.late(obj.GetType().Name + "_" + t.text, t.text);
+		}
+	}
+
 }

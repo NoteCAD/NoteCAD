@@ -24,10 +24,10 @@ public class Trans {
         if(lines.Length == 0) {
             return;
         }
-        var headerRow = lines[0].Split('\t');
+        var headerRow = lines[0].Replace("\r", "").Split('\t');
                         
         for(int l = 1; l < lines.Length; l++) {
-            string line = lines[l];
+            string line = lines[l].Replace("\r", "");
             var values = line.Split('\t');
                 
             if (headerRow.Length == values.Length) {

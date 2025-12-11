@@ -3,10 +3,10 @@ EllipseTool_name	Эллипс	EllipseTool
 EllipseTool_description	Кликните мышью там, где хотите создать центр эллипса, после чего с помощью перемещений мыши задайте радиус и кликните мышью, чтобы завершить создание	click where you want to create the center point and then you can control the radius of the ellipse by moving mouse and fix it by clicking left button
 EllipseTool_button	Эллипс	Ellipse
 SketchTool_name	Эскиз	SketchTool
-SketchTool_description	Выберите сначала точку, а потом две непараллельные линии, чтобы задать плоскость эскиза. Линии задают ориентацию плоскости, а точка её положение.	click some point first and then click two non-parallel lines to define a new workplane. The point will be origin of the plane, and plane normal will be perpendicular to lines.
+SketchTool_description	Выберите сначала точку, а потом две непараллельные линии, чтобы задать плоскость эскиза. Линии задают ориентацию плоскости, а точка — её положение.	click some point first and then click two non-parallel lines to define a new workplane. The point will be origin of the plane, and plane normal will be perpendicular to lines.
 SketchTool_button	Эскиз	Wrkplne
 TextTool_name	Текст	TextTool
-TextTool_description	Сначала введите текст в окне опций, а затем кликните мышью там, где вы хотите разместить текст.	enter text in option window and then click where you want to create text entity
+TextTool_description	Сначала введите текст в окне опций, а затем кликните мышью там, где вы хотите разместить левый нижний угол текста, после чего выберите позицию левого верхнего угла текста и кликните, чтобы завершить создание.	enter text in option window and then click where you want to create text entity
 TextTool_button	Текст	Text
 PointsCoincidentTool_name	ТочкаНа	PointsCoincidentTool
 PointsCoincidentTool_description	Выберите сначала точку, а затем элемент, чтобы привязать точку к элементу	hover and click point and arbitrary entity for constraining them to be coincident.
@@ -19,112 +19,324 @@ CopyTool_description	Копирование
 CopyTool_button	Копир	Copy
 TangentTool_name	Касательность	TangentTool
 TangentTool_description	Выберете два элемента, чтобы создать ограничение касательности	hover and click two different entities.
-TangentTool_button	Касательность	Tangent
+TangentTool_button	Касат	Tangent
 OffsetTool_name	Оффсет	OffsetTool
-OffsetTool_description	click an entity to create offset	click an entity to create offset
+OffsetTool_description	Кликните объект, чтобы создать кривую смещения	click an entity to create offset
 OffsetTool_button	Оффсет	Offset
 FixTool_name	Фиксациия	FixTool
-FixTool_description	click an object to apply fixation.	click an object to apply fixation.
+FixTool_description	Выберите объект, чтобы зафиксировать его	click an object to apply fixation.
 FixTool_button	Фикс	Fixation
-ParallelTool_name	ParallelTool	ParallelTool
-ParallelTool_description	hover and click two different lines.	hover and click two different lines.
+ParallelTool_name	Параллельность	ParallelTool
+ParallelTool_description	Выберите две линии, чтобы создать ограничение параллельности между ними	hover and click two different lines.
 ParallelTool_button	Паралл	Parallel
-ImportDXFTool_name	ImportDXFTool	ImportDXFTool
-ImportDXFTool_description		
+ImportDXFTool_name	Импорт2D	ImportDXFTool
+ImportDXFTool_description	Выберите в окне опций необходимый формат для импорта, после чего нажмите кнопку «Импорт». 	
 ImportDXFTool_button	Имп2D	Import2D
-ExtrusionTool_name	ExtrusionTool	ExtrusionTool
+ExtrusionTool_name	Выдавливание	ExtrusionTool
 ExtrusionTool_description		
 ExtrusionTool_button	Выдавл	Extrude
-UndoTool_name	UndoTool	UndoTool
+UndoTool_name	Отмена	UndoTool
 UndoTool_description		
 UndoTool_button	Отмена	Undo
-RedoTool_name	RedoTool	RedoTool
+RedoTool_name	Повтор	RedoTool
 RedoTool_description		
 RedoTool_button	Повтор	Redo
-PerpendicularTool_name	PerpendicularTool	PerpendicularTool
-PerpendicularTool_description	hover and click two different entities.	hover and click two different entities.
+PerpendicularTool_name	Перпендикулярность	PerpendicularTool
+PerpendicularTool_description	Выберите два объекта, чтобы создать перпендикулярность между ними. Вы так же можете выбирать любые элементы — дуги, сплайны итд.	hover and click two different entities.
 PerpendicularTool_button	Перп-ляр	Perp-lar
-RemoveTool_name	RemoveTool	RemoveTool
+RemoveTool_name	Удаление	RemoveTool
 RemoveTool_description		
 RemoveTool_button	Удалить	Delete
-PointTool_name	PointTool	PointTool
-PointTool_description		
+PointTool_name	Точка	PointTool
+PointTool_description	Кликните там, где хотите создать точку	
 PointTool_button	Точка	Point
-LoadTool_name	LoadTool	LoadTool
-LoadTool_description		
+LoadTool_name	Открыть	LoadTool
+LoadTool_description	Выберите файл для открытия	
 LoadTool_button	Открыть	Load
 AngleTool_name	Угол	AngleTool
-AngleTool_description	Наведите курсор и щелкните по дуге или двум разным линиям. Вы можете изменить значение размера, дважды щелкнув по нему, когда активен инструмент перемещения.	hover and click an arc or a two different lines. You can change dimension value by double clicking it when MoveTool is active.
+AngleTool_description	Выберите дугу или две разные линии. Вы можете изменить значение размера, дважды щелкнув по нему, когда активен инструмент перемещения.	hover and click an arc or a two different lines. You can change dimension value by double clicking it when MoveTool is active.
 AngleTool_button	Угол	Angle
-StyleAssignTool_name	StyleAssignTool	StyleAssignTool
-StyleAssignTool_description	Стили	Styles
+StyleAssignTool_name	ПрименитьСтиль	StyleAssignTool
+StyleAssignTool_description	Применение стиля	Styles
 StyleAssignTool_button	Назнач	Assign
-HelpTool_name	HelpTool	HelpTool
+HelpTool_name	Помощь и Опции	HelpTool
 HelpTool_description	Для перемещения камеры используйте среднюю кнопку мыши, для масштабирования — колесико мыши, для вращения камеры — правую кнопку мыши. Для создания твердых тел нарисуйте замкнутые контуры примитивов, затем вы можете создавать выдавливания и эскизы в разных рабочих плоскостях. Для отмены текущего инструмента нажмите клавишу Escape или правую кнопку мыши. 	Use middle mouse button for panning camera, scroll for zooming, right button for rotating the camera. For making solid bodies, please draw closed contours of primitives, then you can create extrusion and sketches in different workplanes. For cancelling current tool you can press Escape or right mouse button.
 HelpTool_button	Помощь Опции	Help Options
-RectTool_name	RectTool	RectTool
+RectTool_name	Прямоугольник	RectTool
 RectTool_description	Щелкните в тех местах, где хотите создать точки прямоугольника. 	click where you want to create points of the rectangle
 RectTool_button	Прямоуг	Rectangle
-LengthTool_name	LengthTool	LengthTool
+LengthTool_name	Длина	LengthTool
 LengthTool_description	Щелкните по объекту, чтобы ограничить его длину, а затем щелкните в том месте, где хотите задать значение размера. Вы можете изменить значение размера, дважды щелкнув по нему, когда активен инструмент перемещения 	click a entity to constrain length and then click where you want to create dimension value. You can change dimension value by double clicking it when MoveTool is active.
 LengthTool_button	Длина	Length
 HVTool_name	HVTool	HVTool
-HVTool_description	click a two points or a line for constraining horizontal/vertical.	click a two points or a line for constraining horizontal/vertical.
+HVTool_description	Выберите две точки или линию, чтобы применить горизонтальность/вертикальность	click a two points or a line for constraining horizontal/vertical.
 HVTool_button	Верт	Vert
 ExportSTLTool_name	ExportSTLTool	ExportSTLTool
-ExportSTLTool_description		
+ExportSTLTool_description	Выберите формат для экспорта, а так же нужные опции, после чего нажмите кнопку «Экспортщ» 	
 ExportSTLTool_button	Экспорт	Export
-PasteTool_name	PasteTool	PasteTool
+PasteTool_name	Всавить	PasteTool
 PasteTool_description		
 PasteTool_button	Вставить	Paste
-LineTool_name	LineTool	LineTool
-LineTool_description	click where you want to create the beginning and the ending points of the line	click where you want to create the beginning and the ending points of the line
+LineTool_name	Отрезок	LineTool
+LineTool_description	Кликните там, где хотите создать начальную и конечную точки отрезка.	click where you want to create the beginning and the ending points of the line
 LineTool_button	Линия	Segment
-ImportSTLTool_name	ImportSTLTool	ImportSTLTool
+ImportSTLTool_name	Импорт3D	ImportSTLTool
 ImportSTLTool_description		
 ImportSTLTool_button	Имп3D	Import3D
-SplineTool_name	SplineTool	SplineTool
-SplineTool_description	click where you want to create the beginning and the ending points of the cubic Bezier spline	click where you want to create the beginning and the ending points of the cubic Bezier spline
+SplineTool_name	Кривая	SplineTool
+SplineTool_description	Кликните там, где хотите создать начальную и конечную точки сплайна Безье	click where you want to create the beginning and the ending points of the cubic Bezier spline
 SplineTool_button	Кривая	Spline
 StyleAddTool_name	StyleAddTool	StyleAddTool
-StyleAddTool_description	change options of newly created style	change options of newly created style
+StyleAddTool_description	Измените опции вновь созданного стиля	change options of newly created style
 StyleAddTool_button	Добавить	Add
-DistanceTool_name	DistanceTool	DistanceTool
-DistanceTool_description	click a line to constrain length or circle(arc) to constrain daimeter(radius). Click two entities of type point/line/circle/arc to constrain distance or angle between them.	click a line to constrain length or circle(arc) to constrain daimeter(radius). Click two entities of type point/line/circle/arc to constrain distance or angle between them.
+DistanceTool_name	Размер	DistanceTool
+DistanceTool_description	Выберите линию, чтобы задать ее длину,  или окружность (дугу), чтобы задать диаметр (радиус). Выберите точки/линии/окружности/дуги чтобы задать расстояния или углы между ними.	click a line to constrain length or circle(arc) to constrain daimeter(radius). Click two entities of type point/line/circle/arc to constrain distance or angle between them.
 DistanceTool_button	Размер	Dim
-NewTool_name	NewTool	NewTool
-NewTool_description		
+NewTool_name	Создать Новый Файл	NewTool
+NewTool_description	Введите имя файла в окне опций и нажимите кнопку «Создать»	
 NewTool_button	Новый	New
-CircleTool_name	CircleTool	CircleTool
-CircleTool_description	click where you want to create the center point and then you can control the radius of the circle by moving mouse and fix it by clicking left button	click where you want to create the center point and then you can control the radius of the circle by moving mouse and fix it by clicking left button
+CircleTool_name	Окружность	CircleTool
+CircleTool_description	Кликните там, где хотите создать центр окружности, после чего можно задать радиус перемещнием мыши и кликнуть мышью для завершения создания.	click where you want to create the center point and then you can control the radius of the circle by moving mouse and fix it by clicking left button
 CircleTool_button	Окружн	Circle
-SaveTool_name	SaveTool	SaveTool
-SaveTool_description		
+SaveTool_name	Сохранить	SaveTool
+SaveTool_description	Выберите место сохранения файла	
 SaveTool_button	Сохр	Save
 FunctionTool_name	FunctionTool	FunctionTool
 FunctionTool_description	click where you want to create the beginning and the ending points of the segment defined by arbitrary equations	click where you want to create the beginning and the ending points of the segment defined by arbitrary equations
 FunctionTool_button	Функц	Function
-RevolveTool_name	RevolveTool	RevolveTool
-RevolveTool_description	click some point first and then click line to define an axis. The point will be origin of the axis, and line will be direction of an axis.	click some point first and then click line to define an axis. The point will be origin of the axis, and line will be direction of an axis.
+RevolveTool_name	Тело Вращения	RevolveTool
+RevolveTool_description	Выберите точку и линию, чтобы задать ось вращения. Линия задает направление оси вращения, а точка задает положение.	click some point first and then click line to define an axis. The point will be origin of the axis, and line will be direction of an axis.
 RevolveTool_button	Вращение	Revolve
-PolygonTool_name	PolygonTool	PolygonTool
-PolygonTool_description	click where you want to create center of polygon then you can control size of polygon by moving mouse cursor.	click where you want to create center of polygon then you can control size of polygon by moving mouse cursor.
+PolygonTool_name	Правильный Многоугольник	PolygonTool
+PolygonTool_description	Задайте количество углов многоугольника, после чего кликните там, где хотите создать ценр полигона, после чего пермещением мыши задайте размер многоугольника, кликните мышью для завершения.	click where you want to create center of polygon then you can control size of polygon by moving mouse cursor.
 PolygonTool_button	Полигон	Polygon
-EquationTool_name	EquationTool	EquationTool
-EquationTool_description	click a entity to constrain length and then click where you want to create dimension value. You can change dimension value by double clicking it when MoveTool is active.	click a entity to constrain length and then click where you want to create dimension value. You can change dimension value by double clicking it when MoveTool is active.
+EquationTool_name	Произвольное Уравнение	EquationTool
+EquationTool_description	Кликните там, где хотите поместить уравнение. После чего его можно выбрать и в окне опций изменять выражение. Поддерживаются присваивания и неравенства. (<=>). Можно объявлять перменные, которые можно использовать в других уравнениях или в качестве значений для размерных ограничений и углов.	click a entity to constrain length and then click where you want to create dimension value. You can change dimension value by double clicking it when MoveTool is active.
 EquationTool_button	Уравн	Equation
-StyleEditTool_name	StyleEditTool	StyleEditTool
-StyleEditTool_description	change options of selected style	change options of selected style
+StyleEditTool_name	Редактирование Стиля	StyleEditTool
+StyleEditTool_description	Измените опции редактируемого стиля	change options of selected style
 StyleEditTool_button	Редакт	Edit
-EqualTool_name	EqualTool	EqualTool
-EqualTool_description	hover and click two different entities or two angle constraints.	hover and click two different entities or two angle constraints.
+EqualTool_name	Равеноство	EqualTool
+EqualTool_description	Выберите два разных объекта или два угловых ограничения	hover and click two different entities or two angle constraints.
 EqualTool_button	Равен	Equal
-StyleRemoveTool_name	StyleRemoveTool	StyleRemoveTool
-StyleRemoveTool_description	Стили	Styles
+StyleRemoveTool_name	Удаление Стиля	StyleRemoveTool
+StyleRemoveTool_description	Удаляет стиль	Styles
 StyleRemoveTool_button	Удалить	Remove
 MidPointTool_name	Середина	MidPointTool
 MidPointTool_description	Выберите точку и элемент	hover and click point and arbitarary entity
-MidPointTool_button	Серед.	MidPoint
+MidPointTool_button	Серед	MidPoint
 MoveTool_name	Перемещение	MoveTool
-MoveTool_description	Наведите курсор на объект и удерживайте левую кнопку мыши, чтобы переместить его. Дважды щелкните по любому параметру, чтобы отредактировать его. Щелкните значок справки для получения дополнительной информации.	hover over an entity, hold down left mouse button to move it. Double click on any dimension to edit. Click on Help icon for additional info.
+MoveTool_description	Наведите курсор на объект и удерживайте левую кнопку мыши, чтобы переместить его. Дважды щелкните по любому размерному значению, чтобы отредактировать его. Щелкните значок справки для получения дополнительной информации.	hover over an entity, hold down left mouse button to move it. Double click on any dimension to edit. Click on Help icon for additional info.
 MoveTool_button	Перемещ	Move
+SketchFeature_SketchFeature	Эскиз	SketchFeature
+SketchFeature_Solve Parent	Решать с родит.	Solve Parent
+SketchFeature_Source Licensing	Лицензирование кода	Source Licensing
+SketchFeature_Feedback	Обратная связь	Feedback
+Options_Options	Опции	Options
+Options_New Filename	Создать Новый	New Filename
+Options_Create	Создать	Create
+Options_Format	Формат	Format
+Options_Xml	Xml	Xml
+Options_Specify Filename	Задайте имя файла	Specify Filename
+Options_Save	Сохранить	Save
+Settings_Settings	Опции	Settings
+Settings_File Type	Тип файла	File Type
+Settings_Stl	Stl	Stl
+Settings_Constraints	Ограничения	Constraints
+Settings_Dimensions	Размеры	Dimensions
+Settings_Construction	Для справок	Construction
+Settings_TextFillupISP	Заполнить ISP	TextFillupISP
+Settings_TextFillupCSV	Заполнить CSV	TextFillupCSV
+Settings_Export	Экспорт	Export
+DetailSettings_DetailSettings	Опции	DetailSettings
+DetailSettings_Length Measurement	Единицы измер.	Length Measurement
+DetailSettings_Millimetre	Миллиметры	Millimetre
+DetailSettings_Show Constraints	Показ. Огранич.	Show Constraints
+DetailSettings_Show Dimensions	Показ. размеры	Show Dimensions
+DetailSettings_Display Points	Показ. точки	Display Points
+DetailSettings_All	All	All
+DetailSettings_Autoconstraining	Autoconstraining	Autoconstraining
+DetailSettings_Drawing Dimensions	Drawing Dimensions	Drawing Dimensions
+DetailSettings_Check Sketch Errors	Check Sketch Errors	Check Sketch Errors
+DetailSettings_Detect Contours	Detect Contours	Detect Contours
+DetailSettings_Use Mesh Provider	Use Mesh Provider	Use Mesh Provider
+DetailSettings_Suppress Solver	Выкл. Солвер	Suppress Solver
+DetailSettings_Mesh Provider	Mesh Provider	Mesh Provider
+DetailSettings_Provider Format	Provider Format	Provider Format
+DetailSettings_JSON	JSON	JSON
+DetailSettings_Save Translation	Сохранить перевод	Save Translation
+PointEntity_PointEntity	Точка	PointEntity
+PointEntity_X	X	X
+PointEntity_Y	Y	Y
+PointEntity_Z	Z	Z
+PointEntity_Pos	Поз.	Pos
+LineEntity_LineEntity	Отрезок	LineEntity
+ArcEntity_ArcEntity	Дуга	ArcEntity
+CircleEntity_CircleEntity	Окружность	CircleEntity
+CircleEntity_R	R	R
+CircleEntity_Angle Fixed	Фикс. Угол	Angle Fixed
+CircleEntity_Radius	Радиус	Radius
+CircleEntity_Angle	Угол	Angle
+FunctionEntity_FunctionEntity	Функция	FunctionEntity
+FunctionEntity_X	X	X
+FunctionEntity_Y	Y	Y
+FunctionEntity_Subdivision	Сегменты	Subdivision
+FunctionEntity_T Begin Fixed	T нач. фикс.	T Begin Fixed
+FunctionEntity_T End Fixed	T конц. Фикс.	T End Fixed
+FunctionEntity_T Begin	T нач	T Begin
+FunctionEntity_T End	T конц	T End
+SplineEntity_SplineEntity	Кривая	SplineEntity
+EllipseEntity_EllipseEntity	Эллипс	EllipseEntity
+EllipseEntity_R 0	R 0	R 0
+EllipseEntity_R 1	R 1	R 1
+EllipseEntity_Radius 0	Радиус 0	Radius 0
+EllipseEntity_Radius 1	Радиус 1	Radius 1
+PolygonOptions_PolygonOptions	Многоугольник	PolygonOptions
+PolygonOptions_Corners	Углов	Corners
+Options_Text	Текст	Text
+TextEntity_TextEntity	Текст	TextEntity
+TextEntity_Text	Text	Text
+TextEntity_Font Size	Разм. Шрифта	Font Size
+TextEntity_Margin	Отступ	Margin
+TextEntity_Alignment	Выравнивание	Alignment
+TextEntity_Scale	Масштабирование	Scale
+TextEntity_Stretch	Растягивание	Stretch
+TextEntity_Fit	По размеру	Fit
+TextEntity_Left	Лево	Left
+TextEntity_Right	Право	Right
+TextEntity_Top	Верх	Top
+TextEntity_TopLeft	ВерхЛево	TopLeft
+TextEntity_TopRight	ВерхПраво	TopRight
+TextEntity_Bottom	Низ	Bottom
+TextEntity_BottomLeft	НизЛево	BottomLeft
+TextEntity_BottomRight	НизПраво	BottomRight
+TextEntity_Center	Центр	Center
+OffsetEntity_OffsetEntity	Кривая Смещения	OffsetEntity
+OffsetEntity_Offset	Смещение	Offset
+OffsetEntity_Subdivision	Сегменты	Subdivision
+ExtrusionFeature_ExtrusionFeature	Тело Выдавливания	ExtrusionFeature
+ExtrusionFeature_Extrude	Значение	Extrude
+ExtrusionFeature_Operation	Операция	Operation
+ExtrusionFeature_Union	Объединение	Union
+ExtrusionFeature_Solve Parent	Решать с родит.	Solve Parent
+ExtrusionFeature_Source Licensing	Линезирование исходного кода	Source Licensing
+ExtrusionFeature_Feedback	Обратная связь	Feedback
+ExtrusionFeature_Difference	Вычитание	Difference
+ExtrusionFeature_Intersection	Пересечение	Intersection
+ExtrusionFeature_Assembly	Сборка	Assembly
+RevolveFeature_RevolveFeature	Тело Вращения	RevolveFeature
+RevolveFeature_Angle	Угол	Angle
+RevolveFeature_Step	Шаг	Step
+RevolveFeature_Mesh Angle Step	Угл. Шаг. Меша	Mesh Angle Step
+RevolveFeature_Step Fixed	Фикс. Шаг	Step Fixed
+RevolveFeature_Angle Fixed	Фикс. Угол	Angle Fixed
+RevolveFeature_Operation	Операция	Operation
+RevolveFeature_Union	Объединение	Union
+RevolveFeature_Solve Parent	Решать с родит.	Solve Parent
+RevolveFeature_Source Licensing	Лицензирование исходного кода	Source Licensing
+RevolveFeature_Feedback	Обратная связть	Feedback
+Settings_Dxf	Dxf	Dxf
+Settings_Autoconstrain	Autoconstrain	Autoconstrain
+Settings_Choose Layers	Choose Layers	Choose Layers
+Settings_Import	Import	Import
+PointOn_PointOn	PointOn	PointOn
+PointOn_Expression	Expression	Expression
+PointOn_Reference	Reference	Reference
+PointOn_Solvable	Solvable	Solvable
+PointOn_Label X	Label X	Label X
+PointOn_Label Y	Label Y	Label Y
+PointOn_Label Z	Label Z	Label Z
+PointOn_Dimension	Dimension	Dimension
+PointOn_Enabled	Enabled	Enabled
+PointOn_Draw Link	Draw Link	Draw Link
+PointsDistance_PointsDistance	PointsDistance	PointsDistance
+PointsDistance_Expression	Expression	Expression
+PointsDistance_Reference	Reference	Reference
+PointsDistance_Solvable	Solvable	Solvable
+PointsDistance_Label X	Label X	Label X
+PointsDistance_Label Y	Label Y	Label Y
+PointsDistance_Label Z	Label Z	Label Z
+PointsDistance_Dimension	Dimension	Dimension
+PointsDistance_Enabled	Enabled	Enabled
+PointsDistance_Draw Link	Draw Link	Draw Link
+AngleConstraint_AngleConstraint	AngleConstraint	AngleConstraint
+AngleConstraint_Expression	Expression	Expression
+AngleConstraint_Supplementary	Supplementary	Supplementary
+AngleConstraint_Reference	Reference	Reference
+AngleConstraint_Solvable	Solvable	Solvable
+AngleConstraint_Label X	Label X	Label X
+AngleConstraint_Label Y	Label Y	Label Y
+AngleConstraint_Label Z	Label Z	Label Z
+AngleConstraint_Dimension	Dimension	Dimension
+AngleConstraint_Enabled	Enabled	Enabled
+AngleConstraint_Draw Link	Draw Link	Draw Link
+Length_Length	Length	Length
+Length_Expression	Expression	Expression
+Length_Reference	Reference	Reference
+Length_Solvable	Solvable	Solvable
+Length_Label X	Label X	Label X
+Length_Label Y	Label Y	Label Y
+Length_Label Z	Label Z	Label Z
+Length_Dimension	Dimension	Dimension
+Length_Enabled	Enabled	Enabled
+Length_Draw Link	Draw Link	Draw Link
+Parallel_Parallel	Parallel	Parallel
+Parallel_Option	Option	Option
+Parallel_Antidirected	Antidirected	Antidirected
+Parallel_Enabled	Enabled	Enabled
+Parallel_Draw Link	Draw Link	Draw Link
+Parallel_Codirected	Codirected	Codirected
+Parallel_Any	Any	Any
+Perpendicular_Perpendicular	Perpendicular	Perpendicular
+Perpendicular_Option	Option	Option
+Perpendicular_RightHand	RightHand	RightHand
+Perpendicular_Enabled	Enabled	Enabled
+Perpendicular_Draw Link	Draw Link	Draw Link
+Perpendicular_LeftHand	LeftHand	LeftHand
+Options_Preserve Ratio	Preserve Ratio	Preserve Ratio
+Equal_Equal	Equal	Equal
+Equal_Expression	Expression	Expression
+Equal_First Length Type	First Length Type	First Length Type
+Equal_Length	Length	Length
+Equal_Second Length Type	Second Length Type	Second Length Type
+Equal_Reference	Reference	Reference
+Equal_Solvable	Solvable	Solvable
+Equal_Label X	Label X	Label X
+Equal_Label Y	Label Y	Label Y
+Equal_Label Z	Label Z	Label Z
+Equal_Dimension	Dimension	Dimension
+Equal_Enabled	Enabled	Enabled
+Equal_Draw Link	Draw Link	Draw Link
+Equal_Radius	Radius	Radius
+Equal_Diameter	Diameter	Diameter
+Tangent_Tangent	Tangent	Tangent
+Tangent_Option	Option	Option
+Tangent_Antidirected	Antidirected	Antidirected
+Tangent_Perpendicular	Perpendicular	Perpendicular
+Tangent_Enabled	Enabled	Enabled
+Tangent_Draw Link	Draw Link	Draw Link
+Tangent_Codirected	Codirected	Codirected
+HVConstraint_HVConstraint	HVConstraint	HVConstraint
+HVConstraint_Orientation	Orientation	Orientation
+HVConstraint_OY	OY	OY
+HVConstraint_Enabled	Enabled	Enabled
+HVConstraint_Draw Link	Draw Link	Draw Link
+HVConstraint_OX	OX	OX
+HVConstraint_OZ	OZ	OZ
+EquationConstraint_EquationConstraint	EquationConstraint	EquationConstraint
+EquationConstraint_Expression	Expression	Expression
+EquationConstraint_Reference	Reference	Reference
+EquationConstraint_Solvable	Solvable	Solvable
+EquationConstraint_Label X	Label X	Label X
+EquationConstraint_Label Y	Label Y	Label Y
+EquationConstraint_Label Z	Label Z	Label Z
+EquationConstraint_Dimension	Dimension	Dimension
+EquationConstraint_Enabled	Enabled	Enabled
+EquationConstraint_Draw Link	Draw Link	Draw Link
+Style_Style	Style	Style
+Style_Construction	Construction	Construction
+Style_Export	Export	Export
+Style_Pen	Pen	Pen
+Style_Speed	Speed	Speed
+Style_Stroke	Stroke	Stroke
+Style_Name	Name	Name

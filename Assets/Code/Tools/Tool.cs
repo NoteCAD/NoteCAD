@@ -56,7 +56,7 @@ public class Tool : MonoBehaviour {
 		OnDeactivate();
 		if(editor.toolInspector) {
 			editor.toolInspector = false;
-			editor.inspector.Inspect(null);
+			editor.Inspect(null);
 		}
 		editor.hoverFilter = null;
 	}
@@ -242,13 +242,17 @@ public class Tool : MonoBehaviour {
 		var index = trText.IndexOf(hk, System.StringComparison.InvariantCultureIgnoreCase);
 		var openColor = "<color=\"#6ECEEFFF\">";
 		var closeColor = "</color>";
-		if(index < 0 || ctrl) return trText + " [" + openColor + (ctrl ? "Ctrl+" : "") + hk  + closeColor + "]";
+
+		if(index < 0 || ctrl) {
+			var del = (trText.Length <= 6 && !ctrl) ? "" : "\n";
+			return trText + del + "[" + openColor + (ctrl ? "Ctrl+" : "") + hk  + closeColor + "]";
+		}
 		return trText.Substring(0, index) + openColor + trText[index] + closeColor + trText.Substring(index + 1, trText.Length - index - 1);
 	}
 
 	public static void Inspect(object obj) {
 		DetailEditor.instance.toolInspector = true;
-		DetailEditor.instance.inspector.Inspect(obj);
+		DetailEditor.instance.Inspect(obj);
 	}
 
 }
