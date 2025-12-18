@@ -21,11 +21,11 @@ public class EqualTool : Tool {
 	}
 
 	[System.Serializable]
-	class Options { 
+	class EqualToolOptions { 
 		public bool preserveRatio = false;
 	}
 
-	Options options = new Options();
+	EqualToolOptions options = new EqualToolOptions();
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		var vc = sko as AngleConstraint;

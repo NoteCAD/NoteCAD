@@ -690,13 +690,7 @@ public class DetailEditor : MonoBehaviour {
 			return;
 		}
 		inspector.Inspect(obj);
-		var texts = inspector.GetComponentsInChildren<Text>();
-		foreach(var t in texts) {
-			if (t.gameObject.GetComponentInParent<InputField>() != null) {
-				continue;
-			}
-			t.text = Trans.late(obj.GetType().Name + "_" + t.text, t.text);
-		}
+		Trans.late(inspector, obj);
 	}
 
 }

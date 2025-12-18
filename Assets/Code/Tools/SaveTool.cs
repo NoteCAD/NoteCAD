@@ -14,10 +14,10 @@ public class SaveTool : Tool {
 	};
 
 	[Serializable]
-	class Options {
+	class SaveToolOptions {
 		public FileFormat format = FileFormat.Xml;
 		SaveTool tool;
-		public Options(SaveTool t) {
+		public SaveToolOptions(SaveTool t) {
 			tool = t;
 		}
 		public string specifyFilename;
@@ -30,10 +30,10 @@ public class SaveTool : Tool {
 		}
 	}
 	
-	Options options;
+	SaveToolOptions options;
 
 	public SaveTool() {
-		options = new Options(this);
+		options = new SaveToolOptions(this);
 	}
 
 	public void Save(FileFormat format) {

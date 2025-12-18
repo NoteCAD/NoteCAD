@@ -7,9 +7,9 @@ using System;
 public class NewTool : Tool {
 
 	[Serializable]
-	class Options {
+	class NewToolOptions {
 		Tool tool;
-		public Options(Tool t) {
+		public NewToolOptions(Tool t) {
 			tool = t;
 		}
 		public string newFilename = "";
@@ -23,9 +23,9 @@ public class NewTool : Tool {
 		}
 	}
 
-	Options options;
+	NewToolOptions options;
 	public NewTool() {
-		options = new Options(this);
+		options = new NewToolOptions(this);
 	}
 
 	protected override void OnActivate() {

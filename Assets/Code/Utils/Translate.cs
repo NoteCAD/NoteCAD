@@ -1,21 +1,51 @@
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class Trans {
     
     static Dictionary<string, Dictionary<string, string>> translation = new();
+    public static string defaultLang = "EN";
     public static string currentLang = "EN";
 
     public static string late(string key, string def) {
-        if (!translation.ContainsKey(key)) {
-            translation[key] = new();
-            translation[key][currentLang] = def; 
-            translation[key]["EN"] = def;
+        if(translation.TryGetValue(key, out var langs)) {
+            if(langs.TryGetValue(currentLang, out var tr) && tr != "") {
+                return tr;
+            } else 
+            if(langs.TryGetValue(defaultLang, out tr) && tr != "") {
+                return tr;
+            } else {
+                langs[defaultLang] = def;
+                return def;
+            }
         }
-        if (!translation[key].ContainsKey(currentLang)) {
-            translation[key][currentLang] = def;
+        langs = new();
+        langs[defaultLang] = def;
+        translation[key] = langs;
+        return def;
+    }
+
+    public static void late(MonoBehaviour ui, object obj) {
+        if(obj == null) {
+            return;
         }
-        return translation[key][currentLang];
+		var texts = ui.GetComponentsInChildren<Text>();
+		foreach(var t in texts) {
+			if (t.gameObject.GetComponentInParent<InputField>() != null) {
+				continue;
+			}
+			var translator = t.gameObject.GetComponent<Translator>();
+			if (translator == null) {
+				translator = t.gameObject.AddComponent<Translator>();
+            }
+			if (translator.key == "") {
+			    var trKey = obj.GetType().Name + "@" + t.text.Replace(" ", "");
+			    translator.key = trKey;
+			    t.text = Trans.late(trKey, t.text);
+			}
+		}
     }
 
     public static void FromCSV(string csv) {
@@ -36,6 +66,9 @@ public class Trans {
                 }
                 var dict = translation[values[0]];
                 for (int i = 1; i < values.Length; i++) {
+                    if(values[i] == "") {
+                        continue;
+                    }
                     dict[headerRow[i]] = values[i];
                 }
             }
@@ -58,7 +91,7 @@ public class Trans {
         sb.AppendLine();
 
         foreach(var tr in translation) {
-            sb.Append(tr.Key);
+            sb.Append(tr.Key.Replace("_", "@").Replace(" ", ""));
             foreach(var lang in langs)
             {
                 sb.Append("\t");

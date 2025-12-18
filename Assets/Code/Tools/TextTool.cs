@@ -8,11 +8,11 @@ public class TextTool : Tool {
 	TextEntity txt;
 	
 	[System.Serializable]
-	class Options { 
+	class TextToolOptions { 
 		public string text;
 	}
 
-	Options options = new Options();
+	TextToolOptions options = new TextToolOptions();
 
 	TextTool() {
 		enableHoverFilter = true;

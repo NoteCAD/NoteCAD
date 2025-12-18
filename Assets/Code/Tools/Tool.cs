@@ -185,8 +185,8 @@ public class Tool : MonoBehaviour {
 
 	public string GetDescription() {
 		var typeName = this.GetType().Name;
-		var name = Trans.late(typeName + "_name", typeName);
-		var desc = Trans.late(typeName + "_description", OnGetDescription());
+		var name = Trans.late(typeName + "@name", typeName);
+		var desc = Trans.late(typeName + "@description", OnGetDescription());
 
 		var result = name;
 		if(hotkeys.Length > 0) {
@@ -200,8 +200,8 @@ public class Tool : MonoBehaviour {
 
 	public string GetTooltip() {
 		var typeName = this.GetType().Name;
-		var name = Trans.late(typeName + "_name", typeName);
-		var desc = Trans.late(typeName + "_description", OnGetDescription());
+		var name = Trans.late(typeName + "@name", typeName);
+		var desc = Trans.late(typeName + "@description", OnGetDescription());
 
 		var result = name;
 		if(hotkeys.Length > 0) {
@@ -235,7 +235,7 @@ public class Tool : MonoBehaviour {
 
 	public string GetRichText() {
 		var typeName = this.GetType().Name;
-		var trText = Trans.late(typeName + "_button", text);
+		var trText = Trans.late(typeName + "@button", text);
 		if(hotkeys == null || hotkeys.Length == 0) return trText;
 		var hk = hotkeys[0].ToString();
 		if(hk.Length != 1) return trText;

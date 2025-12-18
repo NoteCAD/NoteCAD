@@ -18,14 +18,14 @@ public class ExportSTLTool : Tool {
 	};
 
 	[Serializable]
-	class Settings {
+	class ExportSettings {
 		ExportSTLTool tool;
 		public FileType fileType;
 		public bool constraints = false;
 		public bool dimensions = false;
 		public bool construction = true;
 
-		public Settings(ExportSTLTool t) {
+		public ExportSettings(ExportSTLTool t) {
 			tool = t;
 		}
 
@@ -643,10 +643,10 @@ public class ExportSTLTool : Tool {
 		return Poisson.ReplaySerializer.SaveToJson(editor.currentSketch.GetSketch());
 	}
 
-	Settings settings;
+	ExportSettings settings;
 
 	ExportSTLTool() {
-		settings = new Settings(this);
+		settings = new ExportSettings(this);
 	}
 
 	protected override void OnActivate() {

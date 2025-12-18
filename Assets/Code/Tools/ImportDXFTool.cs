@@ -24,7 +24,7 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 	};
 
 	[Serializable]
-	class Settings {
+	class ImportToolOptions {
 		ImportDXFTool tool;
 		public FileType fileType;
 		public bool autoconstrain = false;
@@ -32,7 +32,7 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 		[NonSerialized]
 		public bool activated = false;
 
-		public Settings(ImportDXFTool t) {
+		public ImportToolOptions(ImportDXFTool t) {
 			tool = t;
 		}
 
@@ -81,14 +81,14 @@ public class ImportDXFTool : Tool, IPointerDownHandler {
 		}
 	}
 
-	Settings settings;
+	ImportToolOptions settings;
 	Layers layers;
 	Style currentStyle = null;
 	Dictionary<string, Style> styles = new();
 
 
 	ImportDXFTool() {
-		settings = new Settings(this);
+		settings = new ImportToolOptions(this);
 		layers = new Layers(this);
 	}
 

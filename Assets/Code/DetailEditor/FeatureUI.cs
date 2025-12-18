@@ -10,7 +10,9 @@ public class FeatureUI : MonoBehaviour, IPointerDownHandler {
 		get { return feature_; }
 		set {
 			feature_ = value;
-			GetComponent<Text>().text = feature_.GetType().Name.Replace("Feature", "");
+			var typeName = feature_.GetType().Name;
+			var name = typeName.Replace("Feature", "");
+			GetComponent<Text>().text = Trans.late(typeName + "@history", name);
 		}
 	}
 
