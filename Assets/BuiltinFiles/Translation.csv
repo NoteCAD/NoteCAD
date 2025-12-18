@@ -139,15 +139,6 @@ SaveToolOptions@Format	Формат	Format
 SaveToolOptions@Xml	Xml	Xml
 SaveToolOptions@SpecifyFilename	Задайте имя файла	Specify Filename
 SaveToolOptions@Save	Сохранить	Save
-ImportToolOptions@ImportToolOptions	Опции	Settings
-ImportToolOptions@FileType	Тип файла	File Type
-ImportToolOptions@Stl	Stl	Stl
-ImportToolOptions@Constraints	Ограничения	Constraints
-ImportToolOptions@Dimensions	Размеры	Dimensions
-ImportToolOptions@Construction	Для справок	Construction
-ImportToolOptions@TextFillupISP	Заполнить ISP	TextFillupISP
-ImportToolOptions@TextFillupCSV	Заполнить CSV	TextFillupCSV
-ImportToolOptions@Export	Экспорт	Export
 DetailSettings@DetailSettings	Опции	DetailSettings
 DetailSettings@LengthMeasurement	Единицы измер.	Length Measurement
 DetailSettings@Millimetre	Миллиметры	Millimetre
@@ -346,3 +337,11 @@ ExportSettings@FileType	Тип файла	File Type
 ExportSettings@Stl		Stl
 ExportSettings@Dimensions	Размеры	Dimensions
 ExportSettings@Construction	Дополнит. Постр.	Construction
+ExportSettings@ExportSettings		Экспорт
+ExportSettings@Constraints		Констрейны
+ExportSettings@TextFillupISP		Заполнить из ISP
+ExportSettings@TextFillupCSV		Заполнить из CSV
+SaveToolOptions@SaveToolOptions		Сохранить файл
+TextToolOptions@TextToolOptions		TextToolOptions
+TextToolOptions@Text		Текст
+ExtrusionFeature@history		Выдавливание
