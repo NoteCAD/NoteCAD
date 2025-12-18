@@ -252,91 +252,97 @@ PointOn@DrawLink	Рисовать связь	Draw Link
 PointsDistance@PointsDistance	Расстояние	PointsDistance
 PointsDistance@Expression	Выражение	Expression
 PointsDistance@Reference	Для справок	Reference
-PointsDistance@Solvable		Solvable
-PointsDistance@LabelX		Label X
-PointsDistance@LabelY		Label Y
-PointsDistance@LabelZ		Label Z
-PointsDistance@Dimension		Dimension
-PointsDistance@Enabled		Enabled
-PointsDistance@DrawLink		Draw Link
-AngleConstraint@AngleConstraint		AngleConstraint
-AngleConstraint@Expression		Expression
-AngleConstraint@Supplementary		Supplementary
-AngleConstraint@Reference		Reference
-AngleConstraint@Solvable		Solvable
-AngleConstraint@LabelX		Label X
-AngleConstraint@LabelY		Label Y
-AngleConstraint@LabelZ		Label Z
-AngleConstraint@Dimension		Dimension
-AngleConstraint@Enabled		Enabled
-AngleConstraint@DrawLink		Draw Link
-Length@Length		Length
-Length@Expression		Expression
-Length@Reference		Reference
-Length@Solvable		Solvable
-Length@LabelX		Label X
-Length@LabelY		Label Y
-Length@LabelZ		Label Z
-Length@Dimension		Dimension
-Length@Enabled		Enabled
-Length@DrawLink		Draw Link
-Parallel@Parallel		Parallel
-Parallel@Option		Option
-Parallel@Antidirected		Antidirected
-Parallel@Enabled		Enabled
-Parallel@DrawLink		Draw Link
-Parallel@Codirected		Codirected
-Parallel@Any		Any
-Perpendicular@Perpendicular		Perpendicular
-Perpendicular@Option		Option
-Perpendicular@RightHand		RightHand
-Perpendicular@Enabled		Enabled
-Perpendicular@DrawLink		Draw Link
-Perpendicular@LeftHand		LeftHand
-Options@PreserveRatio		Preserve Ratio
-Equal@Equal		Equal
-Equal@Expression		Expression
-Equal@FirstLengthType		First Length Type
-Equal@Length		Length
-Equal@SecondLengthType		Second Length Type
-Equal@Reference		Reference
-Equal@Solvable		Solvable
-Equal@LabelX		Label X
-Equal@LabelY		Label Y
-Equal@LabelZ		Label Z
-Equal@Dimension		Dimension
-Equal@Enabled		Enabled
-Equal@DrawLink		Draw Link
-Equal@Radius		Radius
-Equal@Diameter		Diameter
-Tangent@Tangent		Tangent
-Tangent@Option		Option
-Tangent@Antidirected		Antidirected
-Tangent@Perpendicular		Perpendicular
-Tangent@Enabled		Enabled
-Tangent@DrawLink		Draw Link
-Tangent@Codirected		Codirected
-HVConstraint@HVConstraint		HVConstraint
-HVConstraint@Orientation		Orientation
+PointsDistance@Solvable	Решаемый	Solvable
+PointsDistance@LabelX	Метка X	Label X
+PointsDistance@LabelY	Метка Y	Label Y
+PointsDistance@LabelZ	Метка Z	Label Z
+PointsDistance@Dimension	Значение	Dimension
+PointsDistance@Enabled	Разрешен	Enabled
+PointsDistance@DrawLink	Рисовать связь	Draw Link
+AngleConstraint@AngleConstraint	Угол	AngleConstraint
+AngleConstraint@Expression	Выражение	Expression
+AngleConstraint@Supplementary	Смежный	Supplementary
+AngleConstraint@Reference	Для справок	Reference
+AngleConstraint@Solvable	Решать	Solvable
+AngleConstraint@LabelX	Метка X	Label X
+AngleConstraint@LabelY	Метка Y	Label Y
+AngleConstraint@LabelZ	Метка Z	Label Z
+AngleConstraint@Dimension	Значение	Dimension
+AngleConstraint@Enabled	Разрешен	Enabled
+AngleConstraint@DrawLink	Рисовать связь	Draw Link
+Length@Length	Длина	Length
+Length@Expression	Выражение	Expression
+Length@Reference	Для справок	Reference
+Length@Solvable	Решать	Solvable
+Length@LabelX	Метка X	Label X
+Length@LabelY	Метка Y	Label Y
+Length@LabelZ	Метка Z	Label Z
+Length@Dimension	Значение	Dimension
+Length@Enabled	Разрешен	Enabled
+Length@DrawLink	Рисовать связь	Draw Link
+Parallel@Parallel	Параллельность	Parallel
+Parallel@Option	Опция	Option
+Parallel@Antidirected	Противонаправлен	Antidirected
+Parallel@Enabled	Разрешен	Enabled
+Parallel@DrawLink	Рисовать связь	Draw Link
+Parallel@Codirected	Сонаправлен	Codirected
+Parallel@Any	Любое направление	Any
+Perpendicular@Perpendicular	Перпендикулярность	Perpendicular
+Perpendicular@Option	Опция	Option
+Perpendicular@RightHand	Правосторонний	RightHand
+Perpendicular@Enabled	Разрешен	Enabled
+Perpendicular@DrawLink	Рисовать связь	Draw Link
+Perpendicular@LeftHand	Левосторонний	LeftHand
+Equal@Equal	Равенство	Equal
+Equal@Expression	Выражение	Expression
+Equal@FirstLengthType	Тип Агрумент 1	First Length Type
+Equal@Length	Длина	Length
+Equal@SecondLengthType	Тип Агрумент 2	Second Length Type
+Equal@Reference	Для справок	Reference
+Equal@Solvable	Решать	Solvable
+Equal@LabelX	Метка X	Label X
+Equal@LabelY	Метка Y	Label Y
+Equal@LabelZ	Метка Z	Label Z
+Equal@Dimension	Значение	Dimension
+Equal@Enabled	Разрешен	Enabled
+Equal@DrawLink	Рисовать связь	Draw Link
+Equal@Radius	Радиус	Radius
+Equal@Diameter	Диаметр	Diameter
+Tangent@Tangent	Касательность	Tangent
+Tangent@Option	Опция	Option
+Tangent@Antidirected	Противонаправлен	Antidirected
+Tangent@Perpendicular	Перпендикулярность	Perpendicular
+Tangent@Enabled	Разрешен	Enabled
+Tangent@DrawLink	Рисовать связь	Draw Link
+Tangent@Codirected	Сонаправлен	Codirected
+HVConstraint@HVConstraint	Горизонатльность/Вертикальность	HVConstraint
+HVConstraint@Orientation	Ориентация	Orientation
 HVConstraint@OY		OY
-HVConstraint@Enabled		Enabled
-HVConstraint@DrawLink		Draw Link
+HVConstraint@Enabled	Разрешен	Enabled
+HVConstraint@DrawLink	Рисовать связь	Draw Link
 HVConstraint@OX		OX
 HVConstraint@OZ		OZ
-EquationConstraint@EquationConstraint		EquationConstraint
-EquationConstraint@Expression		Expression
-EquationConstraint@Reference		Reference
-EquationConstraint@Solvable		Solvable
-EquationConstraint@LabelX		Label X
-EquationConstraint@LabelY		Label Y
-EquationConstraint@LabelZ		Label Z
-EquationConstraint@Dimension		Dimension
-EquationConstraint@Enabled		Enabled
-EquationConstraint@DrawLink		Draw Link
-Style@Style		Style
-Style@Construction		Construction
-Style@Export		Export
+EquationConstraint@EquationConstraint	Уравнение	EquationConstraint
+EquationConstraint@Expression	Выражение	Expression
+EquationConstraint@Reference	Для справок	Reference
+EquationConstraint@Solvable	Решать	Solvable
+EquationConstraint@LabelX	Метка X	Label X
+EquationConstraint@LabelY	Метка Y	Label Y
+EquationConstraint@LabelZ	Метка Z	Label Z
+EquationConstraint@Dimension	Значение	Dimension
+EquationConstraint@Enabled	Разрешен	Enabled
+EquationConstraint@DrawLink	Рисовать связь	Draw Link
+Style@Style	Стиль	Style
+Style@Construction	Дополнит. Постр.	Construction
+Style@Export	Экспортировать	Export
 Style@Pen		Pen
-Style@Speed		Speed
-Style@Stroke		Stroke
-Style@Name		Name
+Style@Speed	Скорость	Speed
+Style@Stroke	Линия	Stroke
+Style@Name	Имя	Name
+SketchFeature@history	Эскиз	Sketch
+RevolveFeature@history	Вращение	Revolve
+ExportSettings@Export	Экспорт	Export
+ExportSettings@FileType	Тип файла	File Type
+ExportSettings@Stl		Stl
+ExportSettings@Dimensions	Размеры	Dimensions
+ExportSettings@Construction	Дополнит. Постр.	Construction
