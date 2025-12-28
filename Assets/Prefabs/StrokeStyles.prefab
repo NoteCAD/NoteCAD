@@ -24,12 +24,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 315870703518994268}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1104.7034, y: 582.82825, z: 5.625}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3446126984989665717
 MonoBehaviour:
@@ -48,63 +49,71 @@ MonoBehaviour:
     width: 1
     depthTest: 1
     inPixels: 1
+    dashesInPixels: 1
     queue: 2003
     color: {r: 0.217998, g: 0.5907346, b: 0.734, a: 1}
-    pen: 1
     dashes: []
   - name: entities
     width: 2
     depthTest: 1
     inPixels: 1
+    dashesInPixels: 1
     queue: 2002
     color: {r: 0.7352941, g: 0.7352941, b: 0.7352941, a: 1}
-    pen: 1
     dashes: []
   - name: hovered
     width: 3
     depthTest: 0
     inPixels: 1
+    dashesInPixels: 1
     queue: 3006
     color: {r: 0.83823526, g: 0.8151115, b: 0, a: 1}
-    pen: 0
     dashes: []
   - name: error
     width: 2
     depthTest: 1
     inPixels: 1
+    dashesInPixels: 1
     queue: 2002
     color: {r: 0.7647059, g: 0, b: 0, a: 1}
-    pen: 0
     dashes: []
   - name: hoveredPoints
     width: 6
     depthTest: 0
     inPixels: 1
+    dashesInPixels: 1
     queue: 3006
     color: {r: 0.8392157, g: 0.8156863, b: 0, a: 1}
-    pen: 1
     dashes: []
   - name: points
     width: 5
     depthTest: 1
     inPixels: 1
+    dashesInPixels: 1
     queue: 2003
     color: {r: 0.217998, g: 0.5907346, b: 0.734, a: 1}
-    pen: 1
     dashes: []
   - name: selectedPoints
     width: 5
     depthTest: 0
     inPixels: 1
+    dashesInPixels: 1
     queue: 3004
     color: {r: 1, g: 0.45699304, b: 0.29699993, a: 1}
-    pen: 1
     dashes: []
   - name: selected
     width: 3
     depthTest: 0
     inPixels: 1
+    dashesInPixels: 1
     queue: 3004
     color: {r: 1, g: 0.45699304, b: 0.29699993, a: 1}
-    pen: 1
+    dashes: []
+  - name: edges
+    width: 2
+    depthTest: 1
+    inPixels: 1
+    dashesInPixels: 1
+    queue: 2002
+    color: {r: 0.5882353, g: 0.5882353, b: 0.5882353, a: 1}
     dashes: []

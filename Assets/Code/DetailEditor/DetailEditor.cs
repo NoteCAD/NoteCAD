@@ -49,7 +49,7 @@ public class DetailEditor : MonoBehaviour {
 	public Solid solid;
 	public RuntimeInspector inspector;
 	public bool toolInspector = false;
- 
+
 	bool meshDirty = true;
 
 	LineCanvas canvas;
@@ -57,7 +57,7 @@ public class DetailEditor : MonoBehaviour {
 	public HashSet<IdPath> selection = new HashSet<IdPath>();
 
 	public HoverFilter hoverFilter = null;
-	
+
 	ICADObject hovered_;
 	public ICADObject hovered {
 		get {
@@ -111,7 +111,7 @@ public class DetailEditor : MonoBehaviour {
 			ActivateFeature(value);
 		}
 	}
-	
+
 	public bool IsSelected(ICADObject obj) {
 		if(obj == null) return false;
 		return selection.Contains(obj.id);
@@ -122,7 +122,7 @@ public class DetailEditor : MonoBehaviour {
 		yield return www;
 		ReadXml(www.text);
 	}
-	
+
 	public bool IsFirstMeshFeature(MeshFeature mf) {
 		var fi = detail.features.FindIndex(f => f is MeshFeature);
 		var mi = detail.features.IndexOf(mf);
@@ -263,6 +263,12 @@ public class DetailEditor : MonoBehaviour {
                     Debug.LogError("HTTP Error: " + req.error);
                     break;
                 case UnityWebRequest.Result.Success:
+					CadBin cadBin = new();
+					cadBin.read(req.downloadHandler.data);
+					canvas.ClearStyle("edges");
+					canvas.SetStyle("edges");
+					cadBin.toMesh(mesh, canvas);
+					/* STL
 					MemoryStream ms = new MemoryStream(req.downloadHandler.data);
 					var meshes = Parabox.STL.pb_Stl_Importer.Import(ms);
 					mesh.Clear();
@@ -277,6 +283,7 @@ public class DetailEditor : MonoBehaviour {
 						mesh.RecalculateNormals();
 						mesh.RecalculateTangents();
 					}
+					*/
                     break;
             }
 		}
@@ -311,7 +318,7 @@ public class DetailEditor : MonoBehaviour {
 						dofText = "<color=\"#FF3030\">DOF: " + dof + "</color>\n";
 					} else if(dof == 0) {
 						dofText = "<color=\"#30FF30\">DOF: " + dof + "</color>\n";
-					} else {	
+					} else {
 						dofText = "<color=\"#FFFFFF\">DOF: " + dof + "</color>\n";
 					}
 				} else {
@@ -348,7 +355,7 @@ public class DetailEditor : MonoBehaviour {
 				UpdateMesh();
 			}
 		}
-		
+
 		if(!CameraController.instance.IsMoving && !suppressHovering) {
 			double dist = -1.0;
 
@@ -474,7 +481,7 @@ public class DetailEditor : MonoBehaviour {
 
 				if(hovered == c) {
 					style.normal.textColor = canvas.GetStyle("hovered").color;
-				} else 
+				} else
 				if(isSelected) {
 					style.normal.textColor = canvas.GetStyle("selected").color;
 				} else {
@@ -485,7 +492,7 @@ public class DetailEditor : MonoBehaviour {
 			}
 		}
 	}
-		
+
 
 	UnityEngine.Matrix4x4 GetDefaultTransform() {
 		var ud = defaultPlaneU;
@@ -564,8 +571,8 @@ public class DetailEditor : MonoBehaviour {
 				.OfType<SketchObject>()
 				.Where(o => !(o is Constraint) || (o as Constraint).objects.All(co => co is SketchObject && (co as SketchObject).sketch == sk)));
 
-		sk.Write(xml, o => 
-			objects.Contains(o) && 
+		sk.Write(xml, o =>
+			objects.Contains(o) &&
 			(!(o is Entity) || !objects.Contains((o as Entity).parent)) &&
 			(!(o is Constraint) || (o as Constraint).objects.All(co => co is SketchObject && objects.Contains(co as SketchObject)))
 		);
@@ -573,7 +580,7 @@ public class DetailEditor : MonoBehaviour {
 		xml.WriteEndElement();
 		return text.ToString();
 	}
-	
+
 	public List<IdPath> Paste(string str) {
 		if(currentSketch == null || currentSketch.GetSketch() == null) return null;
 
