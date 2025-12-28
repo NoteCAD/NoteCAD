@@ -145,7 +145,7 @@ DetailSettings@Millimetre	Миллиметры	Millimetre
 DetailSettings@ShowConstraints	Показ. Огранич.	Show Constraints
 DetailSettings@ShowDimensions	Показ. размеры	Show Dimensions
 DetailSettings@DisplayPoints	Показ. точки	Display Points
-DetailSettings@All	All	All
+DetailSettings@All	Все	All
 DetailSettings@Autoconstraining	Автоогранич.	Autoconstraining
 DetailSettings@DrawingDimensions	Авторазмер	Drawing Dimensions
 DetailSettings@CheckSketchErrors	Провер. Ошибки	Check Sketch Errors
@@ -186,7 +186,7 @@ PolygonOptions@PolygonOptions	Многоугольник	PolygonOptions
 PolygonOptions@Corners	Углов	Corners
 Options@Text	Текст	Text
 TextEntity@TextEntity	Текст	TextEntity
-TextEntity@Text		Text
+TextEntity@Text	Текст	Text
 TextEntity@FontSize	Разм. Шрифта	Font Size
 TextEntity@Margin	Отступ	Margin
 TextEntity@Alignment	Выравнивание	Alignment
@@ -326,7 +326,7 @@ EquationConstraint@DrawLink	Рисовать связь	Draw Link
 Style@Style	Стиль	Style
 Style@Construction	Дополнит. Постр.	Construction
 Style@Export	Экспортировать	Export
-Style@Pen		Pen
+Style@Pen	Перо	Pen
 Style@Speed	Скорость	Speed
 Style@Stroke	Линия	Stroke
 Style@Name	Имя	Name
@@ -337,11 +337,19 @@ ExportSettings@FileType	Тип файла	File Type
 ExportSettings@Stl		Stl
 ExportSettings@Dimensions	Размеры	Dimensions
 ExportSettings@Construction	Дополнит. Постр.	Construction
-ExportSettings@ExportSettings		Экспорт
-ExportSettings@Constraints		Констрейны
-ExportSettings@TextFillupISP		Заполнить из ISP
-ExportSettings@TextFillupCSV		Заполнить из CSV
-SaveToolOptions@SaveToolOptions		Сохранить файл
-TextToolOptions@TextToolOptions		TextToolOptions
-TextToolOptions@Text		Текст
-ExtrusionFeature@history		Выдавливание
+ExportSettings@ExportSettings	Экспорт	Export
+ExportSettings@Constraints	Констрейны	Constraints
+ExportSettings@TextFillupISP	Заполнить из ISP	Fillup ISP
+ExportSettings@TextFillupCSV	Заполнить из CSV	Fillup CSV
+SaveToolOptions@SaveToolOptions	Сохранить файл	Save
+TextToolOptions@TextToolOptions	Текст	TextToolOptions
+TextToolOptions@Text	Текст	Text
+ExtrusionFeature@history	Выдавливание	Extrusion
+PointEntity@Name	Имя	Name
+PointEntity@Value	Значение	Value
+CircleEntity@Name	Имя	Name
+CircleEntity@Value	Значение	Value
+SketchFeature@Initialize		Initialize
+DetailSettings@Inch	Дюймы	Inch
+DetailSettings@Metre	Метры	Metre
+DetailSettings@Centimetre	Сантиметры	Centimetre
