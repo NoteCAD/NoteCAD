@@ -9,7 +9,9 @@ public class EquationSystem  {
 		OKAY,
 		DIDNT_CONVEGE,
 		REDUNDANT,
-		POSTPONE
+		POSTPONE,
+		INTERNAL_FAILURE,
+		JUMP
 	}
 
 	bool isDirty = true;
@@ -18,8 +20,13 @@ public class EquationSystem  {
 	public int maxSteps = 20;
 	public int dragSteps = 3;
 	public bool revertWhenNotConverged = true;
+	public bool avoidJumping = false;
+	public double jumpFactor = 20.0;
+	public int perturbationSteps = 0;
 
 	Exp[,] J;
+	List<int>[] nzColumns;
+	List<int>[] nzRows;
 	double[,] A;
 	double[,] AAT;
 	double[] B;
@@ -32,6 +39,9 @@ public class EquationSystem  {
 
 	List<Exp> equations = new List<Exp>();
 	List<Param> currentParams = new List<Param>();
+
+	public IEnumerable<Exp> equationsList => sourceEquations.AsEnumerable();
+	public IEnumerable<Param> parametersList => parameters.AsEnumerable();
 
 	Dictionary<Param, Param> subs;
 
@@ -72,6 +82,14 @@ public class EquationSystem  {
 		isDirty = true;
 	}
 
+	public int CurrentParamsCount() {
+		return currentParams.Count;
+	}
+
+	public int CurrentEquationsCount() {
+		return equations.Count;
+	}
+
 	public void Eval(ref double[] B, bool clearDrag) {
 		for(int i = 0; i < equations.Count; i++) {
 			if(clearDrag && equations[i].IsDrag()) {
@@ -79,6 +97,10 @@ public class EquationSystem  {
 				continue;
 			}
 			B[i] = equations[i].Eval();
+			if(double.IsNaN(B[i])) {
+				Debug.Log("B[i] Nan for equation " + equations[i].ToString());
+				B[i] = 0.0;
+			}
 		}
 	}
 
@@ -89,7 +111,7 @@ public class EquationSystem  {
 			}
 			if(Math.Abs(B[i]) < GaussianMethod.epsilon) continue;
 			if(printNonConverged) {
-				//Debug.Log("Not converged: " + equations[i].ToString());
+				Debug.Log($"Not converged {Math.Abs(B[i])}: " + equations[i].ToString());
 				continue;
 			}
 			return false;
@@ -109,20 +131,76 @@ public class EquationSystem  {
 		}
 	}
 
-	static Exp[,] WriteJacobian(List<Exp> equations, List<Param> parameters) {
+	void PerturbParams(double range) {
+		var random = new System.Random(Guid.NewGuid().GetHashCode());
+		for(int i = 0; i < parameters.Count; i++) {
+			parameters[i].value += (random.NextDouble() * 2.0 - 1.0) * range;
+		}
+	}
+
+	double GetMaxParamChange() {
+		double result = 0.0;
+		for(int i = 0; i < parameters.Count; i++) {
+			result = Math.Max(Math.Abs(parameters[i].value - oldParamValues[i]), result);
+		}
+		return result;
+	}
+
+	Exp[,] WriteJacobian(List<Exp> equations, List<Param> parameters) {
+		UnityEngine.Profiling.Profiler.BeginSample("WriteJacobian");
+		//var time = Time.realtimeSinceStartup;
+		var depends = equations.Select(eq => eq.DependOnParams()).ToList();
+		/*
+		var allDepends = depends.SelectMany(eq => eq).ToHashSet();
+		var allParameters = parameters.ToHashSet();
+
+		int removedCount = 0;
+		for(int i = 0; i < parameters.Count; i++) {
+			if (!allDepends.Contains(parameters[i])) {
+				removedCount++;
+				parameters.RemoveAt(i--);
+			}
+		}
+		for(int i = 0; i < equations.Count; i++) {
+			if (depends[i].All(d => !allParameters.Contains(d))) {
+				removedCount++;
+				equations.RemoveAt(i--);
+			}
+		}
+		Debug.Log($"removed params + equs {removedCount}");
+		*/
+
+		int rows = equations.Count;
+		int cols = parameters.Count;
+		nzColumns = new List<int>[cols];
+		for(int c = 0; c < cols; c++) {
+			nzColumns[c] = new();
+		}
+		nzRows = new List<int>[rows];
+		for(int r = 0; r < rows; r++) {
+			nzRows[r] = new();
+		}
+
+
 		var J = new Exp[equations.Count, parameters.Count];
 		for(int r = 0; r < equations.Count; r++) {
 			var eq = equations[r];
+			var depend = depends[r];
 			for(int c = 0; c < parameters.Count; c++) {
 				var u = parameters[c];
-				J[r, c] = eq.Deriv(u);
-				/*
-				if(!J[r, c].IsZeroConst()) {
-					Debug.Log(J[r, c].ToString() + "\n");
+				
+				if (!depend.Contains(u))
+				{
+					J[r, c] = Exp.zero;
+					continue;
 				}
-				*/
+				J[r, c] = eq.Deriv(u);
+				nzColumns[c].Add(r);
+				nzRows[r].Add(c);
 			}
 		}
+		//Debug.Log("WriteJacobian time " + (Time.realtimeSinceStartup - time) * 1000);
+		UnityEngine.Profiling.Profiler.EndSample();
 		return J;
 	}
 
@@ -133,42 +211,66 @@ public class EquationSystem  {
 	public void EvalJacobian(Exp[,] J, ref double[,] A, bool clearDrag) {
 		UpdateDirty();
 		UnityEngine.Profiling.Profiler.BeginSample("EvalJacobian");
-		for(int r = 0; r < J.GetLength(0); r++) {
+		//var time = Time.realtimeSinceStartup;
+
+		int rows = J.GetLength(0);
+		int cols = J.GetLength(1);
+		for(int r = 0; r < rows; r++) {
+			for(int c = 0; c < cols; c++) {
+				A[r, c] = 0.0;
+			}
 			if(clearDrag && equations[r].IsDrag()) {
-				for(int c = 0; c < J.GetLength(1); c++) {
-					A[r, c] = 0.0;
-				}
 				continue;
 			}
-			for(int c = 0; c < J.GetLength(1); c++) {
-				A[r, c] = J[r, c].Eval();
+			foreach(int c in nzRows[r]) {
+				var v = J[r, c].Eval();
+				if (double.IsNaN(v)) {
+					// for some reason, may be it will help to jump out of NaN
+					// while testing it showed up better behaviour
+					v = 1.0;
+				}
+				A[r, c] = v;
 			}
 		}
+		UnityEngine.Profiling.Profiler.EndSample();
+		//Debug.Log("EvalJacobian time " + (Time.realtimeSinceStartup - time) * 1000);
+	}
+
+	public void MakeAAT(double[,] A, double[,] AAT) {
+		// A^T * A * X = A^T * B
+		var rows = A.GetLength(0);
+		var cols = A.GetLength(1);
+		UnityEngine.Profiling.Profiler.BeginSample("MakeAAT: A^T * A");
+		//var time = Time.realtimeSinceStartup;
+
+		//Array.Clear(AAT, 0, AAT.Length);
+		
+		for(int r = 0; r < rows; r++) {
+			for(int c = 0; c < rows; c++) {
+				AAT[r, c] = 0.0;
+			}
+		}
+
+		for(int i = 0; i < cols; i++) {
+			var nzColumn = nzColumns[i];
+			foreach(int r in nzColumn) {
+				foreach(int c in nzColumn) {
+					AAT[r, c] += A[r, i] * A[c, i];
+				}
+			}
+		}
+
+		//Debug.Log($"MakeAAT({rows}x{cols}) time " + (Time.realtimeSinceStartup - time) * 1000);
 		UnityEngine.Profiling.Profiler.EndSample();
 	}
 
 	public void SolveLeastSquares(double[,] A, double[] B, ref double[] X) {
 
-		// A^T * A * X = A^T * B
+		MakeAAT(A, AAT);
+		GaussianMethod.Solve(AAT, B, ref Z);
+
 		var rows = A.GetLength(0);
 		var cols = A.GetLength(1);
-
-		UnityEngine.Profiling.Profiler.BeginSample("SolveLeastSquares: A^T * A");
-		var time = Time.realtimeSinceStartup;
-		for(int r = 0; r < rows; r++) {
-			for(int c = 0; c < rows; c++) {
-				double sum = 0.0;
-				for(int i = 0; i < cols; i++) {
-					if(A[c, i] == 0 || A[r, i] == 0) continue;
-					sum += A[r, i] * A[c, i];
-				}
-				AAT[r, c] = sum;
-			}
-		}
-		//Debug.Log("AAT time " + (Time.realtimeSinceStartup - time) * 1000);
-		UnityEngine.Profiling.Profiler.EndSample();
-
-		GaussianMethod.Solve(AAT, B, ref Z);
 
 		for(int c = 0; c < cols; c++) {
 			double sum = 0.0;
@@ -230,37 +332,88 @@ public class EquationSystem  {
 
 	Dictionary<Param, Param> SolveBySubstitution() {
 		var subs = new Dictionary<Param, Param>();
+		var newParams = new HashSet<Param>(currentParams);
+		UnityEngine.Profiling.Profiler.BeginSample("SolveBySubstitution");
+		//var time = Time.realtimeSinceStartup;
 
-		for(int i = 0; i < equations.Count; i++) {
+		Param getLastSubstitution(Param p) {
+			Param current = p;
+			while(subs.ContainsKey(current)) {
+				current = subs[current];
+				// to break the loops
+				if(current == p) {
+					// break the loop;
+					subs.Remove(current);
+					break;
+				}
+			}
+			return current;
+		}
+
+		for (int i = 0; i < equations.Count; i++) {
 			var eq = equations[i];
 			if(!eq.IsSubstitionForm()) continue;
-			var a = eq.GetSubstitutionParamA();
-			var b = eq.GetSubstitutionParamB();
+			
+			// b замещаем на a
+			var a = eq.a.param;
+			var b = eq.b.param;
+
+			if(a == b) {
+				equations.RemoveAt(i--);
+				continue;
+			}
+
 			if(Math.Abs(a.value - b.value) > GaussianMethod.epsilon) continue;
-			if(!currentParams.Contains(b)) {
+			if(!newParams.Contains(b)) {
 				var t = a;
 				a = b;
 				b = t;
 			}
-			// TODO: Check errors
-			//if(!parameters.Contains(b)) {
-			//	continue;
-			//}
+			// не можем замещать, так как не имеем параметра под контролем системы уравнений
+			if(!newParams.Contains(b)) {
+				continue;
+			}
+			
+			// берем  последнее замещение параметра b
+			// это делается для того, чтобы сформировать цепочку замещений
+			Param last = getLastSubstitution(b);
+			
+			// замещаем параметром a и метим как замещенный
+			subs[last] = a;
+			
+			// если a замещено
+			if(subs.ContainsKey(a)) {
+				// берем последнее замещение вхолостую, 
+				// тем самым разбиваем циклы если они вдруг появились
+				getLastSubstitution(a);
+			}
+			equations.RemoveAt(i--);
+			newParams.Remove(b);
+		}
 
-			foreach(var k in subs.Keys.ToList()) {
-				if(subs[k] == b) {
-					subs[k] = a;
+		currentParams = newParams.ToList();
+
+		var backSubs = new Dictionary<Param, Param>();
+		foreach(var p in subs.Keys) {
+			var last = getLastSubstitution(p);
+			if(last == p) continue;
+			backSubs[p] = last;
+		}
+
+		// замещаем все параметры во всех уравнениях последними замещениями в цепочке замещений
+		for(int i = 0; i < equations.Count; i++) {
+			var eq = equations[i];
+			var depends = eq.DependOnParams();
+			foreach(var p in depends) {
+				if(backSubs.TryGetValue(p, out var sub)) {
+					eq.Substitute(p, sub);
 				}
 			}
-			subs[b] = a;
-			equations.RemoveAt(i--);
-			currentParams.Remove(b);
-
-			for(int j = 0; j < equations.Count; j++) {
-				equations[j].Substitute(b, a);
-			}
 		}
-		return subs;
+
+		UnityEngine.Profiling.Profiler.EndSample();
+		//Debug.Log("SolveBySubstitution time " + (Time.realtimeSinceStartup - time) * 1000);
+		return backSubs;
 	}
 
 	public string stats { get; private set; }
@@ -270,35 +423,72 @@ public class EquationSystem  {
 		dofChanged = false;
 		UpdateDirty();
 		StoreParams();
-		int steps = 0;
-		do {
-			bool isDragStep = steps <= dragSteps;
-			Eval(ref B, clearDrag: !isDragStep);
-			/*
-			if(steps > 0) {
-				BackSubstitution(subs);
-				return SolveResult.POSTPONE;
-			}
-			*/
-			if(IsConverged(checkDrag: isDragStep)) {
-				if(steps > 0) {
-					dofChanged = true;
-					Debug.Log(String.Format("solved {0} equations with {1} unknowns in {2} steps", equations.Count, currentParams.Count, steps));
+		double deviation = 0.0;
+		try {
+			for(int p = 0; p <= perturbationSteps; p++) {
+				int steps = 0;
+				do {
+					bool isDragStep = steps < dragSteps;
+					Eval(ref B, clearDrag: !isDragStep);
+					if (steps == 0 && avoidJumping) {
+						deviation = B.Aggregate(0.0, (a, b) => Math.Max(a, Math.Abs(b)));
+					}
+					/*
+					if(steps > 0) {
+						BackSubstitution(subs);
+						return SolveResult.POSTPONE;
+					}
+					*/
+					if(IsConverged(checkDrag: isDragStep)) {
+						if(avoidJumping) {
+							var maxChange = GetMaxParamChange();
+							if(maxChange > jumpFactor * deviation) {
+								Debug.Log(String.Format("check jumping: inital deviation: {0}, max param change {1}", deviation, maxChange));
+								if(revertWhenNotConverged) {
+									RevertParams();
+									dofChanged = false;
+								}
+								return SolveResult.JUMP;
+
+							}
+						}
+						if(steps > 0) {
+							dofChanged = true;
+							Debug.Log(String.Format("solved {0} equations with {1} unknowns in {2} steps", equations.Count, currentParams.Count, steps));
+						}
+						stats = String.Format("eqs:{0}\nunkn: {1}", equations.Count, currentParams.Count);
+						BackSubstitution(subs);
+						return SolveResult.OKAY;
+					}
+					EvalJacobian(J, ref A, clearDrag: !isDragStep);
+					SolveLeastSquares(A, B, ref X);
+					for(int i = 0; i < currentParams.Count; i++) {
+						if (double.IsNaN(X[i])) {
+							continue;
+						}
+						currentParams[i].value -= X[i];
+					}
+				} while(steps++ <= maxSteps);
+				//IsConverged(checkDrag: false, printNonConverged: true);
+				if(revertWhenNotConverged) {
+					RevertParams();
+					if(p < perturbationSteps) {
+						Debug.Log("Solve Failed, perforoming perturbation");
+						PerturbParams(0.01);
+					}
+					dofChanged = false;
+				} else {
+					BackSubstitution(subs);
+					IsConverged(checkDrag: false, printNonConverged: true);
 				}
-				stats = String.Format("eqs:{0}\nunkn: {1}", equations.Count, currentParams.Count);
-				BackSubstitution(subs);
-				return SolveResult.OKAY;
 			}
-			EvalJacobian(J, ref A, clearDrag: !isDragStep);
-			SolveLeastSquares(A, B, ref X);
-			for(int i = 0; i < currentParams.Count; i++) {
-				currentParams[i].value -= X[i];
+		} catch (Exception e) {
+			Debug.LogError(e.Message);
+			if(revertWhenNotConverged) {
+				RevertParams();
+				dofChanged = false;
 			}
-		} while(steps++ <= maxSteps);
-		IsConverged(checkDrag: false, printNonConverged: true);
-		if(revertWhenNotConverged) {
-			RevertParams();
-			dofChanged = false;
+			return SolveResult.INTERNAL_FAILURE;
 		}
 		return SolveResult.DIDNT_CONVEGE;
 	}

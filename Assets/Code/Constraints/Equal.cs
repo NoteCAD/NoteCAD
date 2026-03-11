@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 [Serializable]
 public class Equal : ValueConstraint {
 
 	public Equal(Sketch sk) : base(sk) { selectByRefPoints = true; }
+	public Equal(Sketch sk, Id id) : base(sk, id) { selectByRefPoints = true; }
 
 	[Serializable]
 	public enum LengthType {
@@ -45,14 +47,16 @@ public class Equal : ValueConstraint {
 		}
 	}
 
+	public override bool IsDimension { get { return false; } }
+
 	public Equal(Sketch sk, IEntity l0, IEntity l1) : base(sk) {
 		AddEntity(l0);
 		AddEntity(l1);
-		value.value = 1.0;
+		valueParam.value = 1.0;
 		selectByRefPoints = true;
 	}
-
-	public override IEnumerable<Exp> equations {
+	
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			Exp[] len = new Exp[2];
 
@@ -68,23 +72,22 @@ public class Equal : ValueConstraint {
 		}
 	}
 
-	void DrawStroke(LineCanvas canvas, IEntity e, int rpt) {
+	public override ValueUnits units => ValueUnits.FRACTION;
+
+	void DrawStroke(ICanvas canvas, IEntity e, int rpt) {
 
 		Vector3 dir = e.TangentAtInPlane(0.5, null).Eval();
 		Vector3 perp = Vector3.Cross(dir, Camera.main.transform.forward).normalized * 5f * getPixelSize();
 		Vector3 pos = e.PointOnInPlane(0.5, null).Eval();
 		ref_points[rpt] = sketch.plane.ToPlane(pos);
-		if(rpt == 0) {
-			this.pos = e.OffsetAtInPlane(0.5, 20f * getPixelSize(), null).Eval();
-		}
 		canvas.DrawLine(pos + perp, pos - perp);
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		DrawStroke(canvas, GetEntity(0), 0);
 		DrawStroke(canvas, GetEntity(1), 1);
-		
-		if(DetailEditor.instance.hovered == this) {
+
+		if(shouldDrawLink) {
 			DrawReferenceLink(canvas, Camera.main);
 		}
 	}
@@ -94,12 +97,13 @@ public class Equal : ValueConstraint {
 	}
 
 	protected override Matrix4x4 OnGetBasis() {
-		return sketch.plane.GetTransform();
+		var pos = GetEntity(0).OffsetAtInPlane(0.5, 20f * getPixelSize(), sketch.plane).Eval();
+ 		return sketch.plane.GetTransform() * Matrix4x4.Translate(pos);
 	}
 
-	protected override void OnWriteValueConstraint(XmlTextWriter xml) {
-		xml.WriteAttributeString("firstLength", lengthType[0].ToString());
-		xml.WriteAttributeString("secondLength", lengthType[1].ToString());
+	protected override void OnWriteValueConstraint(Writer xml) {
+		xml.WriteAttribute("firstLength", lengthType[0].ToString());
+		xml.WriteAttribute("secondLength", lengthType[1].ToString());
 	}
 
 	protected override void OnReadValueConstraint(XmlNode xml) {

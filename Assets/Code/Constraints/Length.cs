@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Linq;
 using System;
+using NoteCAD;
 
 [Serializable]
 public class Length : ValueConstraint {
@@ -10,23 +11,26 @@ public class Length : ValueConstraint {
 	public ExpVector p1exp { get { return GetPointInPlane(1, sketch.plane); } }
 
 	public Length(Sketch sk) : base(sk) { }
+	public Length(Sketch sk, Id id) : base(sk, id) { }
 
 	public Length(Sketch sk, IEntity e) : base(sk) {
 		AddEntity(e);
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			yield return GetEntity(0).Length() - value;
 		}
 	}
-	
+
+	public override ValueUnits units => ValueUnits.LENGTH;
+
 	ExpVector GetPointInPlane(int i, IPlane plane) {
 		return GetEntity(0).GetPointAtInPlane(i, plane);
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 
 		var e = GetEntity(0);
 		Vector3 p0 = e.PointOnInPlane(0.0, null).Eval();

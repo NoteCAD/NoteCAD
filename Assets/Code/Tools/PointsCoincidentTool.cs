@@ -1,10 +1,24 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
 public class PointsCoincidentTool : Tool {
 
 	IEntity p0;
+
+	PointsCoincidentTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		if(p0 == null) return e.type == IEntityType.Point;
+		return CanConstrainCoincident(e) && !e.IsSameAs(p0);
+	}
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject ico) {
 		IEntity entity = ico as IEntity;
@@ -18,11 +32,14 @@ public class PointsCoincidentTool : Tool {
 					editor.PushUndo();
 					new PointsCoincident(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
 				}
-			} else {
+				p0 = null;
+				return;
+			} else if(entity.PointOn(0.0) != null) {
 				editor.PushUndo();
 				new PointOn(DetailEditor.instance.currentSketch.GetSketch(), p0, entity);
+				p0 = null;
+				return;
 			}
-			p0 = null;
 		} else if(entity.type == IEntityType.Point) {
 			p0 = entity;
 		}

@@ -3,7 +3,9 @@ using UnityEngine;
 using System.Linq;
 using System.Xml;
 using System;
+using NoteCAD;
 
+[Serializable]
 public class PointEntity : Entity {
 
 	public Param x = new Param("x");
@@ -36,9 +38,9 @@ public class PointEntity : Entity {
 		if(is3d) z.value = pos.z;
 	}
 
-	public override IEnumerable<Vector3> segments {
+	public override IEnumerable<IEnumerable<Vector3>> segments {
 		get {
-			yield return pos;
+			yield return Enumerable.Repeat(pos, 1);
 		}
 	}
 
@@ -137,10 +139,30 @@ public class PointEntity : Entity {
 		return IsCoincidentWith(point, null);
 	}
 
-	protected override void OnWrite(XmlTextWriter xml) {
-		xml.WriteAttributeString("x", x.value.ToStr());
-		xml.WriteAttributeString("y", y.value.ToStr());
-		if(is3d) xml.WriteAttributeString("z", z.value.ToStr());
+	void GetConicidentPoints(HashSet<PointEntity> points) {
+		
+		var coincident = constraints
+			.OfType<PointsCoincident>()
+			.Select(c => c.GetOtherPoint(this)).OfType<PointEntity>();
+		foreach (var p in coincident) {
+			if (points.Contains(p)) {
+				continue;
+			}
+			points.Add(p);
+			p.GetConicidentPoints(points);
+		}
+	}
+
+	public HashSet<PointEntity> GetConicidentPoints() {
+		var result = new HashSet<PointEntity>();
+		GetConicidentPoints(result);
+		return result;
+	}
+
+	protected override void OnWrite(Writer xml) {
+		xml.WriteAttribute("x", x.value);
+		xml.WriteAttribute("y", y.value);
+		if(is3d) xml.WriteAttribute("z", z.value);
 	}
 
 	protected override void OnRead(XmlNode xml) {
@@ -172,7 +194,7 @@ public class PointEntity : Entity {
 		return rect.Contains(pp);
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		canvas.SetStyle("points");
 		canvas.DrawPoint(pos);
 	}

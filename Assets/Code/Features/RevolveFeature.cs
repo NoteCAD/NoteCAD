@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 class RevolvedEntity : IEntity {
 	Entity entity;
@@ -41,10 +42,10 @@ class RevolvedEntity : IEntity {
 		}
 	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<IEnumerable<Vector3>> segments {
 		get {
-			foreach(var p in (entity as IEntity).SegmentsInPlane(null)) {
-				yield return feature.Transform(p, index);
+			foreach(var pts in (entity as IEntity).SegmentsInPlane(null)) {
+				yield return pts.Select(p => feature.Transform(p, index));
 			}
 		}
 	}
@@ -105,7 +106,7 @@ class RevolvedPointEntity : IEntity {
 		}
 	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<Vector3> segs {
 		get {
 			var point = entity.plane.FromPlane(entity.pos);
 			int subdiv = (int)Mathf.Ceil(Mathf.Abs((float)feature.angle.value / Mathf.PI * 180f) / (float)feature.meshAngleStep);
@@ -125,6 +126,12 @@ class RevolvedPointEntity : IEntity {
 				var res = ExpVector.RotateAround(rot, ax, o, a);
 				yield return res + axn * t * (float)feature.step.value;
 			}
+		}
+	}
+
+	public IEnumerable<IEnumerable<Vector3>> segments {
+		get {
+			yield return segs;
 		}
 	}
 
@@ -359,14 +366,16 @@ public class RevolveFeature : MeshFeature {
 		if(!axisDirectionFound) {
 			foreach(var e in sk.entityList) {
 				if(e.type == IEntityType.Point) continue;
-				foreach(var pos in e.SegmentsInPlane(null)) {
-					var prj = ExpVector.ProjectPointToLine(pos, o, o + ax);
-					if((prj - pos).magnitude < 1e-6) continue;
+				foreach(var pts in e.SegmentsInPlane(null)) {
+					foreach(var pos in pts) {
+						var prj = ExpVector.ProjectPointToLine(pos, o, o + ax);
+						if((prj - pos).magnitude < 1e-6) continue;
 
-					var ax1 = Vector3.Cross(sourceSketch.plane.n, pos - prj);
-					shouldInvertAxis = (Vector3.Dot(ax, ax1) > 0f);
-					axisDirectionFound = true;
-					break;
+						var ax1 = Vector3.Cross(sourceSketch.plane.n, pos - prj);
+						shouldInvertAxis = (Vector3.Dot(ax, ax1) > 0f);
+						axisDirectionFound = true;
+						break;
+					}
 				}
 			}
 		}
@@ -385,14 +394,24 @@ public class RevolveFeature : MeshFeature {
 		
 	}
 
-	protected override void OnWriteMeshFeature(XmlTextWriter xml) {
-		xml.WriteAttributeString("angle", angle.value.ToStr());
-		xml.WriteAttributeString("step", step.value.ToStr());
-		xml.WriteAttributeString("meshAngleStep", meshAngleStep.ToStr());
-		xml.WriteAttributeString("axis", axisId.ToString());
-		xml.WriteAttributeString("origin", originId.ToString());
-		xml.WriteAttributeString("angleFixed", angleFixed.ToString());
-		xml.WriteAttributeString("stepFixed", stepFixed.ToString());
+	protected override void OnWriteMeshFeature(Writer xml) {
+		xml.WriteAttribute("angle", angle.value);
+		xml.WriteAttribute("step", step.value);
+		xml.WriteAttribute("meshAngleStep", meshAngleStep);
+		xml.WriteAttribute("axis", axisId.ToString());
+		xml.WriteAttribute("origin", originId.ToString());
+		xml.WriteAttribute("angleFixed", angleFixed);
+		xml.WriteAttribute("stepFixed", stepFixed);
+
+		xml.WriteBeginElement("generated");
+		xml.WriteBeginElement("axis");
+		
+		var ax = GetAxis().Eval().normalized;
+		var o = GetOrigin(null).Eval();
+		xml.WriteAttribute("dir", ax.ToStr());
+		xml.WriteAttribute("pos", o.ToStr());
+		xml.WriteEndElement();
+		xml.WriteEndElement();
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {
@@ -405,7 +424,7 @@ public class RevolveFeature : MeshFeature {
 		stepFixed = Convert.ToBoolean(xml.Attributes["stepFixed"].Value);
 	}
 
-	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, HoverFilter filter, ref double dist) {
 		var sk = source as SketchFeature;
 
 		var points = sk.GetSketch().entityList.OfType<PointEntity>();

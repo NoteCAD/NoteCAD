@@ -44,7 +44,14 @@ public abstract class SketchObject : CADObject, ICADObject {
 	Sketch sk;
 	public Sketch sketch { get { return sk; } }
 	public bool isDestroyed { get; private set; }
+
+	[NonSerialized]
 	public bool isVisible = true;
+
+	Style style_ = null;
+	
+	[HideInInspector]
+	public Style style { get { return style_; } set { style_ = value; sketch.MarkDirtySketch(entities: true, topo: true); } }
 
 	Id guid_;
 	public override Id guid { get { return guid_; } }
@@ -59,11 +66,17 @@ public abstract class SketchObject : CADObject, ICADObject {
 		return null;
 	}
 
+	public SketchObject(Sketch sketch, Id guid) {
+		sk = sketch;
+		guid_ = guid;
+	}
+
 	public SketchObject(Sketch sketch) {
 		sk = sketch;
 		guid_ = sketch.idGenerator.New();
 	}
 
+	public virtual IEnumerable<Param> allParameters { get { return parameters; } }
 	public virtual IEnumerable<Param> parameters { get { yield break; } }
 	public virtual IEnumerable<Exp> equations { get { yield break; } }
 
@@ -93,19 +106,21 @@ public abstract class SketchObject : CADObject, ICADObject {
 
 	}
 
-	public virtual void Write(XmlTextWriter xml) {
-		xml.WriteAttributeString("id", guid.ToString());
-		if(isVisible == false) xml.WriteAttributeString("visible", isVisible.ToString());
+	public virtual void Write(Writer xml) {
+		xml.WriteAttribute("id", guid.ToString());
+		if(style != null) xml.WriteAttribute("style", style.guid.ToString());
+		if(isVisible == false) xml.WriteAttribute("visible", isVisible);
 		OnWrite(xml);
 	}
 
-	protected virtual void OnWrite(XmlTextWriter xml) {
+	protected virtual void OnWrite(Writer xml) {
 
 	}
 
 	public virtual void Read(XmlNode xml) {
 		var newGuid = sketch.idGenerator.Create(xml.Attributes["id"].Value);
 		if(xml.Attributes["visible"] != null) isVisible = Convert.ToBoolean(xml.Attributes["visible"].Value);
+		if(xml.Attributes["style"] != null) style = sketch.feature.detail.styles.GetStyle(IdGenerator.Parse(xml.Attributes["style"].Value));
 		if(sketch.idMapping != null) {
 			sketch.idMapping[newGuid] = guid_;
 		} else {
@@ -118,7 +133,15 @@ public abstract class SketchObject : CADObject, ICADObject {
 	
 	}
 
-	public virtual void Draw(LineCanvas canvas) {
+	public virtual void AfterRead(XmlNode xml) {
+		OnAfterRead(xml);
+	}
+
+	protected virtual void OnAfterRead(XmlNode xml)  {
+	
+	}
+
+	public virtual void Draw(ICanvas canvas) {
 		OnDraw(canvas);
 	}
 
@@ -130,7 +153,7 @@ public abstract class SketchObject : CADObject, ICADObject {
 		return false;
 	}
 
-	protected virtual void OnDraw(LineCanvas canvas) {
+	protected virtual void OnDraw(ICanvas canvas) {
 		
 	}
 

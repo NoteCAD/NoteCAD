@@ -1,10 +1,23 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
 public class ParallelTool : Tool {
 
 	IEntity l0;
+
+	ParallelTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		return e.type == IEntityType.Line && !e.IsSameAs(l0);
+	}
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		var entity = sko as IEntity;

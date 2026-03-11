@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using NoteCAD;
 
 [RequireComponent(typeof(Button))]
 public class Tool : MonoBehaviour {
@@ -11,6 +13,10 @@ public class Tool : MonoBehaviour {
 	public bool ctrl;
 	public string text;
 	public Sprite icon;
+	public bool canActivateWhenActive = false;
+
+	[System.NonSerialized]
+	public bool enableHoverFilter = false;
 
 	public DetailEditor editor { get { return DetailEditor.instance; } }
 
@@ -19,9 +25,12 @@ public class Tool : MonoBehaviour {
 	void Start() {
 		GetComponent<Button>().onClick.AddListener(Click);
 		OnStart();
+		GetDescription();
+		GetRichText();
 	}
 
 	void Click() {
+		if(!DetailEditor.instance.isActiveAndEnabled) return;
 		toolbar.ActiveTool = this;
 	}
 
@@ -37,11 +46,19 @@ public class Tool : MonoBehaviour {
 
 	public void Activate() {
 		shouldStop = false;
+		if(enableHoverFilter) {
+			editor.hoverFilter = HoverFilter;
+		}
 		OnActivate();
 	}
 
 	public void Deactivate() {
 		OnDeactivate();
+		if(editor.toolInspector) {
+			editor.toolInspector = false;
+			editor.Inspect(null);
+		}
+		editor.hoverFilter = null;
 	}
 
 	public void DoUpdate() {
@@ -126,24 +143,55 @@ public class Tool : MonoBehaviour {
 		shouldStop = true;
 	}
 
+	protected bool CanConstrainCoincident(IEntity with) {
+		if(with == null) return false;
+		switch(with.type) {
+			case IEntityType.Arc:
+			case IEntityType.Circle:
+			case IEntityType.Ellipse:
+			case IEntityType.EllipticArc:
+			case IEntityType.Function:
+			case IEntityType.Helix:
+			case IEntityType.Line:
+			case IEntityType.Point:
+			case IEntityType.Spline:
+			case IEntityType.Offset:
+				return true;
+		}
+		return false;
+	}
+	
 	protected bool AutoConstrainCoincident(PointEntity point, IEntity with) {
 		if(with == null) return false;
 		if(with.type == IEntityType.Point) {
 			new PointsCoincident(point.sketch, point, with);
-			point.SetPosition(with.GetPointAtInPlane(0, point.sketch.plane).Eval());
-		} else {
-			new PointOn(point.sketch, point, with);
+			point.pos = with.GetPointAtInPlane(0, point.sketch.plane).Eval();
+		} else if(with.PointOn(0.0) != null) {
+			var pOn = new PointOn(point.sketch, point, with);
+			point.pos = pOn.GetPointOnInPlane(point.sketch.plane);
 			return false;
 		}
 		return true;
 	}
 
+	protected T SpawnEntity<T>(T entity, bool construction = false) where T: Entity {
+		if(construction) {
+			entity.style = editor.GetDetail().styles.GetStyles().FirstOrDefault(s => s.construction);
+		} else {
+			entity.style = StylesUI.instance ? StylesUI.instance.selectedStyle : editor.GetDetail().styles.GetStyles().FirstOrDefault();
+		}
+		return entity;
+	}
+
 	public string GetDescription() {
-		var result = this.GetType().Name;
+		var typeName = this.GetType().Name;
+		var name = Trans.late(typeName + "@name", typeName);
+		var desc = Trans.late(typeName + "@description", OnGetDescription());
+
+		var result = name;
 		if(hotkeys.Length > 0) {
 			result += " [" + (ctrl ? "Ctrl + " : "") + hotkeys[0].ToString() + "]";
 		}
-		var desc = OnGetDescription();
 		if(desc != "") {
 			result += ": " + desc;
 		}
@@ -151,10 +199,15 @@ public class Tool : MonoBehaviour {
 	}
 
 	public string GetTooltip() {
-		var result = this.GetType().Name + ". " + OnGetDescription();
+		var typeName = this.GetType().Name;
+		var name = Trans.late(typeName + "@name", typeName);
+		var desc = Trans.late(typeName + "@description", OnGetDescription());
+
+		var result = name;
 		if(hotkeys.Length > 0) {
 			result += "[" + (ctrl ? "Ctrl + " : "") + hotkeys[0].ToString() + "]";
 		}
+		result += " " + desc;
 		return result;
 	}
 
@@ -166,15 +219,40 @@ public class Tool : MonoBehaviour {
 		return "";
 	}
 
+	protected virtual bool OnTryHover(IEntity e) {
+		return true;
+	}
+
+	protected virtual bool OnTryHover(Constraint c) {
+		return true;
+	}
+
+	bool HoverFilter(ICADObject o) {
+		if(o is IEntity e) return OnTryHover(e);
+		if(o is Constraint c) return OnTryHover(c);
+		return true;
+	}
+
 	public string GetRichText() {
-		if(hotkeys == null || hotkeys.Length == 0) return text;
+		var typeName = this.GetType().Name;
+		var trText = Trans.late(typeName + "@button", text);
+		if(hotkeys == null || hotkeys.Length == 0) return trText;
 		var hk = hotkeys[0].ToString();
-		if(hk.Length != 1) return text;
-		var index = text.IndexOf(hk, System.StringComparison.OrdinalIgnoreCase);
+		if(hk.Length != 1) return trText;
+		var index = trText.IndexOf(hk, System.StringComparison.InvariantCultureIgnoreCase);
 		var openColor = "<color=\"#6ECEEFFF\">";
 		var closeColor = "</color>";
-		if(index < 0 || ctrl) return text + " [" + openColor + (ctrl ? "Ctrl+" : "") + hk  + closeColor + "]";
-		return text.Substring(0, index) + openColor + text[index] + closeColor + text.Substring(index + 1, text.Length - index - 1);
+
+		if(index < 0 || ctrl) {
+			var del = (trText.Length <= 6 && !ctrl) ? "" : "\n";
+			return trText + del + "[" + openColor + (ctrl ? "Ctrl+" : "") + hk  + closeColor + "]";
+		}
+		return trText.Substring(0, index) + openColor + trText[index] + closeColor + trText.Substring(index + 1, trText.Length - index - 1);
+	}
+
+	public static void Inspect(object obj) {
+		DetailEditor.instance.toolInspector = true;
+		DetailEditor.instance.Inspect(obj);
 	}
 
 }

@@ -1,11 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
 public class ArcTool : Tool {
 
 	ArcEntity current;
+	Diameter dimension;
 	bool canCreate = true;
+
+	ArcTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		return CanConstrainCoincident(e);
+	}
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
@@ -16,6 +30,8 @@ public class ArcTool : Tool {
 			current.p0.isSelectable = true;
 			current.c.isSelectable = true;
 			current.isSelectable = true;
+			dimension?.Destroy();
+			dimension = null;
 			if(AutoConstrainCoincident(current.p1, sko as IEntity)) {
 				current = null;
 				StopTool();
@@ -24,13 +40,19 @@ public class ArcTool : Tool {
 		}
 		if(DetailEditor.instance.currentSketch == null) return;
 		editor.PushUndo();
-		var newEntity = new ArcEntity(DetailEditor.instance.currentSketch.GetSketch());
+		var newEntity = SpawnEntity(new ArcEntity(DetailEditor.instance.currentSketch.GetSketch()));
 		newEntity.p0.pos = pos;
 		newEntity.p1.pos = pos;
 		newEntity.c.pos = pos;
+		if (editor.GetDetail().settings.drawingDimensions) {
+			dimension = new Diameter(newEntity.sketch, newEntity);
+			dimension.showAsRadius = true;
+			dimension.enabled = false;
+		}
 		if(current == null) {
 			AutoConstrainCoincident(newEntity.p0, sko as IEntity);
 		} else {
+			newEntity.p0.pos = current.p1.pos;
 			new PointsCoincident(current.sketch, current.p1, newEntity.p0);
 		}
 
@@ -54,10 +76,10 @@ public class ArcTool : Tool {
 	}
 
 	protected override void OnDeactivate() {
-		if(current != null) {
-			current.Destroy();
-			current = null;
-		}
+		current?.Destroy();
+		current = null;
+		dimension?.Destroy();
+		dimension = null;
 		canCreate = true;
 	}
 

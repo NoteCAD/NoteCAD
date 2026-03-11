@@ -1,11 +1,26 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
 public class CircleTool : Tool {
 
 	CircleEntity current;
+	Diameter dimension;
 	bool canCreate = true;
+
+	CircleTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		if(current == null) return CanConstrainCoincident(e);
+		return false;
+	}
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
@@ -14,13 +29,21 @@ public class CircleTool : Tool {
 			current.c.isSelectable = true;
 			current.isSelectable = true;
 			current = null;
+			dimension?.Destroy();
+			dimension = null;
 			return;
 		}
 
 		if(DetailEditor.instance.currentSketch == null) return;
 		editor.PushUndo();
-		current = new CircleEntity(DetailEditor.instance.currentSketch.GetSketch());
+		current = SpawnEntity(new CircleEntity(DetailEditor.instance.currentSketch.GetSketch()));
 		current.center.pos = pos;
+		if (editor.GetDetail().settings.drawingDimensions) {
+			dimension = new Diameter(current.sketch, current);
+			dimension.labelX = 0.0001f;
+			dimension.labelY = 0.0001f;
+			dimension.enabled = false;
+		}
 		AutoConstrainCoincident(current.center, sko as IEntity);
 
 		current.isSelectable = false;
@@ -29,7 +52,7 @@ public class CircleTool : Tool {
 
 	protected override void OnMouseMove(Vector3 pos, ICADObject entity) {
 		if(current != null) {
-			current.radius.value = (current.center.pos - pos).magnitude;
+			current.r.value = (current.center.pos - pos).magnitude;
 			//var itr = new Vector3();
 			canCreate = true;//!current.sketch.IsCrossed(current, ref itr);
 			current.isError = !canCreate;
@@ -39,10 +62,10 @@ public class CircleTool : Tool {
 	}
 
 	protected override void OnDeactivate() {
-		if(current != null) {
-			current.Destroy();
-			current = null;
-		}
+		current?.Destroy();
+		current = null;
+		dimension?.Destroy();
+		dimension = null;
 		canCreate = true;
 	}
 

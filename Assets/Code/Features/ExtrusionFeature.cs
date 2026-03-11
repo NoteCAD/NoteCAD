@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 class ExtrudedEntity : IEntity {
 	Entity entity;
@@ -42,11 +43,11 @@ class ExtrudedEntity : IEntity {
 		}
 	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<IEnumerable<Vector3>> segments {
 		get {
 			var shift = extrusion.extrusionDir.Eval() * index;
-			foreach(var p in (entity as IEntity).SegmentsInPlane(null)) {
-				yield return p + shift;
+			foreach(var lp in (entity as IEntity).SegmentsInPlane(null)) {
+				yield return lp.Select(p => p + shift);
 			}
 		}
 	}
@@ -69,7 +70,10 @@ class ExtrudedEntity : IEntity {
 	}
 
 	public ExpVector Center() {
-		return entity.Center();
+		var center = entity.Center();
+		if(center == null) return null;
+		var shift = extrusion.extrusionDir * index;
+		return entity.plane.FromPlane(entity.Center()) + shift;
 	}
 }
 
@@ -105,8 +109,14 @@ class ExtrudedPointEntity : IEntity {
 			yield return exp + extrusion.extrusionDir;
 		}
 	}
+	
+	public IEnumerable<IEnumerable<Vector3>> segments {
+		get {
+			yield return seg;
+		}
+	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<Vector3> seg {
 		get {
 			var pos = entity.plane.FromPlane(entity.pos);
 			yield return pos;
@@ -220,6 +230,7 @@ public class ExtrusionFeature : MeshFeature {
 	protected override void OnUpdateDirty() {
 		GameObject.Destroy(go);
 		go = new GameObject("ExtrusionFeature");
+		//go.transform.parent = detail.gameObject.transform;
 		//canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas, go.transform);
 		canvas.SetStyle("entities");
 		var sk = (source as SketchFeature).GetSketch();
@@ -254,8 +265,8 @@ public class ExtrusionFeature : MeshFeature {
 		GameObject.Destroy(go);
 	}
 
-	protected override void OnWriteMeshFeature(XmlTextWriter xml) {
-		xml.WriteAttributeString("length", extrude.value.ToStr());
+	protected override void OnWriteMeshFeature(Writer xml) {
+		xml.WriteAttribute("length", extrude.value);
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {
@@ -269,23 +280,29 @@ public class ExtrusionFeature : MeshFeature {
 		}
 	}
 
-	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, HoverFilter filter, ref double dist) {
 		var sk = source as SketchFeature;
 
 		double d0 = -1;
-		var r0 = sk.Hover(mouse, camera, tf, ref d0);
+		var r0 = sk.Hover(mouse, camera, tf, filter, ref d0);
 		if(!(r0 is Entity)) r0 = null;
 
 		UnityEngine.Matrix4x4 move = UnityEngine.Matrix4x4.Translate(Vector3.forward * (float)extrude.value);
 		double d1 = -1;
-		var r1 = sk.Hover(mouse, camera, tf * move, ref d1);
+		var r1 = sk.Hover(mouse, camera, tf * move, filter, ref d1);
 		if(!(r1 is Entity)) r1 = null;
 
 		if(r1 != null && (r0 == null || d1 < d0)) {
-			r0 = new ExtrudedEntity(r1 as Entity, this, 1);
-			d0 = d1;
+			var e = new ExtrudedEntity(r1 as Entity, this, 1);
+			if(filter == null || filter(e)) {
+				r0 = e;
+				d0 = d1;
+			}
 		} else if(r0 != null) {
-			r0 = new ExtrudedEntity(r0 as Entity, this, 0);
+			var e = new ExtrudedEntity(r0 as Entity, this, 0);
+			if(filter == null || filter(e)) {
+				r0 = e;
+			}
 		}
 
 		var points = sk.GetSketch().entityList.OfType<PointEntity>();
@@ -305,8 +322,11 @@ public class ExtrusionFeature : MeshFeature {
 		}
 
 		if(hover != null && (r0 == null || d0 > min)) {
-			dist = min;
-			return new ExtrudedPointEntity(hover, this);
+			var result = new ExtrudedPointEntity(hover, this);
+			if(filter == null || filter(result)) {
+				dist = min;
+				return result;
+			}
 		}
 
 		if(r0 != null) {

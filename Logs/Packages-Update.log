@@ -42,7 +42,15 @@ The following packages were added:
   com.unity.modules.wind@1.0.0
   com.unity.modules.xr@1.0.0
 
-=== Sun Dec 15 14:18:28 2019
+=== Mon Apr 15 14:31:51 2019
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.package-manager-ui from version 2.0.3 to 2.0.7
+
+=== Sat Jun 27 13:31:29 2020
 
 Packages were changed.
 Update Mode: updateDependencies
@@ -53,4 +61,68 @@ The following packages were added:
   com.unity.xr.legacyinputhelpers@2.0.2
 The following packages were updated:
   com.unity.analytics from version 3.2.2 to 3.3.2
-  com.unity.package-manager-ui from version 2.0.3 to 2.1.2
+  com.unity.package-manager-ui from version 2.0.7 to 2.1.2
+
+=== Sun Dec  6 13:50:48 2020
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were added:
+  com.unity.2d.sprite@1.0.0
+  com.unity.2d.tilemap@1.0.0
+  com.unity.ide.rider@1.2.1
+  com.unity.ide.visualstudio@2.0.3
+  com.unity.ide.vscode@1.2.3
+  com.unity.modules.androidjni@1.0.0
+  com.unity.modules.animation@1.0.0
+  com.unity.modules.director@1.0.0
+  com.unity.modules.video@1.0.0
+  com.unity.modules.vr@1.0.0
+  com.unity.modules.xr@1.0.0
+  com.unity.test-framework@1.1.18
+  com.unity.timeline@1.2.6
+  com.unity.ugui@1.0.0
+  com.unity.xr.legacyinputhelpers@2.1.4
+
+=== Fri Jul 21 09:41:06 2023
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were updated:
+  com.unity.ide.rider from version 1.2.1 to 3.0.7
+  com.unity.ide.visualstudio from version 2.0.3 to 2.0.11
+  com.unity.ide.vscode from version 1.2.3 to 1.2.4
+  com.unity.test-framework from version 1.1.18 to 1.1.29
+  com.unity.timeline from version 1.2.6 to 1.6.2
+  com.unity.xr.legacyinputhelpers from version 2.1.4 to 2.1.8
+
+=== Sun Jul 23 19:45:38 2023
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were added:
+  com.unity.ai.navigation@1.1.4
+The following packages were updated:
+  com.unity.ide.rider from version 3.0.7 to 3.0.24
+  com.unity.ide.visualstudio from version 2.0.11 to 2.0.18
+  com.unity.test-framework from version 1.1.29 to 1.3.7
+  com.unity.timeline from version 1.6.2 to 1.8.2
+  com.unity.xr.legacyinputhelpers from version 2.1.8 to 2.1.10
+
+=== Tue Oct 14 09:59:38 2025
+
+Packages were changed.
+Update Mode: updateDependencies
+
+The following packages were added:
+  com.unity.modules.accessibility@1.0.0
+The following packages were updated:
+  com.unity.ai.navigation from version 1.1.4 to 2.0.0
+  com.unity.ide.rider from version 3.0.24 to 3.0.28
+  com.unity.ide.visualstudio from version 2.0.18 to 2.0.22
+  com.unity.test-framework from version 1.3.7 to 1.4.4
+  com.unity.timeline from version 1.8.2 to 1.8.6
+  com.unity.ugui from version 1.0.0 to 2.0.0

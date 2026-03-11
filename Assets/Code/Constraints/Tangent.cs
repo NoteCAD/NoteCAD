@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 [Serializable]
 public class Tangent : Constraint {
@@ -18,6 +19,9 @@ public class Tangent : Constraint {
 
 	public Option option { get { return option_; } set { option_ = value; sketch.MarkDirtySketch(topo:true); } }
 	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }
+
+	bool perpendicular_;
+	public bool perpendicular  { get { return perpendicular_; } set { perpendicular_ = value; sketch.MarkDirtySketch(topo:true); } }
 
 	public override IEnumerable<Param> parameters {
 		get {
@@ -35,8 +39,10 @@ public class Tangent : Constraint {
 	}
 
 	public Tangent(Sketch sk) : base(sk) { }
+	public Tangent(Sketch sk, Id id) : base(sk, id) { }
 
-	public Tangent(Sketch sk, IEntity l0, IEntity l1) : base(sk) {
+	public Tangent(Sketch sk, IEntity l0, IEntity l1, bool perpendicular = false) : base(sk) {
+		perpendicular_ = perpendicular;
 		AddEntity(l0);
 		AddEntity(l1);
 		Satisfy();
@@ -84,13 +90,13 @@ public class Tangent : Constraint {
 		}
 		if(s0 != null) {
 			PointOn pOn = null;
-			if(s0.begin.IsCoincidentWithCurve(l1, ref pOn)) { tv0 = 0.0; p = t1; c = new Exp(t1) - pOn.GetValueParam(); return true; }
-			if(s0.end.IsCoincidentWithCurve(l1, ref pOn))	{ tv0 = 1.0; p = t1; c = new Exp(t1) - pOn.GetValueParam(); return true; }
+			if(s0.begin.IsCoincidentWithCurve(l1, ref pOn)) { tv0 = 0.0; p = t1; c = new Exp(t1) - pOn.GetValueExp(); return true; }
+			if(s0.end.IsCoincidentWithCurve(l1, ref pOn))	{ tv0 = 1.0; p = t1; c = new Exp(t1) - pOn.GetValueExp(); return true; }
 		}
 		if(s1 != null) {
 			PointOn pOn = null;
-			if(s1.begin.IsCoincidentWithCurve(l0, ref pOn)) { p = t0; c = new Exp(t0) - pOn.GetValueParam(); tv1 = 0.0; return true; }
-			if(s1.end.IsCoincidentWithCurve(l0, ref pOn))   { p = t0; c = new Exp(t0) - pOn.GetValueParam(); tv1 = 1.0; return true; }
+			if(s1.begin.IsCoincidentWithCurve(l0, ref pOn)) { p = t0; c = new Exp(t0) - pOn.GetValueExp(); tv1 = 0.0; return true; }
+			if(s1.end.IsCoincidentWithCurve(l0, ref pOn))   { p = t0; c = new Exp(t0) - pOn.GetValueExp(); tv1 = 1.0; return true; }
 		}
 		return false;
 	}
@@ -101,7 +107,12 @@ public class Tangent : Constraint {
 			var l1 = GetEntity(1);
 
 			ExpVector dir0 = l0.TangentAt(t0);
-			ExpVector dir1 = l1.TangentAt(t1);
+			ExpVector dir1 = null;
+			if(perpendicular) {
+				dir1 = l1.NormalAt(t1);
+			} else {
+				dir1 = l1.TangentAt(t1);
+			}
 
 			dir0 = l0.plane.DirFromPlane(dir0);
 			dir0 = sketch.plane.DirToPlane(dir0);
@@ -144,7 +155,7 @@ public class Tangent : Constraint {
 	}
 
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		var l0 = GetEntity(0);
 		var dir = l0.TangentAt(t0).Eval();
 		dir = l0.plane.DirFromPlane(dir).normalized;
@@ -164,14 +175,18 @@ public class Tangent : Constraint {
 
 	}
 
-	protected override void OnWrite(XmlTextWriter xml) {
-		xml.WriteAttributeString("t0", t0.value.ToStr());
-		xml.WriteAttributeString("t1", t1.value.ToStr());
+	protected override void OnWrite(Writer xml) {
+		xml.WriteAttribute("t0", t0.value);
+		xml.WriteAttribute("t1", t1.value);
+		if(perpendicular) xml.WriteAttribute("perpendicular", perpendicular_);
 	}
 
 	protected override void OnRead(XmlNode xml) {
 		t0.value = xml.Attributes["t0"].Value.ToDouble();
 		t1.value = xml.Attributes["t1"].Value.ToDouble();
+		if(xml.Attributes["perpendicular"] != null) {
+			perpendicular_ = Convert.ToBoolean(xml.Attributes["perpendicular"].Value);
+		}
 	}
 
 }

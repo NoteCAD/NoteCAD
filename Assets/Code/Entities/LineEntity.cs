@@ -2,10 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
+[Serializable]
 public class LineEntity : Entity, ISegmentaryEntity {
 
+	[NonSerialized]
 	public PointEntity p0;
+	
+	[NonSerialized]
 	public PointEntity p1;
 
 	public LineEntity(Sketch sk) : base(sk) {
@@ -28,7 +33,14 @@ public class LineEntity : Entity, ISegmentaryEntity {
 
 	public PointEntity begin { get { return p0; } }
 	public PointEntity end { get { return p1; } }
-	public IEnumerable<Vector3> segmentPoints {
+
+	public IEnumerable<IEnumerable<Vector3>> segmentPoints {
+		get {
+			yield return segmentPts;
+		}
+	}
+
+	public IEnumerable<Vector3> segmentPts {
 		get {
 			yield return p0.GetPosition();
 			yield return p1.GetPosition();

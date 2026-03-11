@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[Serializable]
 public class Param {
 	public string name;
-	public bool reduceable = true;
+	[NonSerialized] public bool reduceable = true;
 	private double v;
-	public bool changed;
+	[NonSerialized] public bool changed;
+	//public bool solvable = true;
 
 	public double value {
 		get { return v; }
@@ -31,6 +33,64 @@ public class Param {
 		exp = new Exp(this);
 	}
 
+	public override string ToString() {
+		return name;
+	}
+
+}
+
+public abstract class CustomFunction {
+
+	static Dictionary<Exp.Op, CustomFunction> customs = new Dictionary<Exp.Op, CustomFunction>();
+	static Dictionary<string, CustomFunction> functionNames = new Dictionary<string, CustomFunction>();
+	public static Dictionary<string, CustomFunction> operatorNames { get; private set; }
+
+	public static void Add(CustomFunction f) {
+		if(f.IsFunction) {
+			customs.Add(f.Op, f);
+			functionNames.Add(f.Name, f);
+		} else {
+			customs.Add(f.Op, f);
+			operatorNames.Add(f.Name, f);
+		}
+	}
+
+	public static CustomFunction Get(Exp.Op op) {
+		if(!customs.ContainsKey(op)) return null;
+		return customs[op];
+	}
+
+	public static CustomFunction GetFunction(string name) {
+		if(!functionNames.ContainsKey(name)) return null;
+		return functionNames[name];
+	}
+
+	public static CustomFunction GetOperator(string name) {
+		if(!operatorNames.ContainsKey(name)) return null;
+		return operatorNames[name];
+	}
+
+	public abstract double Eval(Exp exp);
+	public abstract bool EvalBool(Exp exp);
+	public abstract Exp Deriv(Exp exp, Param p);
+	public abstract string AsString(Exp exp);
+	public abstract int ArgCount { get; }
+	public abstract int Order { get; }
+	public abstract bool IsFunction { get; }
+	public abstract string Name { get; }
+	public abstract Exp.Op Op { get; }
+
+	static CustomFunction() {
+		operatorNames = new Dictionary<string, CustomFunction>();
+		Add(new CustomFunctions.And());
+		Add(new CustomFunctions.Or());
+		Add(new CustomFunctions.BoolNot());
+		Add(new CustomFunctions.Ceil());
+		Add(new CustomFunctions.Floor());
+		Add(new CustomFunctions.Round());
+		Add(new CustomFunctions.RoundUp());
+		Add(new CustomFunctions.RoundDown());
+	}
 }
 
 public class Exp {
@@ -60,6 +120,23 @@ public class Exp {
 		Cosh,
 		SFres,
 		CFres,
+		Equal,
+		LEqual,
+		GEqual,
+		Greater,
+		Less,
+		Norm,
+
+		// Not Solvable
+		If,
+		And,
+		Or,
+		Not,
+		Round,
+		RoundUp,
+		RoundDown,
+		Ceil,
+		Floor,
 
 		//Pow,
 	}
@@ -73,6 +150,8 @@ public class Exp {
 
 	public Exp a;
 	public Exp b;
+	public Exp c;
+
 	public Param param;
 	public double value;
 
@@ -104,6 +183,13 @@ public class Exp {
 	public Exp(Op op, Exp a, Exp b) {
 		this.a = a;
 		this.b = b;
+		this.op = op;
+	}
+
+	public Exp(Op op, Exp a, Exp b, Exp c) {
+		this.a = a;
+		this.b = b;
+		this.c = c;
 		this.op = op;
 	}
 
@@ -204,6 +290,7 @@ public class Exp {
 	static public Exp Sqr	(Exp x) { return new Exp(Op.Sqr,	x, null); }
 	static public Exp Abs	(Exp x) { return new Exp(Op.Abs,	x, null); }
 	static public Exp Sign	(Exp x) { return new Exp(Op.Sign,	x, null); }
+	static public Exp Norm	(Exp x) { return new Exp(Op.Norm,	x, null); }
 	static public Exp Atan2	(Exp x, Exp y) { return new Exp(Op.Atan2, x, y); }
 	static public Exp Expo	(Exp x) { return new Exp(Op.Exp,	x, null); }
 	static public Exp Sinh	(Exp x) { return new Exp(Op.Sinh,	x, null); }
@@ -221,8 +308,24 @@ public class Exp {
 			case Op.Const:	return value;
 			case Op.Param:	return param.value;
 			case Op.Add:	return a.Eval() + b.Eval();
+			case Op.Equal:
 			case Op.Drag:
 			case Op.Sub:	return a.Eval() - b.Eval();
+			
+			case Op.Less:
+			case Op.LEqual: {
+				var av = a.Eval();
+				var bv = b.Eval();
+				return Math.Abs(av - bv) - (bv - av);
+			}
+			
+			case Op.Greater:
+			case Op.GEqual: {
+				var av = a.Eval();
+				var bv = b.Eval();
+				return Math.Abs(av - bv) - (av - bv);
+			}
+							 
 			case Op.Mul:	return a.Eval() * b.Eval();
 			case Op.Div: {
 					var bv = b.Eval();
@@ -236,11 +339,12 @@ public class Exp {
 			case Op.Cos:	return Math.Cos(a.Eval());
 			case Op.ACos:	return Math.Acos(a.Eval());
 			case Op.ASin:	return Math.Asin(a.Eval());
-			case Op.Sqrt:	return Math.Sqrt(a.Eval());
+			case Op.Sqrt:	return Math.Sqrt(Math.Max(a.Eval(), 0.0));
 			case Op.Sqr:	{  double av = a.Eval(); return av * av; }
 			case Op.Atan2:	return Math.Atan2(a.Eval(), b.Eval());
 			case Op.Abs:	return Math.Abs(a.Eval());
 			case Op.Sign:	return Math.Sign(a.Eval());
+			case Op.Norm:   return a.Eval();
 			case Op.Neg:	return -a.Eval();
 			case Op.Pos:	return a.Eval();
 			case Op.Exp:	return Math.Exp(a.Eval());
@@ -248,9 +352,35 @@ public class Exp {
 			case Op.Cosh:	return Math.Cosh(a.Eval());
 			case Op.SFres:	return SFres(a.Eval());
 			case Op.CFres:	return CFres(a.Eval());
+			case Op.If:		return a.EvalBool() ? b.Eval() : c.Eval();
 			//case Op.Pow:	return Math.Pow(a.Eval(), b.Eval());
 		}
-		return 0.0;
+		var cus = CustomFunction.Get(op);
+		if(cus == null) return 0.0;
+		return cus.Eval(this);
+	}
+
+	public bool EvalBool() {
+		switch(op) {
+			case Op.Add:	return a.EvalBool() || b.EvalBool();
+			case Op.Equal:
+			case Op.Drag:	return a.EvalBool() == b.EvalBool();
+			case Op.Sub:	return a.EvalBool() != b.EvalBool();
+			
+			case Op.Less:	return a.Eval() <  b.Eval();
+			case Op.LEqual: return a.Eval() <= b.Eval();
+			case Op.Greater:return a.Eval() >  b.Eval();
+			case Op.GEqual: return a.Eval() >= b.Eval();
+			
+			case Op.Mul:	return a.EvalBool() && b.EvalBool();
+			case Op.Div:	return a.EvalBool() && !b.EvalBool();
+			case Op.Neg:	return !a.EvalBool();
+			case Op.Pos:	return a.EvalBool();
+			case Op.If:		return a.EvalBool();
+		}
+		var cus = CustomFunction.Get(op);
+		if(cus == null) return false;
+		return cus.EvalBool(this);
 	}
 
 	public bool IsZeroConst()		{ return op == Op.Const && value ==  0.0; }
@@ -271,6 +401,7 @@ public class Exp {
 			case Op.Sqr:
 			case Op.Abs:
 			case Op.Sign:
+			case Op.Norm:
 			case Op.Neg:
 			case Op.Pos:
 			case Op.Exp:
@@ -280,25 +411,50 @@ public class Exp {
 			case Op.SFres:
 				return true;
 		}
+		var cus = CustomFunction.Get(op);
+		if(cus != null) return cus.ArgCount == 1;
 		return false;
 	}
 
 	public bool IsAdditive() {
 		switch(op) {
+			case Op.Equal:
 			case Op.Drag:
 			case Op.Sub:
 			case Op.Add:
+			case Op.Or:
 				return true;
 		}
 		return false;
 	}
 
-	string Quoted() {
+    public static int OrderOf(Op op) {
+        switch(op) {
+			case Exp.Op.Equal:
+			case Exp.Op.LEqual:
+			case Exp.Op.GEqual:
+			case Exp.Op.Greater:
+			case Exp.Op.Less:
+			case Exp.Op.Drag:
+				return 1;
+            case Exp.Op.Add:
+            case Exp.Op.Sub:
+                return 2;
+            case Exp.Op.Mul:
+            case Exp.Op.Div:
+                return 3;
+        }
+		var cus = CustomFunction.Get(op);
+		if(cus != null) return cus.Order;
+		return 0;
+    }
+
+	public string Quoted() {
 		if(IsUnary()) return ToString();
 		return "(" + ToString() + ")";
 	}
 
-	string QuotedAdd() {
+	public string QuotedAdd() {
 		if(!IsAdditive()) return ToString();
 		return "(" + ToString() + ")";
 	}
@@ -319,18 +475,27 @@ public class Exp {
 			case Op.Sqr:	return a.Quoted() + " ^ 2";
 			case Op.Abs:	return "abs(" + a.ToString() + ")";
 			case Op.Sign:	return "sign(" + a.ToString() + ")";
+			case Op.Norm:	return "norm(" + a.ToString() + ")";
 			case Op.Atan2:	return "atan2(" + a.ToString() + ", " + b.ToString() + ")";
 			case Op.Neg:	return "-" + a.Quoted();
 			case Op.Pos:	return "+" + a.Quoted();
-			case Op.Drag:   return a.ToString() + " ≈ " + b.QuotedAdd();
+			case Op.Equal:  return a.ToString() + " = " + b.ToString();
+			case Op.GEqual: return a.ToString() + " >= " + b.ToString();
+			case Op.LEqual: return a.ToString() + " <= " + b.ToString();
+			case Op.Greater:return a.ToString() + " > " + b.ToString();
+			case Op.Less:   return a.ToString() + " < " + b.ToString();
+			case Op.Drag:   return a.ToString() + " ~ " + b.ToString();
 			case Op.Exp:	return "exp(" + a.ToString() + ")";
 			case Op.Sinh:	return "sinh(" + a.ToString() + ")";
 			case Op.Cosh:	return "cosh(" + a.ToString() + ")";
 			case Op.SFres:	return "sfres(" + a.ToString() + ")";
 			case Op.CFres:	return "cfres(" + a.ToString() + ")";
+			case Op.If:		return "if(" + a.ToString() + ", " + b.ToString() + ", " + c.ToString() + ")";
 			//case Op.Pow:	return Quoted(a) + " ^ " + Quoted(b);
 		}
-		return "";
+		var cus = CustomFunction.Get(op);
+		if(cus == null) return "!?!";
+		return CustomFunction.Get(op).AsString(this);
 	}
 
 	public bool IsDependOn(Param p) {
@@ -353,8 +518,16 @@ public class Exp {
 			case Op.Const:	return zero;
 			case Op.Param:	return (param == p) ? one : zero;
 			case Op.Add:	return a.d(p) + b.d(p);
+			case Op.Equal:
 			case Op.Drag:
 			case Op.Sub:	return a.d(p) - b.d(p);
+			
+			case Op.GEqual:
+			case Op.Greater: return (Abs(a - b) - Norm(a - b)).d(p);
+
+			case Op.LEqual:
+			case Op.Less: return (Abs(a - b) - Norm(b - a)).d(p);
+
 			case Op.Mul:	return a.d(p) * b + a * b.d(p);
 			case Op.Div:	return (a.d(p) * b - a * b.d(p)) / Sqr(b);
 			case Op.Sin:	return a.d(p) * Cos(a);
@@ -365,6 +538,7 @@ public class Exp {
 			case Op.Sqr:	return a.d(p) * two * a;
 			case Op.Abs:	return a.d(p) * Sign(a);
 			case Op.Sign:	return zero;
+			case Op.Norm:	return Sign(Abs(a)) * a.d(p);
 			case Op.Neg:    return -a.d(p);
 			case Op.Atan2:	return (b * a.d(p) - a * b.d(p)) / (Sqr(a) + Sqr(b));
 			case Op.Exp:	return a.d(p) * Expo(a);
@@ -372,8 +546,12 @@ public class Exp {
 			case Op.Cosh:	return a.d(p) * Sinh(a);
 			case Op.SFres:	return a.d(p) * Sin(Math.PI * Sqr(a) / 2.0);
 			case Op.CFres:	return a.d(p) * Cos(Math.PI * Sqr(a) / 2.0);
+			case Op.Pos:	return a.d(p);
+			case Op.If:		return new Exp(Op.If, a, b.d(p), c.d(p));
 		}
-		return zero;
+		var cus = CustomFunction.Get(op);
+		if(cus == null) return 0.0;
+		return cus.Deriv(this, p);
 	}
 
 	public bool IsSubstitionForm() {
@@ -407,6 +585,9 @@ public class Exp {
 			a.Substitute(p, e);
 			if(b != null) {
 				b.Substitute(p, e);
+				if(c != null) {
+					c.Substitute(p, e);
+				}
 			}
 		} else
 		if(op == Op.Param && param == p) {
@@ -421,9 +602,12 @@ public class Exp {
 	public void Walk(Action<Exp> action) {
 		action(this);
 		if(a != null) {
-			action(a);
+			a.Walk(action);
 			if(b != null) {
-				action(b);
+				b.Walk(action);
+				if(c != null) {
+					c.Walk(action);
+				}
 			}
 		}
 	}
@@ -437,10 +621,32 @@ public class Exp {
 			result.a = a.DeepClone();
 			if(b != null) {
 				result.b = b.DeepClone();
+				if(c != null) {
+					result.c = c.DeepClone();
+				}
 			}
 		}
 		return result;
 	}
+
+	public bool ParamsChanged() {
+		bool changed = false;
+		Walk(e => {
+			changed = changed || e.op == Op.Param && e.param.changed;
+		});
+		return changed;
+	}
+
+	public HashSet<Param> DependOnParams() {
+		var result = new HashSet<Param>();
+		Walk(e => {
+			if(e.op == Op.Param) {
+				result.Add(e.param);
+			}
+		});
+		return result;
+	}
+
 	
 	public void ReduceParams(List<Param> pars) {
 		if(op == Op.Param) {
@@ -474,4 +680,110 @@ public class Exp {
 		return op;
 	}
 
+	public static bool IsEquation(Exp.Op op) {
+        switch(op) {
+			case Exp.Op.Equal:
+			case Exp.Op.LEqual:
+			case Exp.Op.GEqual:
+			case Exp.Op.Greater:
+			case Exp.Op.Less:
+			case Exp.Op.Drag:
+				return true;
+		}
+		return false;
+	}
+
+	public bool IsEquation() {
+		return IsEquation(op);
+	}
+
+}
+
+namespace CustomFunctions {
+	
+	abstract class BoolBin : CustomFunction {
+		public override int ArgCount => 2;
+		public override bool IsFunction => false;
+		public override string AsString(Exp exp) { return exp.a.QuotedAdd() + Name + exp.b.QuotedAdd(); }
+		public override Exp Deriv(Exp exp, Param p) { return 0.0; }
+		public override double Eval(Exp exp) { return 0.0; }
+	}
+
+	abstract class Func : CustomFunction {
+		public override int ArgCount => 1;
+		public override int Order => 0;
+		public override bool IsFunction => true;
+		public override string AsString(Exp exp) { return Name + "(" + exp.a.ToString() + ")"; }
+		public override bool EvalBool(Exp exp) { return Math.Abs(Eval(exp)) > 0.0; }
+		public override Exp Deriv(Exp exp, Param p) { return 0.0; }
+	}
+
+	class And : BoolBin {
+		public override string Name => "&";
+		public override int Order => -1;
+		public override Exp.Op Op => Exp.Op.And;
+		public override bool EvalBool(Exp exp) {
+			return exp.a.EvalBool() && exp.b.EvalBool();
+		}
+	}
+
+	class Or : BoolBin {
+		public override string Name => "|";
+		public override int Order => -2;
+		public override Exp.Op Op => Exp.Op.Or;
+		public override bool EvalBool(Exp exp) { return exp.a.EvalBool() || exp.b.EvalBool(); }
+	}
+
+	class BoolNot : CustomFunction {
+		public override int ArgCount => 1;
+		public override bool IsFunction => false;
+		public override int Order => 0;
+		public override string Name => "!";
+		public override Exp.Op Op => Exp.Op.Not;
+		public override string AsString(Exp exp) { return Name + exp.a.Quoted(); }
+		public override Exp Deriv(Exp exp, Param p) { return 0.0; }
+		public override double Eval(Exp exp) { return 0.0; }
+		public override bool EvalBool(Exp exp) { return !exp.a.EvalBool(); }
+	}
+
+
+	class Floor : Func {
+		public override string Name => "floor";
+		public override Exp.Op Op => Exp.Op.Floor;
+		public override double Eval(Exp exp) { return Math.Floor(exp.a.Eval()); }
+	}
+
+	class Ceil : Func {
+		public override string Name => "ceil";
+		public override Exp.Op Op => Exp.Op.Ceil;
+		public override double Eval(Exp exp) { return Math.Ceiling(exp.a.Eval()); }
+	}
+
+	class Round : Func {
+		public override string Name => "round";
+		public override Exp.Op Op => Exp.Op.Round;
+		public override double Eval(Exp exp) { return Math.Round(exp.a.Eval()); }
+	}
+
+	class RoundUp : Func {
+		public override int ArgCount => 2;
+		public override string Name => "roundUp";
+		public override Exp.Op Op => Exp.Op.RoundUp;
+		public override double Eval(Exp exp) {
+			var a = exp.a.Eval();
+			var b = exp.b.Eval();
+			return Math.Round(Math.Ceiling(a / b) * b);
+		}
+	}
+
+	class RoundDown : Func {
+		public override int ArgCount => 2;
+		public override string Name => "roundDown";
+		public override Exp.Op Op => Exp.Op.RoundDown;
+		public override double Eval(Exp exp) {
+			var a = exp.a.Eval();
+			var b = exp.b.Eval();
+			return Math.Round(Math.Floor(a / b) * b);
+		}
+	}
 }

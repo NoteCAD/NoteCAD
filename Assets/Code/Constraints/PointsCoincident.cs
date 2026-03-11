@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System;
 using UnityEngine;
+using NoteCAD;
 
 [Serializable]
 public class PointsCoincident : Constraint {
@@ -9,6 +10,7 @@ public class PointsCoincident : Constraint {
 	public IEntity p1 { get { return GetEntity(1); } set { SetEntity(1, value); } }
 
 	public PointsCoincident(Sketch sk) : base(sk) { }
+	public PointsCoincident(Sketch sk, Id id) : base(sk, id) { }
 
 	public PointsCoincident(Sketch sk, IEntity p0, IEntity p1) : base(sk) {
 		AddEntity(p0);

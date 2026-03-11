@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
+using NoteCAD;
 
 [Serializable]
 public class PointCircleDistance : ValueConstraint {
 
 	public PointCircleDistance(Sketch sk) : base(sk) { }
+	public PointCircleDistance(Sketch sk, Id id) : base(sk, id) { }
 
 	public PointCircleDistance(Sketch sk, IEntity pt, IEntity c) : base(sk) {
 		AddEntity(pt);
@@ -13,7 +15,7 @@ public class PointCircleDistance : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			var point = GetEntity(0);
 			var circle = GetEntity(1);
@@ -21,11 +23,13 @@ public class PointCircleDistance : ValueConstraint {
 			var cCen = circle.Center();
 			var cRad = circle.Radius();
 
-			yield return (pPos - cCen).Magnitude() - cRad - value.exp;
+			yield return (pPos - cCen).Magnitude() - cRad - value;
 		}
 	}
-	
-	protected override void OnDraw(LineCanvas canvas) {
+
+	public override ValueUnits units => ValueUnits.LENGTH;
+
+	protected override void OnDraw(ICanvas canvas) {
 		var point = GetEntity(0);
 		var circle = GetEntity(1);
 		var pPos = point.GetPointAtInPlane(0, null).Eval();

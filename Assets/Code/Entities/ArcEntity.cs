@@ -2,11 +2,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
+[Serializable]
 public class ArcEntity : Entity, ISegmentaryEntity {
 
+	[NonSerialized]
 	public PointEntity p0;
+
+	[NonSerialized]
 	public PointEntity p1;
+
+	[NonSerialized]
 	public PointEntity c;
 
 	public ArcEntity(Sketch sk) : base(sk) {
@@ -55,7 +62,14 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 	public PointEntity begin { get { return p0; } }
 	public PointEntity end { get { return p1; } }
 	public PointEntity center { get { return c; } }
-	public IEnumerable<Vector3> segmentPoints {
+
+	public IEnumerable<IEnumerable<Vector3>> segmentPoints {
+		get {
+			yield return segmentPts;
+		}
+	}
+
+	public IEnumerable<Vector3> segmentPts {
 		get {
 			float angle = (float)GetAngle() * Mathf.Rad2Deg;
 			var cp = c.pos;

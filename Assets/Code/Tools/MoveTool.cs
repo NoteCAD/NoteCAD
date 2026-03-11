@@ -4,6 +4,7 @@ using UnityEngine;
 using System.Linq;
 using UnityEngine.UI;
 using System;
+using NoteCAD;
 
 public class MoveTool : Tool {
 
@@ -12,14 +13,17 @@ public class MoveTool : Tool {
 	Vector3 worldClick;
 	Vector3 firstClickCenter;
 	double deltaR;
+	double editingValue;
 	List<Exp> drag = new List<Exp>();
 	Param dragXP = new Param("dragX", reduceable: false);
 	Param dragYP = new Param("dragY", reduceable: false);
 	Param dragZP = new Param("dragZ", reduceable: false);
 	ValueConstraint valueConstraint;
 	bool shouldPushUndo = true;
+	bool dynamicEditing = true;
 	bool rectSelection = false;
 	bool rectInvertedX = false;
+	bool valueChanged = false;
 	public InputField input;
 	public static MoveTool instance;
 	//bool canMove = true;
@@ -27,7 +31,10 @@ public class MoveTool : Tool {
 	public Texture2D rectSelectionImageInverted;
 
 	protected override void OnStart() {
-		input.onEndEdit.AddListener(OnEndEdit);
+		if (input != null) {
+			input.onEndEdit.AddListener(OnEndEdit);
+			input.onValueChanged.AddListener(OnValueChanged);
+		}
 		instance = this;
 	}
 
@@ -46,7 +53,7 @@ public class MoveTool : Tool {
 		if(valueConstraint != null) return;
 		if(sko == null) {
 			rectSelection = true;
-			firstClickCenter = click = Camera.main.WorldToGuiPoint(pos);
+			firstClickCenter = click = Camera.main.WorldToGuiPoint(WorldPlanePos);
 			return;
 		}
 		if(Input.GetKey(KeyCode.LeftShift) && editor.selection.Contains(sko.id)) {
@@ -110,12 +117,14 @@ public class MoveTool : Tool {
 	protected override void OnDeactivate() {
 		ClearDrag();
 		valueConstraint = null;
-		input.gameObject.SetActive(false);
+		if (input != null) {
+			input.gameObject.SetActive(false);
+		}
 	}
 
 	protected override void OnMouseMove(Vector3 pos, ICADObject sko) {
 		if(rectSelection) {
-			click = Camera.main.WorldToGuiPoint(pos);
+			click = Camera.main.WorldToGuiPoint(WorldPlanePos);
 			return;
 		}
 		if(current == null) return;
@@ -139,6 +148,7 @@ public class MoveTool : Tool {
 		}
 		click = pos;
 		worldClick = WorldPlanePos;
+		editor.suppressSolve = false;
 	}
 
 	protected override void OnMouseUp(Vector3 pos, ICADObject sko) {
@@ -149,13 +159,55 @@ public class MoveTool : Tool {
 		ClearDrag();
 	}
 	
-	public void EditConstraintValue(ValueConstraint constraint, bool pushUndo = true) {
+	public void EditConstraintValue(ValueConstraint constraint, bool pushUndo = true, bool dynamicEditing = false, bool valueChanged = false) {
 		valueConstraint = constraint;
-		this.shouldPushUndo = pushUndo;
-		input.gameObject.SetActive(true);
-		input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
-		input.Select();
-		UpdateInputPosition();
+		if(valueConstraint != null) {
+			input.gameObject.SetActive(true);
+			this.shouldPushUndo = pushUndo;
+			this.dynamicEditing = dynamicEditing;
+			input.text = Math.Abs(valueConstraint.GetValue()).ToStr();
+			input.Select();
+			UpdateEditingValue();
+			UpdateInputPosition();
+		} else {
+			input.text = "";
+			input.gameObject.SetActive(false);
+		}
+		this.valueChanged = valueChanged;
+		var graphics = input.gameObject.GetComponentsInChildren<Graphic>();
+		foreach(var g in graphics) {
+			g.raycastTarget = !dynamicEditing;
+		}
+	}
+
+	public double GetEditingValue() {
+		return editingValue;
+	}
+
+	public void SetEditingValue(double value) {
+		input.text = Math.Abs(value).ToStr();
+	}
+
+	public void UpdateEditingValue() {
+		if(valueConstraint != null) {
+			var vc = valueChanged;
+			double value = valueConstraint.GetValue();
+
+			// if not dynamic editing, show values without sign.
+			// negative values will be considered as sign reversion.
+			if(!dynamicEditing) {
+				value = Math.Abs(value);
+			}
+
+			input.text = value.ToString("0.#####");
+			valueChanged = vc;
+			input.MoveTextStart(true);
+			input.Select();
+		}
+	}
+
+	public bool HasEditingValueChanged() {
+		return valueChanged;
 	}
 
 	public bool IsConstraintEditing(ValueConstraint constraint) {
@@ -170,11 +222,12 @@ public class MoveTool : Tool {
 
 	void UpdateInputPosition() {
 		if(valueConstraint != null) {
-			input.gameObject.transform.position = Camera.main.WorldToScreenPoint(valueConstraint.pos);
+			input.gameObject.transform.position = Camera.main.WorldToScreenPoint(valueConstraint.GetLabelPos());
 		}
 	}
 
 	private void Update() {
+		if(!DetailEditor.instance.isActiveAndEnabled) return;
 		UpdateInputPosition();
 	}
 
@@ -184,8 +237,24 @@ public class MoveTool : Tool {
 		if(sign == 0) sign = 1;
 		if(shouldPushUndo) editor.PushUndo();
 		valueConstraint.SetValue(sign * value.ToDouble());
+		if(dynamicEditing) {
+			return;
+		}
 		valueConstraint = null;
 		input.gameObject.SetActive(false);
+	}
+
+	void OnValueChanged(string value) {
+		valueChanged = true;
+		// special case when we are typing negative values
+		if(value == "-") {
+			return;
+		}
+		try {
+			editingValue = input.text.ToDouble();
+		} catch (Exception e) {
+			valueChanged = false;
+		}
 	}
 
 	protected override string OnGetDescription() {

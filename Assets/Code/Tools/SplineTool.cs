@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
 public class SplineTool : Tool {
 
@@ -8,6 +9,18 @@ public class SplineTool : Tool {
 	SplineEntity current;
 	bool canCreate = true;
 
+	SplineTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+	
+	protected override bool OnTryHover(IEntity e) {
+		return CanConstrainCoincident(e);
+	}	
+	
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
 		if(current != null) {
@@ -26,11 +39,12 @@ public class SplineTool : Tool {
 		}
 		if(DetailEditor.instance.currentSketch == null) return;
 		editor.PushUndo();
-		var newEntity = new SplineEntity(DetailEditor.instance.currentSketch.GetSketch());
+		var newEntity = SpawnEntity(new SplineEntity(DetailEditor.instance.currentSketch.GetSketch()));
 		foreach(var p in newEntity.p) p.pos = pos;
 		if(current == null) {
 			AutoConstrainCoincident(newEntity.p[0], sko as IEntity);
 		} else {
+			current.p[3].pos = newEntity.p[0].pos;
 			new PointsCoincident(current.sketch, current.p[3], newEntity.p[0]);
 		}
 
@@ -71,7 +85,7 @@ public class SplineTool : Tool {
 	}
 
 	protected override string OnGetDescription() {
-		return "click where you want to create the beginning and the ending points of the spline";
+		return "click where you want to create the beginning and the ending points of the cubic Bezier spline";
 	}
 
 }

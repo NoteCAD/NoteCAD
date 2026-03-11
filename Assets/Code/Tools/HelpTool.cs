@@ -6,6 +6,7 @@ using System.Xml;
 public class HelpTool : Tool {
 
 	protected override void OnActivate() {
+		Inspect(editor.GetDetail().settings);
 	}
 
 	protected override string OnGetDescription() {

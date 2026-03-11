@@ -2,11 +2,13 @@
 using UnityEngine;
 using System;
 using System.Xml;
+using NoteCAD;
 
 [Serializable]
 public class Diameter : ValueConstraint {
 
 	public Diameter(Sketch sk) : base(sk) { }
+	public Diameter(Sketch sk, Id id) : base(sk, id) { }
 
 	public bool showAsRadius = false;
 
@@ -19,26 +21,28 @@ public class Diameter : ValueConstraint {
 	Exp radius { get { return GetEntity(0).Radius(); } }
 	ExpVector center { get { return GetEntity(0).CenterInPlane(null); } }
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
-			yield return radius * 2.0 - value.exp;
+			yield return radius * 2.0 - value;
 		}
 	}
 
-	public override double LabelToValue(double label) {
-		return showAsRadius ? label / 2.0 : label;
+	public override ValueUnits units => ValueUnits.LENGTH;
+
+	protected override double LabelToValue(double label) {
+		return showAsRadius ? label * 2.0 : label;
 	}
 
-	public override double ValueToLabel(double value) {
-		return showAsRadius ? value * 2.0 : value;
+	protected override double ValueToLabel(double value) {
+		return showAsRadius ? value / 2.0 : value;
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		var p = GetEntity(0).CenterInPlane(null).Eval();
 		var lo = getPlane().projectVectorInto(getLabelOffset());
 		var dir = (lo - p).normalized;
 		
-		float r = (float)value.exp.Eval() / 2f;
+		float r = (float)value.Eval() / 2f;
 
 
 		
@@ -62,8 +66,8 @@ public class Diameter : ValueConstraint {
 		return sketch.plane.GetTransform() * Matrix4x4.Translate(GetEntity(0).CenterInPlane(sketch.plane).Eval());
 	}
 
-	protected override void OnWriteValueConstraint(XmlTextWriter xml) {
-		xml.WriteAttributeString("showAsRadius", showAsRadius.ToString());
+	protected override void OnWriteValueConstraint(Writer xml) {
+		xml.WriteAttribute("showAsRadius", showAsRadius);
 	}
 
 	protected override void OnReadValueConstraint(XmlNode xml) {

@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Linq;
 using System;
+using NoteCAD;
 
 [Serializable]
 public class LineCircleDistance : ValueConstraint {
@@ -25,8 +26,10 @@ public class LineCircleDistance : ValueConstraint {
 	Option option_;
 	public Option option { get { return option_; } set { option_ = value; sketch.MarkDirtySketch(topo:true); } }
 
-	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }	public LineCircleDistance(Sketch sk) : base(sk) { }
-
+	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }
+	
+	public LineCircleDistance(Sketch sk) : base(sk) { }
+	public LineCircleDistance(Sketch sk, Id id) : base(sk, id) { }
 
 	public LineCircleDistance(Sketch sk, IEntity line, IEntity circle) : base(sk) {
 		AddEntity(line);
@@ -36,7 +39,7 @@ public class LineCircleDistance : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			switch(option) {
 				case Option.Positive: yield return ConstraintExp.pointLineDistance(centerExp, lineP0Exp, lineP1Exp, sketch.is3d) - circle.Radius() - value; break;
@@ -45,7 +48,9 @@ public class LineCircleDistance : ValueConstraint {
 		}
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	public override ValueUnits units => ValueUnits.LENGTH;
+
+	protected override void OnDraw(ICanvas canvas) {
 		
 		var lip0 = sketch.plane.projectVectorInto(lineP0Pos);
 		var lip1 = sketch.plane.projectVectorInto(lineP1Pos);

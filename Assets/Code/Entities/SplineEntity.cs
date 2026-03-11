@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using NoteCAD;
 
+[Serializable]
 public class SplineEntity : Entity, ISegmentaryEntity {
 
+	[NonSerialized]
 	public PointEntity[] p = new PointEntity[4];
 
 	public SplineEntity(Sketch sk) : base(sk) {
@@ -30,7 +33,7 @@ public class SplineEntity : Entity, ISegmentaryEntity {
 
 	public PointEntity begin { get { return p[0]; } }
 	public PointEntity end { get { return p[3]; } }
-	public IEnumerable<Vector3> segmentPoints {
+	public IEnumerable<IEnumerable<Vector3>> segmentPoints {
 		get {
 			/*var e = PointOn(1.0);
 			var box = bbox;
@@ -38,7 +41,7 @@ public class SplineEntity : Entity, ISegmentaryEntity {
 			var eps = d.magnitude * 0.002;
 			return subdivision(0.0, 1.0, PointOn(0.0), PointOn(1.0), (float)eps).Concat(Enumerable.Repeat(e, 1));
 			*/
-			return getSegments(32, t => PointOn(t));
+			yield return getSegments(32, t => PointOn(t));
 		}
 	}
 	

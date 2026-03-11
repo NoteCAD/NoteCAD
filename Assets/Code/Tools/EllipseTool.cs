@@ -1,11 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
 public class EllipseTool : Tool {
 
 	EllipseEntity current;
 	bool canCreate = true;
+
+	EllipseTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return false;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		if(current == null) return CanConstrainCoincident(e);
+		return false;
+	}
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 
@@ -28,7 +42,7 @@ public class EllipseTool : Tool {
 
 		if(DetailEditor.instance.currentSketch == null) return;
 		editor.PushUndo();
-		current = new EllipseEntity(DetailEditor.instance.currentSketch.GetSketch());
+		current = SpawnEntity(new EllipseEntity(DetailEditor.instance.currentSketch.GetSketch()));
 		current.center.pos = pos;
 		AutoConstrainCoincident(current.center, sko as IEntity);
 

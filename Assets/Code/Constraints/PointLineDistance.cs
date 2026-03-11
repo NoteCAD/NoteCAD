@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Linq;
 using System;
+using NoteCAD;
 
 [Serializable]
 public class PointLineDistance : ValueConstraint {
@@ -18,6 +19,7 @@ public class PointLineDistance : ValueConstraint {
 	public Vector3 lineP1Pos { get { return line.PointsInPlane(null).ToArray()[1].Eval(); } }
 
 	public PointLineDistance(Sketch sk) : base(sk) { }
+	public PointLineDistance(Sketch sk, Id id) : base(sk, id) { }
 
 	public PointLineDistance(Sketch sk, IEntity p0, IEntity p1) : base(sk) {
 		AddEntity(p0);
@@ -26,13 +28,15 @@ public class PointLineDistance : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			yield return ConstraintExp.pointLineDistance(pointExp, lineP0Exp, lineP1Exp, sketch.is3d) - value;
 		}
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	public override ValueUnits units => ValueUnits.LENGTH;
+
+	protected override void OnDraw(ICanvas canvas) {
 		
 		var lip0 = lineP0Pos;
 		var lip1 = lineP1Pos;
@@ -40,6 +44,7 @@ public class PointLineDistance : ValueConstraint {
 		
 		if(GetValue() == 0.0) {
 			drawCameraCircle(canvas, Camera.main, p0, R_CIRLE_R * getPixelSize()); 
+			SetLabelPos(p0);
 		} else {
 			drawPointLineDistance(lip0, lip1, p0, canvas, Camera.main);
 			//drawLineExtendInPlane(getPlane(), renderer, lip0, lip1, p0, R_DASH * camera->getPixelSize()); 

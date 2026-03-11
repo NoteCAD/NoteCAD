@@ -5,15 +5,98 @@ using System.IO;
 using System.Xml;
 using System.Linq;
 using UnityEngine;
+using System.Text;
+
+public enum LengthMeasurementSystem {
+	Millimetre,
+	Centimetre,
+	Metre,
+	Inch
+}
+
+[Serializable]
+public class DetailSettings {
+
+	public enum MeshProviderFormat {
+		JSON,
+		XML
+	}
+
+	public enum DisplayPoints {
+		All,
+		CentersAndPoints,
+		Points,
+		None
+	}
+
+	public LengthMeasurementSystem lengthMeasurement = LengthMeasurementSystem.Millimetre;
+	public bool showConstraints = true;
+	public bool showDimensions = true;
+	public DisplayPoints displayPoints = DisplayPoints.All;
+	public bool autoconstraining = true;
+	public bool drawingDimensions = true;
+	public bool checkSketchErrors = true;
+	public bool detectContours = true;
+	public bool useMeshProvider = false;
+	public bool suppressSolver = false;
+	public string meshProvider = "http://localhost:8070/api?method=GenerateMesh";
+	public MeshProviderFormat providerFormat = MeshProviderFormat.JSON;
+
+	[RuntimeInspectorNamespace.RuntimeInspectorButton("Save Translation", false, RuntimeInspectorNamespace.ButtonVisibility.InitializedObjects)]
+	void SaveTranslation() {
+		NoteCADJS.SaveData(Trans.ToCSV(), "Translation", "csv");
+	}
+	
+	public void Write(Writer xml) {
+		xml.WriteBeginElement("settings");
+		xml.WriteAttribute(nameof(lengthMeasurement), lengthMeasurement.ToString());
+		xml.WriteAttribute(nameof(showConstraints), showConstraints);
+		xml.WriteAttribute(nameof(showDimensions), showDimensions);
+		xml.WriteAttribute(nameof(displayPoints), displayPoints);
+		xml.WriteAttribute(nameof(autoconstraining), showDimensions);
+		xml.WriteAttribute(nameof(drawingDimensions), drawingDimensions);
+		xml.WriteAttribute(nameof(checkSketchErrors), checkSketchErrors);
+		xml.WriteAttribute(nameof(detectContours), detectContours);
+		xml.WriteAttribute(nameof(suppressSolver), suppressSolver);
+		xml.WriteEndElement();
+	}
+
+	public void Read(XmlNode xml) {
+		foreach(XmlNode xmlChild in xml.ChildNodes) {
+			if(xmlChild.Name != "settings") continue;
+			xmlChild.GetAttribute(nameof(lengthMeasurement), ref lengthMeasurement);
+			xmlChild.GetAttribute(nameof(showConstraints), ref showConstraints);
+			xmlChild.GetAttribute(nameof(showDimensions), ref showDimensions);
+			xmlChild.GetAttribute(nameof(displayPoints), ref displayPoints);
+			xmlChild.GetAttribute(nameof(autoconstraining), ref autoconstraining);
+			xmlChild.GetAttribute(nameof(drawingDimensions), ref drawingDimensions);
+			xmlChild.GetAttribute(nameof(checkSketchErrors), ref checkSketchErrors);
+			xmlChild.GetAttribute(nameof(detectContours), ref detectContours);
+			xmlChild.GetAttribute(nameof(suppressSolver), ref suppressSolver);
+		}
+	}
+
+}
 
 public class Detail : Feature {
 
+	public string name = "";
+	public Styles styles = new Styles();
+
 	public List<Feature> features = new List<Feature>();
+
+	public DetailSettings settings { get; private set; }
+	GameObject go;
 
 	public override GameObject gameObject {
 		get {
-			return null;
+			return go;
 		}
+	}
+
+	public Detail() {
+		settings = new DetailSettings();
+		go = new GameObject("Detail");
 	}
 
 	public override ICADObject GetChild(Id guid) {
@@ -36,6 +119,9 @@ public class Detail : Feature {
 
 	public void AddFeature(Feature feature) {
 		feature.detail = this;
+		if (feature.gameObject != null) {
+			feature.gameObject.transform.parent = gameObject.transform;
+		}
 		features.Add(feature);
 	}
 
@@ -70,12 +156,23 @@ public class Detail : Feature {
 	}
 
 	public void ReadXml(string str, bool readView, out IdPath active) {
+		//#if XOR_ENCRYPTED
+		if(!str.StartsWith("<?xml")) {
+			str = Encrypton.Xor(str, 0xFADE2CAD);
+		}
+		//#endif
+
 		Clear();
 		var xml = new XmlDocument();
 		xml.LoadXml(str);
 
 		if(xml.DocumentElement.Attributes["id"] != null) {
 			guid_ = idGenerator.Create(0);
+		}
+
+		name = "";
+		if(xml.DocumentElement.Attributes["name"] != null) {
+			name = xml.DocumentElement.Attributes["name"].Value;
 		}
 
 		if(readView) {
@@ -95,8 +192,12 @@ public class Detail : Feature {
 		} else {
 			active = null;
 		}
-
+		settings.Read(xml.DocumentElement);
 		foreach(XmlNode node in xml.DocumentElement) {
+			if(node.Name == "styles") {
+				styles.Read(node);
+				continue;
+			}
 			if(node.Name != "feature") continue;
 			var type = node.Attributes["type"].Value;
 			var item = Type.GetType(type).GetConstructor(new Type[0]).Invoke(new object[0]) as Feature;
@@ -105,25 +206,57 @@ public class Detail : Feature {
 		}
 	}
 
-	public string WriteXml() {
+	public string WriteXmlAsString(bool encrypt) {
 		var text = new StringWriter();
 		var xml = new XmlTextWriter(text);
 		xml.Formatting = Formatting.Indented;
 		xml.IndentChar = '\t';
 		xml.Indentation = 1;
-		xml.WriteStartDocument();
-		xml.WriteStartElement("detail");
-		xml.WriteAttributeString("id", guid.ToString());
-		xml.WriteAttributeString("viewPos", Camera.main.transform.position.ToStr());
-		xml.WriteAttributeString("viewRot", Camera.main.transform.rotation.ToStr());
-		xml.WriteAttributeString("viewSize", Camera.main.orthographicSize.ToStr());
-		xml.WriteAttributeString("activeFeature", DetailEditor.instance.activeFeature.id.ToString());
-
-		foreach(var f in features) {
-			f.Write(xml);
+		WriteXml(xml);
+		var result = text.ToString();
+		if(encrypt) {
+			result = Encrypton.Xor(result, 0xFADE2CAD);
 		}
-		xml.WriteEndElement();
-		return text.ToString();
+		return result;
+	}
+
+	public string WriteJsonAsString() {
+		var json = new WriterJSON();
+		WriteWrt(json);
+		var result = json.ToString();
+		return result;
+	}
+
+
+	public byte[] WriteXmlAsBinary() {
+		var bin = new MemoryStream();
+		var xml = XmlDictionaryWriter.CreateBinaryWriter(bin);
+		WriteXml(xml);
+		return bin.ToArray();
+	}
+
+	public void WriteXml(XmlWriter xmlW) {
+		xmlW.WriteStartDocument();
+		var xml = new WriterXml(xmlW);
+		WriteWrt(xml);
+	}
+
+	public void WriteWrt(Writer wrt) {
+		wrt.WriteBeginElement("detail");
+		wrt.WriteAttribute("id", guid.ToString());
+		wrt.WriteAttribute("name", name);
+		wrt.WriteAttribute("viewPos", Camera.main.transform.position.ToStr());
+		wrt.WriteAttribute("viewRot", Camera.main.transform.rotation.ToStr());
+		wrt.WriteAttribute("viewSize", Camera.main.orthographicSize);
+		wrt.WriteAttribute("activeFeature", DetailEditor.instance.activeFeature.id.ToString());
+		settings.Write(wrt);
+		styles.Write(wrt);
+		wrt.WriteBeginFakeArray("features");
+		foreach(var f in features) {
+			f.Write(wrt);
+		}
+		wrt.WriteEndFakeArray();
+		wrt.WriteEndElement();
 	}
 
 	public void MarqueeSelectUntil(Rect rect, bool wholeObject, Camera camera, Matrix4x4 tf, ref List<ICADObject> result, Feature feature) {
@@ -136,7 +269,7 @@ public class Detail : Feature {
 		}
 	}
 
-	public ICADObject HoverUntil(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist, Feature feature) {
+	public ICADObject HoverUntil(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist, Feature feature, HoverFilter filter) {
 		double min = -1.0;
 		ICADObject result = null;
 		foreach(var f in features) {
@@ -144,7 +277,7 @@ public class Detail : Feature {
 				continue;
 			}
 			double dist = -1.0;
-			var hovered = f.Hover(mouse, camera, tf, ref dist);
+			var hovered = f.Hover(mouse, camera, tf, filter, ref dist);
 
 			if(dist >= 0.0 && dist < Sketch.hoverRadius && (min < 0.0 || dist <= min)) {
 				result = hovered;
@@ -156,8 +289,8 @@ public class Detail : Feature {
 		return result;
 	}
 
-	protected override ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
-		return HoverUntil(mouse, camera, tf, ref objDist, features.Last());
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, Matrix4x4 tf, HoverFilter filter, ref double objDist) {
+		return HoverUntil(mouse, camera, tf, ref objDist, features.Last(), filter);
 	}
 
 	protected override void OnDraw(Matrix4x4 tf) {

@@ -70,6 +70,11 @@ public class IdGenerator {
 		return new Id(id);
 	}
 
+	public static Id Parse(string str) {
+		long id = long.Parse(str, NumberStyles.HexNumber);
+		return new Id(id);
+	}
+
 	public void Clear() {
 		maxId = 0;
 	}
@@ -139,13 +144,13 @@ public class IdPath {
 		return result;
 	}
 
-	public void Write(XmlTextWriter xml, string name) {
+	public void Write(Writer xml, string name) {
 		var data = ToString();
 		if(data == "") return;
-		xml.WriteStartElement("ref");
-		xml.WriteAttributeString("name", name);
-		xml.WriteAttributeString("path", data);
-		xml.WriteEndElement();
+		xml.WriteBeginArrayElement("ref");
+		xml.WriteAttribute("name", name);
+		xml.WriteAttribute("path", data);
+		xml.WriteEndArrayElement();
 	}
 
 	public void Read(XmlNode xml) {

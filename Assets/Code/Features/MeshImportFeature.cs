@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 using gs;
 using g3;
 
@@ -48,7 +49,13 @@ class MeshEdgeEntity : IEntity {
 		}
 	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<IEnumerable<Vector3>> segments {
+		get {
+			yield return segs;
+		}
+	}
+	
+	public IEnumerable<Vector3> segs {
 		get {
 			yield return feature.transform.MultiplyPoint3x4(feature.hitMesh.Mesh.GetVertex(v0).ToVector3());
 			yield return feature.transform.MultiplyPoint3x4(feature.hitMesh.Mesh.GetVertex(v1).ToVector3());
@@ -107,9 +114,9 @@ class MeshVertexEntity : IEntity {
 		}
 	}
 
-	public IEnumerable<Vector3> segments {
+	public IEnumerable<IEnumerable<Vector3>> segments {
 		get {
-			yield return feature.transform.MultiplyPoint3x4(feature.hitMesh.Mesh.GetVertex(v0).ToVector3());
+			yield return Enumerable.Repeat(feature.transform.MultiplyPoint3x4(feature.hitMesh.Mesh.GetVertex(v0).ToVector3()), 1);
 		}
 	}
 
@@ -287,7 +294,7 @@ public class MeshImportFeature : MeshFeature {
 		GameObject.Destroy(go);
 	}
 
-	protected override void OnWriteMeshFeature(XmlTextWriter xml) {
+	protected override void OnWriteMeshFeature(Writer xml) {
 		StringBuilder sb = new StringBuilder();
 		var indices = mesh.GetIndices(0);
 		var verts = mesh.vertices;
@@ -295,9 +302,9 @@ public class MeshImportFeature : MeshFeature {
 			if(i != 0) sb.Append(" ");
 			sb.Append(verts[indices[i]].ToStr());
 		}
-		xml.WriteAttributeString("basis", basis.ToString());
-		xml.WriteAttributeString("mesh", sb.ToString());
-		xml.WriteAttributeString("useThreshold", useThreshold.ToString());
+		xml.WriteAttribute("basis", basis.ToString());
+		xml.WriteAttribute("mesh", sb.ToString());
+		xml.WriteAttribute("useThreshold", useThreshold);
 	}
 
 	protected override void OnReadMeshFeature(XmlNode xml) {
@@ -330,7 +337,7 @@ public class MeshImportFeature : MeshFeature {
 			return basis.matrix;
 		}
 	}
-	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
+	protected override ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, HoverFilter filter, ref double dist) {
 		var tris = new List<int>();
 		var fullTf = tf * transform;
 		var invFullTf = fullTf.inverse;
@@ -354,8 +361,11 @@ public class MeshImportFeature : MeshFeature {
 		}
 
 		if(hoverV0 != -1) {
-			dist = min;
-			return new MeshVertexEntity(this, hoverV0);
+			var e = new MeshVertexEntity(this, hoverV0);
+			if(filter == null || filter(e)) {
+				dist = min;
+				return e;
+			}
 		}
 
 		foreach(var ti in tris) {
@@ -371,8 +381,11 @@ public class MeshImportFeature : MeshFeature {
 		}
 
 		if(hoverV0 != -1) {
-			dist = min;
-			return new MeshEdgeEntity(this, hoverV0, hoverV1);
+			var e = new MeshEdgeEntity(this, hoverV0, hoverV1);
+			if(filter == null || filter(e)) {
+				dist = min;
+				return e;
+			}
 		}
 
 		return null;

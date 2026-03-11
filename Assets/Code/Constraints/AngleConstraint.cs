@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 using System.Xml;
+using NoteCAD;
 
 [Serializable]
 public class AngleConstraint : ValueConstraint {
@@ -16,15 +17,16 @@ public class AngleConstraint : ValueConstraint {
 			if(value == supplementary_) return;
 			supplementary_ = value;
 			if(HasEntitiesOfType(IEntityType.Arc, 1)) {
-				this.value.value = 2.0 * Math.PI - this.value.value;
+				valueParam.value = 2.0 * Math.PI - valueParam.value;
 			} else {
-				this.value.value = -(Math.Sign(this.value.value) * Math.PI - this.value.value);
+				valueParam.value = -(Math.Sign(valueParam.value) * Math.PI - valueParam.value);
 			}
 			sketch.MarkDirtySketch(topo:true);
 		}
 	}
 
 	public AngleConstraint(Sketch sk) : base(sk) { }
+	public AngleConstraint(Sketch sk, Id id) : base(sk, id) { }
 
 	public AngleConstraint(Sketch sk, IEntity[] points) : base(sk) {
 		foreach(var p in points) {
@@ -35,7 +37,7 @@ public class AngleConstraint : ValueConstraint {
 
 	public AngleConstraint(Sketch sk, IEntity arc) : base(sk) {
 		AddEntity(arc);
-		value.value = Math.PI / 4;
+		valueParam.value = Math.PI / 4;
 		Satisfy();
 	}
 
@@ -45,7 +47,7 @@ public class AngleConstraint : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			var p = GetPointsExp(sketch.plane);
 			ExpVector d0 = p[0] - p[1];
@@ -55,6 +57,8 @@ public class AngleConstraint : ValueConstraint {
 			yield return angle - value;
 		}
 	}
+
+	public override ValueUnits units => ValueUnits.ANGLE;
 
 	Vector3[] GetPointsInPlane(IPlane plane) {
 		return GetPointsExp(plane).Select(pe => pe.Eval()).ToArray();
@@ -99,7 +103,7 @@ public class AngleConstraint : ValueConstraint {
 		return p;
 	}
 
-	protected override void OnDraw(LineCanvas renderer) {
+	protected override void OnDraw(ICanvas renderer) {
 		
 		//drawBasis(renderer);
 		var basis = GetBasis();
@@ -111,7 +115,7 @@ public class AngleConstraint : ValueConstraint {
 		
 		var plane = getPlane();
 		var value = GetValue();
-		var offset = labelPos;
+		var offset = localPos;
 
 		if(Math.Abs(value) > EPSILON) {
 			Vector3[] pts = GetPointsInPlane(null);
@@ -175,8 +179,8 @@ public class AngleConstraint : ValueConstraint {
 			
 			Vector3 refp = offset;
 			refp.z = 0f;
-			refp = basis * refp;
-			setRefPoint(p + normalize(refp - p) * (size + 15f * pix));
+			refp = basis.MultiplyPoint3x4(refp);
+			SetLabelPos(p + normalize(refp - p) * (size + 15f * pix));
 		}
 		//drawLabel(renderer, camera);
 	}
@@ -201,11 +205,11 @@ public class AngleConstraint : ValueConstraint {
 		return getPlane().GetTransform() * result;
 	}
 
-	public override double LabelToValue(double label) {
+	protected override double LabelToValue(double label) {
 		return label * Math.PI / 180.0;
 	}
 
-	public override double ValueToLabel(double value) {
+	protected override double ValueToLabel(double value) {
 		return value / Math.PI * 180.0;
 	}
 
@@ -215,7 +219,7 @@ public class AngleConstraint : ValueConstraint {
 		}
 	}
 
-	protected override void OnWriteValueConstraint(XmlTextWriter xml) {
-		xml.WriteAttributeString("supplementary", supplementary.ToString());
+	protected override void OnWriteValueConstraint(Writer xml) {
+		xml.WriteAttribute("supplementary", supplementary);
 	}
 }

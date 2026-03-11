@@ -65,6 +65,10 @@ public class ExpVector {
 		return Exp.Sqrt(Exp.Sqr(x) + Exp.Sqr(y) + Exp.Sqr(z));
 	}
 
+	public Exp MagnitudeSqr() {
+		return Exp.Sqr(x) + Exp.Sqr(y) + Exp.Sqr(z);
+	}
+
 	public ExpVector Normalized() {
 		return this / Magnitude();
 	}

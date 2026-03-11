@@ -3,16 +3,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Xml;
+using NoteCAD;
 
 [Serializable]
 public class FunctionEntity : Entity, ISegmentaryEntity {
 
+	[NonSerialized]
 	public PointEntity p0;
+
+	[NonSerialized]
 	public PointEntity p1;
+
+	[NonSerialized]
 	public PointEntity c;
 
-	string function_x;
-	string function_y;
 	int subdivision_ = 16;
 	public int subdivision {
 		get {
@@ -65,66 +69,30 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		}
 	}
 
-	public string x {
-		get {
-			return function_x;
-		}
-		set {
-			if(function_x == value) return;
-			function_x = value;
-			parser.SetString(function_x);
-			var e = parser.Parse();
-			if(e != null) {
-				exp.x = e;
-				Debug.Log("x = " + e.ToString());
-				sketch.MarkDirtySketch(entities:true, topo:true);
-			}
-		}
-	}
+	public ExpressionData x;
+	public ExpressionData y;
 
-	public string y {
-		get {
-			return function_y;
-		}
-		set {
-			if(function_y == value) return;
-			function_y = value;
-			parser.SetString(function_y);
-			var e = parser.Parse();
-			if(e != null) {
-				exp.y = e;
-				Debug.Log("y = " + e.ToString());
-				sketch.MarkDirtySketch(entities:true, topo:true);
-			}
-		}
-	}
-
-	ExpParser parser;
-	ExpVector exp = new ExpVector(0.0, 0.0, 0.0);
 	Param t = new Param("t");
 	Param t0 = new Param("t0", 0.0);
 	Param t1 = new Param("t1", 1.0);
-
-	void InitParser() {
-		parser = new ExpParser("0");
-		parser.parameters.Add(t);
-		x = "t";
-		y = "cos(t * pi)";
-
-	}
 
 	public FunctionEntity(Sketch sk) : base(sk) {
 		p0 = AddChild(new PointEntity(sk));
 		p1 = AddChild(new PointEntity(sk));
 		c = AddChild(new PointEntity(sk));
-		InitParser();
+
+		x = new ExpressionData(this, false, t);
+		y = new ExpressionData(this, false, t);
+		x.source = "t";
+		y.source = "cos(t * pi)";
+
 	}
 
 	public override IEntityType type { get { return IEntityType.Function; } }
 
 
 	public ExpVector GetExpClone(Exp t) {
-		var e = new ExpVector(exp.x.DeepClone(), exp.y.DeepClone(), 0.0);
+		var e = new ExpVector(x.expression.DeepClone(), y.expression.DeepClone(), 0.0);
 		if(t != null) {
 			e.x.Substitute(this.t, t);
 			e.y.Substitute(this.t, t);
@@ -166,6 +134,14 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		}
 	}
 
+	public override IEnumerable<Param> allParameters {
+		get {
+			yield return t0;
+			yield return t1;
+			foreach(var p in basis.parameters) yield return p;
+		}
+	}
+
 	public override IEnumerable<Param> parameters {
 		get {
 			if(!tBeginFixed) yield return t0;
@@ -180,7 +156,13 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 
 	public PointEntity begin { get { return p0; } }
 	public PointEntity end { get { return p1; } }
-	public IEnumerable<Vector3> segmentPoints {
+	public IEnumerable<IEnumerable<Vector3>> segmentPoints {
+		get {
+			yield return segmentPts;
+		}
+	}
+
+	public IEnumerable<Vector3> segmentPts {
 		get {
 			Param pOn = new Param("pOn");
 			var on = PointOn(pOn);
@@ -222,20 +204,20 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		return null;
 	}
 
-	protected override void OnWrite(XmlTextWriter xml) {
-		xml.WriteAttributeString("x", x);
-		xml.WriteAttributeString("y", y);
-		xml.WriteAttributeString("t0", t0.value.ToStr());
-		xml.WriteAttributeString("t1", t1.value.ToStr());
-		xml.WriteAttributeString("t0fix", tBeginFixed_.ToString());
-		xml.WriteAttributeString("t1fix", tEndFixed_.ToString());
-		xml.WriteAttributeString("subdiv", subdivision_.ToString());
-		xml.WriteAttributeString("basis", basis.ToString());
+	protected override void OnWrite(Writer xml) {
+		xml.WriteAttribute("x", x.source);
+		xml.WriteAttribute("y", y.source);
+		xml.WriteAttribute("t0", t0.value);
+		xml.WriteAttribute("t1", t1.value);
+		xml.WriteAttribute("t0fix", tBeginFixed_);
+		xml.WriteAttribute("t1fix", tEndFixed_);
+		xml.WriteAttribute("subdiv", subdivision_);
+		xml.WriteAttribute("basis", basis.ToString());
 	}
 
 	protected override void OnRead(XmlNode xml) {
-		x = xml.Attributes["x"].Value;
-		y = xml.Attributes["y"].Value;
+		x.source = xml.Attributes["x"].Value;
+		y.source = xml.Attributes["y"].Value;
 		t0.value = xml.Attributes["t0"].Value.ToDouble();
 		t1.value = xml.Attributes["t1"].Value.ToDouble();
 		tBeginFixed_ = Convert.ToBoolean(xml.Attributes["t0fix"].Value);

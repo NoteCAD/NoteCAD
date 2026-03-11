@@ -1,10 +1,13 @@
 fileFormatVersion: 2
 guid: 50bd0f32065bc754e99e1db3e76938f2
-timeCreated: 1514094340
-licenseType: Free
 MonoImporter:
+  externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - strokeStyles: {instanceID: 0}
+  - parent: {instanceID: 0}
+  - material: {fileID: 2100000, guid: da145fe11ec87bc43978f5f5da2ec79d, type: 2}
+  - materialDepthOff: {fileID: 2100000, guid: 2e2c90670b051dd4495d0fa035cf3426, type: 2}
   executionOrder: 700
   icon: {instanceID: 0}
   userData: 

@@ -1,11 +1,31 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
 public class EqualTool : Tool {
 
 	IEntity l0;
 	ValueConstraint c0;
+
+	EqualTool() {
+		enableHoverFilter = true;
+	}
+
+	protected override bool OnTryHover(Constraint c) {
+		return l0 == null && c is AngleConstraint && c != c0;
+	}
+
+	protected override bool OnTryHover(IEntity e) {
+		return c0 == null && (e.Radius() != null || e.Length() != null) && !e.IsSameAs(l0);
+	}
+
+	[System.Serializable]
+	class EqualToolOptions { 
+		public bool preserveRatio = false;
+	}
+
+	EqualToolOptions options = new EqualToolOptions();
 
 	protected override void OnMouseDown(Vector3 pos, ICADObject sko) {
 		var vc = sko as AngleConstraint;
@@ -27,11 +47,16 @@ public class EqualTool : Tool {
 		if(entity.Radius() == null && entity.Length() == null) return;
 		if(l0 != null) {
 			editor.PushUndo();
-			new Equal(DetailEditor.instance.currentSketch.GetSketch(), l0, entity);
+			var c = new Equal(DetailEditor.instance.currentSketch.GetSketch(), l0, entity);
+			if(options.preserveRatio) c.Satisfy();
 			l0 = null;
 		} else {
 			l0 = entity;
 		}
+	}
+
+	protected override void OnActivate() {
+		Inspect(options);
 	}
 
 	protected override void OnDeactivate() {

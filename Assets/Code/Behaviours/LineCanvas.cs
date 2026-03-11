@@ -1,8 +1,32 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
-public class LineCanvas : DraftStroke {
+public interface ICanvas {
+	void SetStyle(Style style);
+	void DrawLine(Vector3 a, Vector3 b);
+	void DrawPoint(Vector3 pt);
+}
+
+public static class ICanvasExt {
+	static Dictionary <string, Style> styles = new Dictionary<string, Style>();
+	public static void SetStyle(this ICanvas canvas, string name) {
+		if(!styles.ContainsKey(name)) {
+			var stroke = EntityConfig.instance.styles.styles.First(s => s.name == name);
+			styles.Add(name, new Style { stroke = stroke });
+		}
+		canvas.SetStyle(styles[name]);
+	}
+}
+
+public class LineCanvas : DraftStroke, ICanvas {
+
+	public void DrawSegments(IEnumerable<IEnumerable<Vector3>> loops) {
+		foreach(var lp in loops) {
+			DrawSegments(lp);
+		}
+	}
 
 	public void DrawSegments(IEnumerable<Vector3> points) {
 		if(points == null) return;
@@ -29,7 +53,6 @@ public class LineCanvas : DraftStroke {
 			DrawPoint(ep);
 			count++;
 		}
-		Debug.Log("count : " + count);
 	}
 
 	public void DrawArc(Vector3 p0, Vector3 p1, Vector3 c, Vector3 vz, int subdiv = 32) {
@@ -51,7 +74,9 @@ public class LineCanvas : DraftStroke {
 
 	public void DrawPoint(Vector3 pos) {
 		DrawLine(pos, pos);
-	}	
+	}
 
-
+	public void SetStyle(Style style) {
+		SetStyle(style.stroke);
+	}
 }

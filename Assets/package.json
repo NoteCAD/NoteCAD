@@ -1,0 +1,17 @@
+{
+  "name": "com.macroshape.notecad",
+  "version": "0.5.45",
+  "displayName": "NoteCAD",
+  "description": "Small but powerful CAD",
+  "unity": "2023.1",
+  "keywords": [
+    "CAD",
+    "Sketcher",
+    "Constraint Solver"
+  ],
+  "author": {
+    "name": "Alexey Egorov",
+    "email": "evilspirit@evilspirit.org",
+    "url": "https://github.com/NoteCAD/NoteCAD"
+  }
+}

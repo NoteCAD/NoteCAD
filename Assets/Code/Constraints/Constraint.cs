@@ -4,15 +4,18 @@ using System;
 using UnityEngine;
 using System.Xml.Serialization;
 using System.Linq;
+using NoteCAD;
 
-public abstract partial class Entity {
+namespace NoteCAD {
+	public abstract partial class Entity {
 
-	internal void AddConstraint(Constraint c) {
-		usedInConstraints.Add(c);
-	}
+		internal void AddConstraint(Constraint c) {
+			usedInConstraints.Add(c);
+		}
 
-	internal void RemoveConstraint(Constraint c) {
-		usedInConstraints.Remove(c);
+		internal void RemoveConstraint(Constraint c) {
+			usedInConstraints.Remove(c);
+		}
 	}
 }
 
@@ -28,6 +31,29 @@ public class Constraint : SketchObject {
 	}
 
 	protected virtual Enum optionInternal { get { return Option.Default; } set { } }
+	public virtual bool IsDimension { get { return false; } }
+
+	bool enabled_ = true;
+	public bool enabled {
+		get {
+			return enabled_;
+		}
+		set {
+			enabled_ = value;
+			sketch.MarkDirtySketch(constraints:true);
+		}
+	}
+
+	bool drawLink_ = false;
+	public bool drawLink {
+		get {
+			return drawLink_;
+		}
+		set {
+			drawLink_ = value;
+			sketch.MarkDirtySketch(constraints:true);
+		}
+	}
 
 	protected void AddEntity<T>(T e) where T : IEntity {
 		if(e is Entity) (e as Entity).AddConstraint(this);
@@ -45,6 +71,10 @@ public class Constraint : SketchObject {
 	}
 
 	public Constraint(Sketch sk) : base(sk) {
+		sk.AddConstraint(this);
+	}
+
+	public Constraint(Sketch sk, Id guid) : base(sk, guid) {
 		sk.AddConstraint(this);
 	}
 
@@ -84,33 +114,39 @@ public class Constraint : SketchObject {
 		int best_option = 0;
 		
 		for(int i = 0; i < names.Length; i++) {
+			// skip any orientations
+			if (names[i] == "Any") {
+				continue;
+			}
 			optionInternal = (Enum)Enum.Parse(type, names[i]);
 			List<Exp> exprs = equations.ToList();
 			
 			double cur_value = exprs.Sum(e => Math.Abs(e.Eval()));
-			Debug.Log(String.Format("check option {0} (min: {1}, cur: {2})\n", optionInternal, min_value, cur_value));
+			//Debug.Log(String.Format("check option {0} (min: {1}, cur: {2})\n", optionInternal, min_value, cur_value));
 			if(min_value < 0.0 || cur_value < min_value) {
 				min_value = cur_value;
 				best_option = i;
 			}
 		}
 		optionInternal = (Enum)Enum.Parse(type, names[best_option]);
-		Debug.Log("best option = " + optionInternal.ToString());
+		//Debug.Log("best option = " + optionInternal.ToString());
 	}
 
-	public override void Write(XmlTextWriter xml) {
-		xml.WriteStartElement("constraint");
-		xml.WriteAttributeString("type", this.GetType().Name);
+	public override void Write(Writer xml) {
+		xml.WriteBeginArrayElement("constraint");
+		xml.WriteAttribute("type", this.GetType().Name);
 		if(Enum.GetNames(optionInternal.GetType()).Length >= 2) {
-			xml.WriteAttributeString("chirality", optionInternal.ToString());
+			xml.WriteAttribute("chirality", optionInternal.ToString());
 		}
 		base.Write(xml);
+		xml.WriteBeginFakeArray("links");
 		foreach(var id in ids) {
-			xml.WriteStartElement("link");
-			xml.WriteAttributeString("path", id.ToString());
-			xml.WriteEndElement();
+			xml.WriteBeginArrayElement("link");
+			xml.WriteAttribute("path", id.ToString());
+			xml.WriteEndArrayElement();
 		}
-		xml.WriteEndElement();
+		xml.WriteEndFakeArray();
+		xml.WriteEndArrayElement();
 	}
 
 	public override void Read(XmlNode xml) {
@@ -222,16 +258,22 @@ public class Constraint : SketchObject {
 	}
 
 	public static float getPixelSize() {
-		return (float)DraftStroke.getPixelSize();
+		return (float)DraftStroke.getGlobalPixelSize();
 	}
+
+	protected bool shouldDrawLink => drawLink || DetailEditor.instance.hovered == this || DetailEditor.instance.selection.Count == 1 && DetailEditor.instance.IsSelected(this);
 	
-	public void DrawReferenceLink(LineCanvas renderer, Camera camera) {
+	public void DrawReferenceLink(ICanvas renderer, Camera camera, bool drawCircles = true) {
 		float pix = getPixelSize();
 		float size = 12f * pix;
 		var ref_points = this.ref_points.Select(p => sketch.plane.FromPlane(p)).ToArray();
-		drawCameraCircle(renderer, camera, ref_points[0], size, 16);
+		if(drawCircles) {
+			drawCameraCircle(renderer, camera, ref_points[0], size, 16);
+		}
 		if(ref_points.Length > 1) {
-			drawCameraCircle(renderer, camera, ref_points[1], size, 16);
+			if(drawCircles) {
+				drawCameraCircle(renderer, camera, ref_points[1], size, 16);
+			}
 			if(length(ref_points[1] - ref_points[0]) > 2f * size) {
 				Vector3 dir = normalize(ref_points[1] - ref_points[0]);
 				drawDottedLine(ref_points[0] + dir * size, ref_points[1] - dir * size, renderer, R_DASH * pix);
@@ -243,7 +285,7 @@ public class Constraint : SketchObject {
 		return Quaternion.AxisAngle(axis, angle) * v;
 	}
 
-	protected void drawDottedLine(Vector3 p0, Vector3 p1, LineCanvas renderer, float step) {
+	protected void drawDottedLine(Vector3 p0, Vector3 p1, ICanvas renderer, float step) {
 		if(step == 0f) {
 			renderer.DrawLine(p0, p1);
 			return;
@@ -269,7 +311,7 @@ public class Constraint : SketchObject {
 		}
 	}
 	
-	protected void drawAngleArc(LineCanvas renderer, Vector3 p0, Vector3 c, float angle, Vector3 vz, bool dash = false, float step = 0f) {
+	protected void drawAngleArc(ICanvas renderer, Vector3 p0, Vector3 c, float angle, Vector3 vz, bool dash = false, float step = 0f) {
 		float subdiv = 32f;
 		if(step > 0f) {
 			float len = length(p0 - c) * angle;
@@ -292,7 +334,7 @@ public class Constraint : SketchObject {
 		}
 	}
 	
-	protected void drawArc(LineCanvas renderer, Vector3 p0, Vector3 p1, Vector3 c, Vector3 vz, bool dash = false, float step = 0f) {
+	protected void drawArc(ICanvas renderer, Vector3 p0, Vector3 p1, Vector3 c, Vector3 vz, bool dash = false, float step = 0f) {
 		float angle = Mathf.Acos(Vector3.Dot(normalize(p0 - c), normalize(p1 - c)));
 		float subdiv = 32f;
 		
@@ -319,7 +361,7 @@ public class Constraint : SketchObject {
 		}
 	}
 	
-    void drawArcExtend(LineCanvas renderer, Vector3 p0, Vector3 p1,
+    void drawArcExtend(ICanvas renderer, Vector3 p0, Vector3 p1,
                                  Vector3 c, Vector3 to, Vector3 vz,
                                  bool dash, float step) {
 		float dd0 = Vector3.Dot(Vector3.Cross(p0 - c, p1 - c), vz);
@@ -340,7 +382,7 @@ public class Constraint : SketchObject {
 		drawArc(renderer, from, to, c, vz, dash, step);
 	}
 	
-	bool drawLineExtend(LineCanvas renderer, Vector3 p0, Vector3 p1, Vector3 to, float step, float salient, bool from_to) {
+	bool drawLineExtend(ICanvas renderer, Vector3 p0, Vector3 p1, Vector3 to, float step, float salient, bool from_to) {
 		Vector3 dir = p1 - p0;
 		float k = Vector3.Dot(dir, to - p0) / Vector3.Dot(dir, dir);
 		Vector3 pt_on_line = p0 + dir * k;
@@ -366,7 +408,7 @@ public class Constraint : SketchObject {
 		return false;
 	}
 	
-	protected bool drawLineExtendInPlane(IPlane plane, LineCanvas renderer, Vector3 p0, Vector3 p1, Vector3 to, float step, float salient = 0f, bool from_to = false) {
+	protected bool drawLineExtendInPlane(IPlane plane, ICanvas renderer, Vector3 p0, Vector3 p1, Vector3 to, float step, float salient = 0f, bool from_to = false) {
 		Vector3 dir = p1 - p0;
 		if(plane != null) {
 			dir = plane.projectVectorInto(p1) - plane.projectVectorInto(p0);
@@ -395,14 +437,14 @@ public class Constraint : SketchObject {
 		return false;
 	}
 	
-	void drawTangentCross(LineCanvas renderer, Vector3 pos, Vector3 dir, Vector3 pn, float pix) {
+	void drawTangentCross(ICanvas renderer, Vector3 pos, Vector3 dir, Vector3 pn, float pix) {
 		float size = 10f * pix;
 		Vector3 perp = Vector3.Cross(dir, pn);
 		renderer.DrawLine(pos - perp * size, pos + perp * size);
 		renderer.DrawLine(pos - dir * size, pos + dir * size);
 	}
 	
-	protected void drawCameraCircle(LineCanvas renderer, Camera camera, Vector3 pos, float size, int num_segments = 32) {
+	protected void drawCameraCircle(ICanvas renderer, Camera camera, Vector3 pos, float size, int num_segments = 32) {
 		float angle = 2f * Mathf.PI / (float)num_segments;
 		Vector3 r0 = camera.transform.right * size;
 		for(int i=0; i<num_segments; i++) {
@@ -412,7 +454,7 @@ public class Constraint : SketchObject {
 		}
 	}
 	
-	void drawGrounding(LineCanvas renderer, Camera camera, Vector3 pos, float size) {
+	void drawGrounding(ICanvas renderer, Camera camera, Vector3 pos, float size) {
 		Vector3 x = camera.transform.right * size;
 		Vector3 y = -camera.transform.up * size;
 		
@@ -429,33 +471,12 @@ public class Constraint : SketchObject {
 		// renderer.DrawLine(pos + y * 11f + x * 1f, pos + y * 11f - x * 1f);
 	}
 	
-	protected Vector3 drawPointProjection(LineCanvas renderer, Vector3 point, float step) {
+	protected Vector3 drawPointProjection(ICanvas renderer, Vector3 point, float step) {
 		IPlane plane = getPlane();
 		if(plane == null) return point;
 		Vector3 proj = plane.projectVectorInto(point);
 		if(proj != point) drawDottedLine(point, proj, renderer, step);
 		return proj;
-	}
-	
-	protected Matrix4x4 getPointLineDistanceBasis(Vector3 lip0_, Vector3 lip1_, Vector3 ap_, IPlane plane) {
-	
-		Vector3 lip0 = lip0_;
-		Vector3 lip1 = lip1_;
-		Vector3 ap = ap_;
-		
-		if(plane != null) {
-			lip0 = plane.projectVectorInto(lip0);
-			lip1 = plane.projectVectorInto(lip1);
-			ap = plane.projectVectorInto(ap);
-		}
-		
-		Vector3 lid = normalize(lip1 - lip0);
-		Vector3 bp = lip0 + lid * Vector3.Dot(ap - lip0, lid);
-		Vector3 x = normalize(bp - ap);
-		Vector3 y = lid;
-		Vector3 z = normalize(Vector3.Cross(x, y));
-		Vector3 p = (ap + bp) * 0.5f;
-		return UnityExt.Basis(x, y, z, p);
 	}
 	
 	protected Matrix4x4 getPointsDistanceBasis(Vector3 app, Vector3 bpp, IPlane plane) {
@@ -512,9 +533,9 @@ public class Constraint : SketchObject {
 		return false;
 	}
 
-	public static Constraint New(string typeName, Sketch sk) {
-		Type[] types = { typeof(Sketch) };
-		object[] param = { sk };
+	public static Constraint New(string typeName, Sketch sk, Id guid) {
+		Type[] types = { typeof(Sketch), typeof(Id) };
+		object[] param = { sk, guid };
 		var type = Type.GetType(typeName);
 		if(type == null) {
 			Debug.LogError("Can't create entity of type " + typeName);
@@ -525,9 +546,29 @@ public class Constraint : SketchObject {
 }
 
 [Serializable]
-public class ValueConstraint : Constraint {
+public abstract class ValueConstraint : Constraint {
 
-	protected Param value = new Param("value");
+	public enum ValueUnits {
+		ANGLE,
+		LENGTH,
+		FRACTION,
+		ARBITRARY,
+	}
+
+	public abstract ValueUnits units { get; }
+
+	protected Param valueParam = new Param("value");
+
+	protected Exp value {
+		get {
+			/*
+			if(reference && expression.Exist()) {
+				return expression.expression;
+			}*/
+			return valueParam.exp;
+		}
+	}
+
 	bool reference_;
 	public bool reference {
 		get {
@@ -538,9 +579,25 @@ public class ValueConstraint : Constraint {
 			sketch.MarkDirtySketch(constraints:true);
 		}
 	}
+
+	bool solvable_ = true;
+	public bool solvable {
+		get {
+			return solvable_;
+		}
+		set {
+			solvable_ = value;
+			sketch.MarkDirtySketch(constraints:true);
+		}
+	}
+
+	public virtual bool valueVisible { get { return true; } }
+	public override bool IsDimension { get { return true; } }
+	protected bool selectByRefPoints = false;
+
 	Vector3 position_;
 
-	public Vector3 labelPos {
+	public Vector3 localPos {
 		get {
 			return position_;
 		}
@@ -548,10 +605,6 @@ public class ValueConstraint : Constraint {
 	public float labelX { get { return position_.x; } set { position_.x = value; } }
 	public float labelY { get { return position_.y; } set { position_.y = value; } }
 	public float labelZ { get { return position_.z; } set { position_.z = value; } }
-
-	public virtual bool valueVisible { get { return true; } }
-
-	protected bool selectByRefPoints = false;
 	
 	[SerializeField]
 	public Vector3 pos {
@@ -560,22 +613,56 @@ public class ValueConstraint : Constraint {
 		}
 		set {
 			var newPos = GetBasis().inverse.MultiplyPoint(value);
-			if(position_ == newPos) return;
+			if((position_- newPos).magnitude < 1e-4f) {
+				return;
+			}
+
 			position_ = newPos;
 			if(!sketch.is3d) {
 				position_.z = 0;
 			}
-			changed = true;
-			//behaviour.Update();
+			//changed = true;
 		}
 	}
 
-	public ValueConstraint(Sketch sk) : base(sk) {}
+	public ValueConstraint(Sketch sk) : base(sk) {
+		expression = new ExpressionData(this, false, valueParam);
+	}
+
+	public ValueConstraint(Sketch sk, Id id) : base(sk, id) {
+		expression = new ExpressionData(this, false, valueParam);
+	}
 
 	public override IEnumerable<Param> parameters {
 		get {
-			if(!reference) yield break;
-			yield return value;
+			if(!reference && solvable) yield break;
+			yield return valueParam;
+		}
+	}
+
+	public sealed override IEnumerable<Exp> equations {
+		get {
+			if(expression.Exist()) {
+				
+				if(expression.expression.IsEquation()) {
+					if(!reference) yield return expression.expression;
+					//yield return valueParam - expression.expression.a;
+				} else {
+					if(solvable) {
+						yield return valueParam.exp - expression.expression;
+					} else {
+						yield return valueParam.exp - expression.expression.Eval();
+					}
+				}
+				
+			}
+			foreach(var e in constraintEquations) yield return e;
+		}
+	}
+
+	protected virtual IEnumerable<Exp> constraintEquations {
+		get {
+			yield break;
 		}
 	}
 
@@ -593,42 +680,85 @@ public class ValueConstraint : Constraint {
 		return Matrix4x4.identity;
 	}
 
+	public double LengthToLabel(double length) {
+		switch(sketch.feature.detail.settings.lengthMeasurement) {
+			case LengthMeasurementSystem.Millimetre:	return length;
+			case LengthMeasurementSystem.Centimetre:	return length / 10.0;
+			case LengthMeasurementSystem.Metre:			return length / 1000.0;
+			case LengthMeasurementSystem.Inch:			return length / 25.4;
+			default:									return length;
+		}
+	}
+
+	public double LabelToLength(double label) {
+		switch(sketch.feature.detail.settings.lengthMeasurement) {
+			case LengthMeasurementSystem.Millimetre:	return label;
+			case LengthMeasurementSystem.Centimetre:	return label * 10.0;
+			case LengthMeasurementSystem.Metre:			return label * 1000.0;
+			case LengthMeasurementSystem.Inch:			return label * 25.4;
+			default:									return label;
+		}
+	}
+
 	public double GetValue() {
-		return ValueToLabel(value.value);
+		if(enabled == false) {
+			Satisfy();
+		}
+		var label = ValueToLabel(value.Eval());
+		switch(units) {
+			case ValueUnits.LENGTH: return LengthToLabel(label);
+			default: return label;
+		}
 	}
 
 	protected virtual string OnGetLabelValue() {
-		return Math.Abs(GetValue()).ToString("0.##");
+		var valueString = Math.Abs(GetValue()).ToString("0.##");
+		if(expression.Exist()) {
+			if(expression.expression.IsEquation()) {
+				return expression.source;
+			}
+			return expression.source + " = " + valueString;
+		}
+		return valueString;
 	}
 
 	public string GetLabel() {
 		var v = OnGetLabelValue();
+		if(units == ValueUnits.LENGTH && sketch.feature.detail.settings.lengthMeasurement == LengthMeasurementSystem.Inch) {
+			v += "\"";
+		}
 		if(reference) v = "<" + v + ">";
 		return v;
 	}
 
 	public void SetValue(double v) {
-		value.value = LabelToValue(v);
+		switch(units) {
+			case ValueUnits.LENGTH: v = LabelToLength(v); break;
+			default: break;
+		}
+		valueParam.value = LabelToValue(v);
 	}
 
-	public Param GetValueParam() {
+	public Exp GetValueExp() {
 		return value;
 	}
 
 	public double dimension { get { return GetValue(); } set { SetValue(value); } }
 
-	public virtual double ValueToLabel(double value) {
+	public ExpressionData expression;
+
+	protected virtual double ValueToLabel(double value) {
 		return value;
 	}
 
-	public virtual double LabelToValue(double label) {
+	protected virtual double LabelToValue(double label) {
 		return label;
 	}
 
 	protected virtual bool OnSatisfy() {
 		EquationSystem sys = new EquationSystem();
 		sys.revertWhenNotConverged = false;
-		sys.AddParameter(value);
+		sys.AddParameter(valueParam);
 		sys.AddEquations(equations);
 		return sys.Solve() == EquationSystem.SolveResult.OKAY;
 	}
@@ -641,32 +771,52 @@ public class ValueConstraint : Constraint {
 		return result;
 	}
 
-	protected void setRefPoint(Vector3 pos) {
-		ref_points[0] = sketch.plane.ToPlane(pos);
+	bool labelPosWasSet = false;
+	protected void SetLabelPos(Vector3 pos) {
+		ref_points[0] = ref_points[1] = sketch.plane.ToPlane(pos);
+		selectByRefPoints = true;
+		labelPosWasSet = true;
 	}
 
-	protected sealed override void OnWrite(XmlTextWriter xml) {
-		xml.WriteAttributeString("x", pos.x.ToStr());
-		xml.WriteAttributeString("y", pos.y.ToStr());
-		xml.WriteAttributeString("z", pos.z.ToStr());
-		xml.WriteAttributeString("value", GetValue().ToStr());
-		xml.WriteAttributeString("reference", reference.ToString());
+	public Vector3 GetLabelPos() {
+		if(labelPosWasSet) {
+			return sketch.plane.FromPlane(ref_points[0]);
+		}
+		return pos;
+	}
+
+	protected sealed override void OnWrite(Writer xml) {
+		xml.WriteAttribute("x", pos.x);
+		xml.WriteAttribute("y", pos.y);
+		xml.WriteAttribute("z", pos.z);
+		xml.WriteAttribute("value", GetValue());
+		if(expression.Exist()) {
+			xml.WriteAttribute("expression", expression.source);
+		}
+		xml.WriteAttribute("reference", reference);
+		xml.WriteAttribute("solvable", solvable);
 		OnWriteValueConstraint(xml);
 	}
 
-	protected virtual void OnWriteValueConstraint(XmlTextWriter xml) {
+	protected virtual void OnWriteValueConstraint(Writer xml) {
 
 	}
 
 	protected sealed override void OnRead(XmlNode xml) {
+		SetValue(xml.Attributes["value"].Value.ToDouble());
 		Vector3 pos;
 		pos.x = xml.Attributes["x"].Value.ToFloat();
 		pos.y = xml.Attributes["y"].Value.ToFloat();
 		pos.z = xml.Attributes["z"].Value.ToFloat();
 		this.pos = pos;
-		SetValue(xml.Attributes["value"].Value.ToDouble());
+		if(xml.Attributes["expression"] != null) {
+			expression.source = xml.Attributes["expression"].Value;
+		}
 		if(xml.Attributes["reference"] != null) {
 			reference = Convert.ToBoolean(xml.Attributes["reference"].Value);
+		}
+		if(xml.Attributes["solvable"] != null) {
+			solvable = Convert.ToBoolean(xml.Attributes["solvable"].Value);
 		}
 		OnReadValueConstraint(xml);
 	}
@@ -697,8 +847,32 @@ public class ValueConstraint : Constraint {
 		return false;
 	}
 
+	protected Matrix4x4 getPointLineDistanceBasis(Vector3 lip0_, Vector3 lip1_, Vector3 ap_, IPlane plane) {
+	
+		Vector3 lip0 = lip0_;
+		Vector3 lip1 = lip1_;
+		Vector3 ap = ap_;
+		
+		if(plane != null) {
+			lip0 = plane.projectVectorInto(lip0);
+			lip1 = plane.projectVectorInto(lip1);
+			ap = plane.projectVectorInto(ap);
+		}
+		var value = GetValue();
+		if(value == 0.0) return Matrix4x4.Translate(ap);
+		
+		Vector3 lid = normalize(lip1 - lip0);
+		if(lid.magnitude < EPSILON) return Matrix4x4.Translate(ap);
+		Vector3 bp = lip0 + lid * Vector3.Dot(ap - lip0, lid);
+		Vector3 x = normalize(bp - ap);
+		if(x.magnitude < EPSILON) return Matrix4x4.Translate(ap);
+		Vector3 y = lid;
+		Vector3 z = normalize(Vector3.Cross(x, y));
+		Vector3 p = (ap + bp) * 0.5f;
+		return UnityExt.Basis(x, y, z, p);
+	}
 
-	protected void drawPointLineDistance(Vector3 lip0_, Vector3 lip1_, Vector3 p0_, LineCanvas renderer, Camera camera) {
+	protected void drawPointLineDistance(Vector3 lip0_, Vector3 lip1_, Vector3 p0_, ICanvas renderer, Camera camera) {
 		
 		float pix = getPixelSize();
 		
@@ -790,9 +964,9 @@ public class ValueConstraint : Constraint {
 			
 			// opposite arrow line
 			/*if(da1)*/ renderer.DrawLine(lv1, lv1 - normalize(dir) * 21f * pix);
-			setRefPoint(lv0 + normalize(dir) * (len + 16f * pix));
+			SetLabelPos(lv0 + normalize(dir) * (len + 16f * pix));
 		} else {
-			setRefPoint(basis.MultiplyPoint(offset) + vy * sy * 13f * pix);
+			SetLabelPos(basis.MultiplyPoint(offset) + vy * sy * 13f * pix);
 		}
 		
 		//drawLabel(renderer, camera);
@@ -802,7 +976,7 @@ public class ValueConstraint : Constraint {
 		return pos;
 	}
 
-	protected void drawPointsDistance(Vector3 pp0, Vector3 pp1, LineCanvas renderer, Camera camera, bool label = false, bool arrow0 = true, bool arrow1 = true, int style = 0) {
+	protected void drawPointsDistance(Vector3 pp0, Vector3 pp1, ICanvas renderer, Camera camera, bool label = false, bool arrow0 = true, bool arrow1 = true, int style = 0) {
 		float pix = getPixelSize();
 		
 		Vector3 p0 = drawPointProjection(renderer, pp0, R_DASH * pix);
@@ -865,7 +1039,7 @@ public class ValueConstraint : Constraint {
 		if(Mathf.Abs(offset.x) > half_dist) sx = -1f;
 		
 		// if label ourside distance area or sceren distance not too small, draw arrows
-		if((sx < 0f || length(lp0 - lp1) > (R_ARROW_W * 2f + 1f) * pix) && style != 1) {
+		if((sx < 0f || length(lp0 - lp1) > (R_ARROW_W * 2f + 1f) * pix || !arrow0 || !arrow1) && style != 1) {
 			// arrow lp0
 			if(arrow0) {
 				renderer.DrawLine(lp0, lp0 - vy * R_ARROW_H * pix + vx * R_ARROW_W * pix * sx);
@@ -879,10 +1053,14 @@ public class ValueConstraint : Constraint {
 			}
 		} else {
 			// stroke lp0
-			renderer.DrawLine(lp0 - vy * R_ARROW_H * pix + vx * R_ARROW_H * pix, lp0 + vy * R_ARROW_H * pix - vx * R_ARROW_H * pix);
+			if(arrow0) {
+				renderer.DrawLine(lp0 - vy * R_ARROW_H * pix + vx * R_ARROW_H * pix, lp0 + vy * R_ARROW_H * pix - vx * R_ARROW_H * pix);
+			}
 			
 			// stroke lp1
-			renderer.DrawLine(lp1 - vy * R_ARROW_H * pix + vx * R_ARROW_H * pix, lp1 + vy * R_ARROW_H * pix - vx * R_ARROW_H * pix);
+			if(arrow1) {
+				renderer.DrawLine(lp1 - vy * R_ARROW_H * pix + vx * R_ARROW_H * pix, lp1 + vy * R_ARROW_H * pix - vx * R_ARROW_H * pix);
+			}
 		}
 		
 		Vector3 lv0 = lp0;
@@ -907,16 +1085,16 @@ public class ValueConstraint : Constraint {
 			
 			// opposite arrow line
 			if(da1) renderer.DrawLine(lv1, lv1 - normalize(dir) * 21f * pix);
-			setRefPoint(lv0 + normalize(dir) * (len + 16f * pix));
+			SetLabelPos(lv0 + normalize(dir) * (len + 16f * pix));
 		} else {
-			setRefPoint(basis.MultiplyPoint(offset) + vy * sy * 13f * pix);
+			SetLabelPos(basis.MultiplyPoint(offset) + vy * sy * 13f * pix);
 		}
 		
 		//drawCameraCircle(renderer, camera, getLabelOffset(), 3f * pix);
 		//if(label) drawLabel(renderer, camera);
 	}
 
-	protected void drawBasis(LineCanvas canvas) {
+	protected void drawBasis(ICanvas canvas) {
 		var basis = GetBasis();
 		var pix = getPixelSize();
 		Vector3 vx = basis.GetColumn(0);
@@ -927,12 +1105,12 @@ public class ValueConstraint : Constraint {
 		canvas.DrawLine(p, p + vy * 10f * pix);
 	}
 
-	public override void Draw(LineCanvas canvas) {
+	public override void Draw(ICanvas canvas) {
 		base.Draw(canvas);
 		//drawBasis(canvas);
 	}
 
-	protected void drawArrow(LineCanvas canvas, Vector3 pos, Vector3 dir, bool stroke = false) {
+	protected void drawArrow(ICanvas canvas, Vector3 pos, Vector3 dir, bool stroke = false) {
 		dir = dir.normalized;
 		var f = getVisualPlaneDir(Camera.main.transform.forward);
 		var n = Vector3.Cross(dir, f).normalized;

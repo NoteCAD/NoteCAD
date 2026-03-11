@@ -1,15 +1,47 @@
-﻿using System;
+﻿using RuntimeInspectorNamespace;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 [Serializable]
 public class SketchFeatureBase : Feature {
 	protected LineCanvas canvas;
 	protected Sketch sketch;
 	GameObject go;
+
+	/*
+	[RuntimeInspectorButton("Variables", false, ButtonVisibility.InitializedObjects)]
+	public void ShowVariables() {
+		Tool.Inspect(sketch.parameters);
+	}
+
+	[RuntimeInspectorButton("Equations", false, ButtonVisibility.InitializedObjects)]
+	public void ShowEquations() {
+		var sys = new EquationSystem();
+		GenerateEquations(sys);
+		Tool.Inspect(sys.equationsList.Select(e => e.ToString()).ToList());
+	}
+	
+	[RuntimeInspectorButton("Parameters", false, ButtonVisibility.InitializedObjects)]
+	public void ShowParameters() {
+		var sys = new EquationSystem();
+		GenerateEquations(sys);
+		Tool.Inspect(sys.parametersList.Select(p => p.name).ToList());
+	}
+	*/
+	[RuntimeInspectorButton("Source Licensing", false, ButtonVisibility.InitializedObjects)]
+	public void MailToLicense() {
+		Application.OpenURL("mailto:contact@notecad.pro");
+	}
+
+	[RuntimeInspectorButton("Feedback", false, ButtonVisibility.InitializedObjects)]
+	public void MailToFeedback() {
+		Application.OpenURL("mailto:evilspirit@evilspirit.org");
+	}
 
 	bool solveParent_ = false;
 	public bool solveParent {
@@ -60,7 +92,9 @@ public class SketchFeatureBase : Feature {
 		sketch.feature = this;
 		sketch.is3d = true;
 		canvas = GameObject.Instantiate(EntityConfig.instance.lineCanvas);
+		canvas.name = "SketchFeatureCanvas";
 		go = new GameObject(GetType().Name);
+		canvas.transform.SetParent(go.transform, false);
 		canvas.parent = go;
 	}
 
@@ -83,7 +117,14 @@ public class SketchFeatureBase : Feature {
 	public EquationSystem.SolveResult Solve() {
 		var sys = new EquationSystem();
 		GenerateEquations(sys);
-		return sys.Solve();
+		var result = sys.Solve();
+		if(sketch.HasNonSolvable()) {
+			Debug.Log("solve second time for non-solveable");
+			sys.Clear();
+			GenerateEquations(sys);
+			return sys.Solve();
+		}
+		return result;
 	}
 	/*
 	public bool IsRedundant() {
@@ -105,13 +146,46 @@ public class SketchFeatureBase : Feature {
 		return sketch.IsEntitiesChanged() || sketch.IsConstraintsChanged();
 	}
 
-	public void DrawConstraints(LineCanvas canvas) {
-		canvas.ClearStyle("constraints");
+	public virtual void DrawEntities(ICanvas canvas, Func<Entity, bool> filter = null) {
+		foreach(var e in sketch.entityList) {
+			if(!e.isVisible) continue;
+			if(filter != null && !filter(e)) continue;
+			if(e.style == null) {
+				canvas.SetStyle("entities");
+			} else {
+				canvas.SetStyle(e.style);
+			}
+			e.Draw(canvas);
+		}
+	}
+
+	public void DrawConstraints(ICanvas canvas, Func<Constraint, bool> filter = null) {
+		if(canvas is LineCanvas) (canvas as LineCanvas).ClearStyle("constraints");
 		canvas.SetStyle("constraints");
 		foreach(var c in sketch.constraintList) {
 			if(!c.isVisible) continue;
+			if(filter != null && !filter(c)) continue;
 			c.Draw(canvas);
 		}
+	}
+
+	bool ShouldShowEntity(Entity e) {
+		if (e is PointEntity p) {
+			switch(detail.settings.displayPoints) {
+				case DetailSettings.DisplayPoints.All: 
+					return true;
+				case DetailSettings.DisplayPoints.CentersAndPoints: 
+					return 
+						p.parent == null || 
+						!(p.parent is ISegmentaryEntity seg) || 
+						(p != seg.begin && p != seg.end);
+				case DetailSettings.DisplayPoints.Points: 
+					return p.parent == null;
+				case DetailSettings.DisplayPoints.None:
+					return false;
+			}
+		}
+		return true;
 	}
 
 	public override void UpdateDirty() {
@@ -126,11 +200,7 @@ public class SketchFeatureBase : Feature {
 		base.UpdateDirty();
 		go.transform.SetMatrix(transform);
 	
-		canvas.SetStyle("entities");
-		foreach(var e in sketch.entityList) {
-			if(!e.isVisible) continue;
-			e.Draw(canvas);
-		}
+		DrawEntities(canvas, ShouldShowEntity);
 
 		sketch.MarkUnchanged();
 		canvas.UpdateDirty();
@@ -142,12 +212,12 @@ public class SketchFeatureBase : Feature {
 		sketch.MarqueeSelect(rect, wholeObject, camera, resTf, ref result);
 	}
 
-	public override ICADObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
+	public override ICADObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, HoverFilter filter, ref double objDist) {
 		double dist = -1;
 		var resTf = GetTransform() * tf;
-		var result1 = sketch.Hover(mouse, camera, resTf, ref objDist);
+		var result1 = sketch.Hover(mouse, camera, resTf, filter, ref objDist);
 		if(result1 is IEntity && (result1 as IEntity).type == IEntityType.Point) return result1;
-		var result = base.Hover(mouse, camera, resTf, ref dist);
+		var result = base.Hover(mouse, camera, resTf, filter, ref dist);
 		if(result != null && result1 != null) {
 			if(dist < objDist) {
 				objDist = dist;
@@ -181,16 +251,16 @@ public class SketchFeatureBase : Feature {
 	}
 
 
-	protected sealed override void OnWrite(XmlTextWriter xml) {
-		xml.WriteAttributeString("solveParent", solveParent.ToString());
+	protected sealed override void OnWrite(Writer xml) {
+		xml.WriteAttribute("solveParent", solveParent);
 		if(shouldHoverWhenInactive) {
-			xml.WriteAttributeString("alwaysHover", shouldHoverWhenInactive.ToString());
+			xml.WriteAttribute("alwaysHover", shouldHoverWhenInactive);
 		}
 		OnWriteSketchFeatureBase(xml);
 		sketch.Write(xml);
 	}
 
-	protected virtual void OnWriteSketchFeatureBase(XmlTextWriter xml) {
+	protected virtual void OnWriteSketchFeatureBase(Writer xml) {
 		
 	}
 

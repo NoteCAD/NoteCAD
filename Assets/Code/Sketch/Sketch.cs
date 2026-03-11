@@ -6,6 +6,7 @@ using System.Linq;
 using System.IO;
 using System.Xml;
 using System.Collections;
+using NoteCAD;
 
 public interface IPlane {
 	Vector3 u { get; }
@@ -140,6 +141,9 @@ public static class IPlaneUtils {
 public class Sketch : CADObject  {
 	Dictionary<Id, Entity> entities = new Dictionary<Id, Entity>();
 	Dictionary<Id, Constraint> constraints = new Dictionary<Id, Constraint>();
+	public List<Param> parameters = new List<Param>();
+	public IEnumerable<Param> userParameters => parameters;
+
 	Feature feature_;
 
 	public Feature feature {
@@ -183,6 +187,11 @@ public class Sketch : CADObject  {
 		get {
 			return feature;
 		}
+	}
+
+	public void AddParameter(Param p) {
+		parameters.Add(p);
+		MarkDirtySketch(topo:true);
 	}
 
 	public void AddEntity(Entity e) {
@@ -245,14 +254,19 @@ public class Sketch : CADObject  {
 		}
 	}
 
-	public static double hoverRadius = 5.0;
-	public SketchObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, ref double objDist) {
+	public static double hoverRadius {
+		get {
+			return 5.0f * (Screen.dpi / 100.0f);
+		}
+	}
+	public SketchObject Hover(Vector3 mouse, Camera camera, Matrix4x4 tf, HoverFilter filter, ref double objDist) {
 		double min = -1.0;
 		SketchObject hoveredObject = null;
 		foreach(var en in entities) {
 			var e = en.Value;
 			if(!e.isVisible) continue;
 			if(!e.isSelectable) continue;
+			if(filter != null && !filter(e)) continue;
 			var dist = e.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
 			if(dist > hoverRadius) continue;
@@ -265,20 +279,21 @@ public class Sketch : CADObject  {
 		foreach(var c in constraints.Values) {
 			if(!c.isVisible) continue;
 			if(!c.isSelectable) continue;
+			if(filter != null && !filter(c)) continue;
 			var dist = c.Select(Input.mousePosition, camera, tf);
 			if(dist < 0.0) continue;
 			if(dist > hoverRadius) continue;
+			candidates.Add(c, dist);
 			if(min >= 0.0 && dist >= min) continue;
 			min = dist;
 			hoveredObject = c;
-			candidates.Add(c, dist);
 		}
 
 		if(hoveredObject is Constraint) {
-			if(candidates.Count > 0) {
+			if(candidates.Count > 1) {
 				for(int i = 0; i < candidates.Count; i++) {
 					var current = candidates.ElementAt(i).Key;
-					if(DetailEditor.instance.selection.All(id => id.ToString() != current.id.ToString())) continue;
+					if(!DetailEditor.instance.IsSelected(current)) continue;
 					var next = candidates.ElementAt((i + 1) % candidates.Count);
 					objDist = next.Value;
 					return next.Key;
@@ -299,7 +314,7 @@ public class Sketch : CADObject  {
 
 	public void MarkUnchanged() {
 		foreach(var e in entities) {
-			foreach(var p in e.Value.parameters) {
+			foreach(var p in e.Value.allParameters) {
 				p.changed = false;
 			}
 		}
@@ -317,12 +332,46 @@ public class Sketch : CADObject  {
 	}
 
 	public List<List<Entity>> GenerateLoops() {
-		var all = entities.Values.OfType<ISegmentaryEntity>().ToList();
+		return GenerateLoops(entities.Values);
+	}
+
+	public static List<List<Entity>> GenerateLoops(IEnumerable<Entity> entities) {
+
+		List<List<Entity>> loops = new List<List<Entity>>();
+		List<Entity> loop = new List<Entity>();
+		var all = entities.Where(e => !e.isConstruction).OfType<ISegmentaryEntity>().ToList();
+		
+		// process singleton loops
+		for (int i = 0; i < all.Count; i++) {
+			var e = all[i];
+			if (e.begin.GetConicidentPoints().Contains(e.end)) {
+				all.RemoveAt(i--);
+				loop.Add(e as Entity);
+				loops.Add(loop);
+				loop = new();
+			}
+		}
+			
+		// remove branches
+		var branchFound = false;
+		do {
+			var notConnected = all.Where(e => 
+				Enumerable.Repeat(e.begin, 1).Concat(Enumerable.Repeat(e.end, 1))
+				.Any(p => p.GetConicidentPoints()
+					.Where(p => p.parent != null).Select(p => p.parent).OfType<ISegmentaryEntity>()
+					.All(oe => e == oe || !all.Contains(oe))
+				)
+			).ToList();
+			branchFound = notConnected.Any();
+			if (branchFound) {
+				all.RemoveAll(e => notConnected.Contains(e));
+			}
+		} while(branchFound);
+
 		var first = all.FirstOrDefault();
 		var current = first;
 		PointEntity prevPoint = null;
-		List<Entity> loop = new List<Entity>();
-		List<List<Entity>> loops = new List<List<Entity>>();
+
 		while(current != null && all.Count > 0) {
 			if(!all.Remove(current)) {
 				break;
@@ -330,21 +379,40 @@ public class Sketch : CADObject  {
 			loop.Add(current as Entity);
 			var points = new List<PointEntity> { current.begin, current.end };
 			bool found = false;
-			foreach(var point in points) {
-				var connected = point.constraints
-					.OfType<PointsCoincident>()
-					.Select(p => p.GetOtherPoint(point) as PointEntity)
-					.Where(p => p != null && p != prevPoint)
-					.Where(p => p.parent != null && p.parent.IsEnding(p))
-					.Select(p => p.parent)
-					.OfType<ISegmentaryEntity>();
-				if(connected.Any()) {
-					current = connected.First() as ISegmentaryEntity;
-					found = true;
-					prevPoint = point;
-					break;
+
+			// function entity should generate loop when begin and end point is coincident
+			//if (current.begin.GetPosition() == current.end.GetPosition()) {
+			//	found = true;
+			//} else {
+
+				for(int i = 0; i < points.Count; i++) {
+					var point = points[i];
+					// find coincident points to the entity points begin and end
+					var connected1 = point.GetConicidentPoints();
+					// connection of entities can be through simple point, so add "just points"
+					// for further inspecting
+					var justPoints = connected1.Where(p => p.parent == null);
+					points.AddRange(justPoints);
+
+					// inspect not-previous points with not-null parents and 
+					// where point is ending of its parent
+					// and parent should not be already used in loop or equal to the first
+					var connected = connected1
+						.Where(p => p != null && p != prevPoint)
+						.Where(p => p.parent != null && p.parent.IsEnding(p) && (p.parent == first || !loop.Contains(p.parent)))
+						.Select(p => p.parent).OfType<ISegmentaryEntity>()
+						.Where(e => e == first || all.Contains(e))
+						.ToList();
+					if(connected.Any()) {
+						current = connected.First();
+						found = true;	
+						prevPoint = point;
+						break;
+					} else {
+						bool stop = true;
+					}
 				}
-			}
+			//}
 			if(!found || current == first) {
 				if(found && current == first) {
 					loops.Add(loop);
@@ -355,56 +423,81 @@ public class Sketch : CADObject  {
 				continue;
 			}
 		}
-		loops.AddRange(entities.Values.OfType<ILoopEntity>().Select(e => Enumerable.Repeat(e as Entity, 1).ToList()));
+		
+		// add ILoopEntities as separate loops
+		loops.AddRange(entities
+			.Where(e => !e.isConstruction)
+			.OfType<ILoopEntity>()
+			.Select(e => Enumerable.Repeat(e as Entity, 1).ToList())
+		);
 		return loops;
 	}
 
-	public static List<List<Vector3>> GetPolygons(List<List<Entity>> loops, ref List<List<Id>> ids) {
+	public static List<List<Vector3>> GetPolygons(List<List<IEntity>> loops, ref List<List<IdPath>> ids) {
 		if(ids != null) ids.Clear();
 		var result = new List<List<Vector3>>();
 		if(loops == null) return result;
 
 		foreach(var loop in loops) {
 			var polygon = new List<Vector3>();
-			List<Id> idPolygon = null;
-			if(ids != null) idPolygon = new List<Id>();
+			List<IdPath> idPolygon = null;
+			if(ids != null) idPolygon = new List<IdPath>();
 
-			Action<IEnumerable<Vector3>, Entity> AddToPolygon = (points, entity) => {
+			Action<IEnumerable<Vector3>, IEntity> AddToPolygon = (points, entity) => {
 				polygon.AddRange(points);
 				if(idPolygon != null) {
-					idPolygon.AddRange(Enumerable.Repeat(entity.guid, points.Count()));
+					idPolygon.AddRange(Enumerable.Repeat(entity.id, points.Count()));
 				}
 			};
 
 			for(int i = 0; i < loop.Count; i++) {
 				if(loop[i] is ISegmentaryEntity) {
 					var cur = loop[i] as ISegmentaryEntity;
+					var segmentPoints = cur.segmentPoints.First();
 					var next = loop[(i + 1) % loop.Count] as ISegmentaryEntity;
 					if(!next.begin.IsCoincidentWith(cur.begin) && !next.end.IsCoincidentWith(cur.begin)) {
-						AddToPolygon(cur.segmentPoints, loop[i]);
+						AddToPolygon(segmentPoints, loop[i]);
 					} else 
 					if(!next.begin.IsCoincidentWith(cur.end) && !next.end.IsCoincidentWith(cur.end)) {
-						AddToPolygon(cur.segmentPoints.Reverse(), loop[i]);
+						AddToPolygon(segmentPoints.Reverse(), loop[i]);
 					} else if(next.begin.IsCoincidentWith(cur.end)) {
-						AddToPolygon(cur.segmentPoints, loop[i]);
+						AddToPolygon(segmentPoints, loop[i]);
 					} else
 					if(i % 2 == 0) {
-						AddToPolygon(cur.segmentPoints, loop[i]);
+						AddToPolygon(segmentPoints, loop[i]);
 					} else {
-						AddToPolygon(cur.segmentPoints.Reverse(), loop[i]);
+						AddToPolygon(segmentPoints.Reverse(), loop[i]);
 					}
 				} else
 				if(loop[i] is ILoopEntity) {
 					var cur = loop[i] as ILoopEntity;
-					AddToPolygon(cur.loopPoints, loop[i]);
+					foreach(var lp in cur.loopPoints) {
+						polygon = new List<Vector3>();
+						if(ids != null) idPolygon = new List<IdPath>();
+						AddToPolygon(lp, loop[i]);
+						if(polygon.Count > 0) {
+							polygon.RemoveAt(polygon.Count - 1);
+							if(idPolygon != null) idPolygon.RemoveAt(idPolygon.Count - 1);
+						}
+						if(polygon.Count < 3) continue;
+						if(!Triangulation.IsClockwise(polygon)) {
+							polygon.Reverse();
+							if(idPolygon != null) idPolygon.Reverse();
+						}
+						result.Add(polygon);
+						if(ids != null) ids.Add(idPolygon);
+					}
+					polygon = null;
+					continue;
 				} else {
 					continue;
 				}
-				if(polygon.Count > 0) {
+				if(polygon != null && polygon.Count > 0) {
 					polygon.RemoveAt(polygon.Count - 1);
 					if(idPolygon != null) idPolygon.RemoveAt(idPolygon.Count - 1);
 				}
 			}
+			if(polygon == null) continue;
 			if(polygon.Count < 3) continue;
 			if(!Triangulation.IsClockwise(polygon)) {
 				polygon.Reverse();
@@ -416,24 +509,35 @@ public class Sketch : CADObject  {
 		return result;
 	}
 
-	public void Write(XmlTextWriter xml, Func<SketchObject, bool> filter = null) {
+	public void Write(Writer xml, Func<SketchObject, bool> filter = null) {
+		if(parameters.Count > 0) {
+			xml.WriteBeginArray("parameters");
+			foreach(var p in parameters) {
+				xml.WriteBeginArrayElement("param");
+				xml.WriteAttribute("name", p.name);
+				xml.WriteAttribute("value", p.value);
+				xml.WriteEndArrayElement();
+			}
+			xml.WriteEndArray();
+		}
+
 		if(entities.Count > 0) {
-			xml.WriteStartElement("entities");
+			xml.WriteBeginArray("entities");
 			foreach(var en in entities) {
 				var e = en.Value;
 				if(filter != null && !filter(e as SketchObject) || filter == null && e.parent != null) continue;
 				e.Write(xml);
 			}
-			xml.WriteEndElement();
+			xml.WriteEndArray();
 		}
 
 		if(constraints.Count > 0) {
-			xml.WriteStartElement("constraints");
+			xml.WriteBeginArray("constraints");
 			foreach(var c in constraints.Values) {
 				if(filter != null && !filter(c as SketchObject)) continue;
 				c.Write(xml);
 			}
-			xml.WriteEndElement();
+			xml.WriteEndArray();
 		}
 	}
 
@@ -444,15 +548,21 @@ public class Sketch : CADObject  {
 		if(remap) {
 			idMapping = new Dictionary<Id, Id>();
 		}
-
 		foreach(XmlNode nodeKind in xml.ChildNodes) {
 			if(nodeKind.Name == "entities") {
+				var objects = new Dictionary<SketchObject, XmlNode>();
 				foreach(XmlNode node in nodeKind.ChildNodes) {
 					if(node.Name != "entity") continue;
 					var type = node.Attributes["type"].Value;
 					var entity = Entity.New(type, this);
 					entity.Read(node);
+					objects[entity] = node;
 				}
+				
+				foreach(var obj in objects) {
+					obj.Key.AfterRead(obj.Value);
+				}
+				
 				var oldEntities = entities.Values.ToList();
 				entities.Clear();
 				foreach(var e in oldEntities) {
@@ -463,13 +573,25 @@ public class Sketch : CADObject  {
 				foreach(XmlNode node in nodeKind.ChildNodes) {
 					if(node.Name != "constraint") continue;
 					var typeName = node.Attributes["type"].Value;
-					var constraint = Constraint.New(typeName, this);
+					Id id;
+					// if remapping, we need to allocate new guid
+					if(idMapping != null) {
+						id = idGenerator.New();
+					} else {
+						id = idGenerator.Create(node.Attributes["id"].Value);
+					}
+					var constraint = Constraint.New(typeName, this, id);
+					if(constraint == null) continue;
 					constraint.Read(node);
 				}
-				var oldConstraints = constraints.Values.ToList();
-				constraints.Clear();
-				foreach(var c in oldConstraints) {
-					constraints.Add(c.guid, c);
+			}
+			if(nodeKind.Name == "parameters") {
+				foreach(XmlNode node in nodeKind.ChildNodes) {
+					if(node.Name != "param") continue;
+					var name = node.Attributes["name"].Value;
+					var value = node.Attributes["value"].Value.ToDouble();
+					var param = new Param(name, value);
+					AddParameter(param);
 				}
 			}
 		}
@@ -540,9 +662,13 @@ public class Sketch : CADObject  {
 			system.AddEquations(e.equations);
 		}
 		foreach(var c in constraints.Values) {
+			if (!c.enabled) {
+				continue;
+			}
 			system.AddParameters(c.parameters);
 			system.AddEquations(c.equations);
 		}
+		system.AddParameters(parameters);
 	}
 
 	public override ICADObject GetChild(Id guid) {
@@ -552,7 +678,7 @@ public class Sketch : CADObject  {
 	}
 
 	public Bounds calculateBounds() {
-		var points = entities.SelectMany(e => e.Value.SegmentsInPlane(null)).ToArray();
+		var points = entities.SelectMany(e => e.Value.SegmentsInPlane(null).SelectMany(p => p)).ToArray();
 		if(points.Length == 0) return new Bounds();
 		return GeometryUtility.CalculateBounds(points, Matrix4x4.identity);
 	}
@@ -568,5 +694,9 @@ public class Sketch : CADObject  {
 			return pt;
 		}
 		return null;
+	}
+
+	public bool HasNonSolvable() {
+		return constraintList.OfType<ValueConstraint>().Any(c => !c.solvable);
 	}
 }

@@ -4,3 +4,7 @@
 /.vs
 /*.sdf
 Files
+/*.csproj
+/obj
+/Logs
+/UserSettings

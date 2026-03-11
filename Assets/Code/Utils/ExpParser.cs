@@ -1,7 +1,63 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+
+[Serializable]
+public class ExpressionData {
+	
+	public SketchObject obj { get; private set; }
+	public bool isEquation { get; set; }
+
+	string source_ = "";
+	public string source {
+		get {
+			return source_;
+		}
+
+		set {
+			source_ = value;
+			if(source_ == "") {
+				expression = Exp.zero;
+			} else {
+				var parser = new ExpParser(this);
+				expression = parser.Parse();
+				foreach(var p in parser.newParameters) {
+					obj.sketch.AddParameter(p);
+				}
+			}
+			Debug.Log("exp = " + expression.ToString());
+		}
+	}
+
+	public bool Exist() {
+		return source != "" && source != null;
+	}
+	
+	Exp exp;
+	public Exp expression {
+		private set {
+			exp = value;
+			obj.sketch.MarkDirtySketch(topo: true, entities: true);
+		}
+		get {
+			return exp;
+		}
+	}
+
+	public List<Param> parameters { get; private set; }
+
+	public ExpressionData(SketchObject sko, bool equation, Param p0 = null) {
+		obj = sko;
+		isEquation = equation;
+		if(p0 != null) {
+			parameters = new List<Param>();
+			parameters.Add(p0);
+		}
+	}
+
+}
 
 public class ExpParser {
     
@@ -13,6 +69,7 @@ public class ExpParser {
         { "sqrt",	Exp.Op.Sqrt },
         { "abs",	Exp.Op.Abs },
         { "sign",	Exp.Op.Sign },
+        { "norm",	Exp.Op.Norm },
         { "acos",	Exp.Op.ACos },
         { "asin",	Exp.Op.Cos },
         { "exp",	Exp.Op.Exp },
@@ -20,13 +77,20 @@ public class ExpParser {
         { "cosh",	Exp.Op.Cosh },
         { "sfres",	Exp.Op.SFres },
         { "cfres",	Exp.Op.CFres },
+        { "if",		Exp.Op.If },
     };
     
-    Dictionary <char, Exp.Op> operators = new Dictionary<char, Exp.Op> {
-        { '+', Exp.Op.Add },
-        { '-', Exp.Op.Sub },
-        { '*', Exp.Op.Mul },
-        { '/', Exp.Op.Div },
+    Dictionary <string, Exp.Op> operators = new Dictionary<string, Exp.Op> {
+        { "+", Exp.Op.Add },
+        { "-", Exp.Op.Sub },
+        { "=", Exp.Op.Equal },
+        { ">=", Exp.Op.GEqual },
+        { "<=", Exp.Op.LEqual },
+        { ">", Exp.Op.Greater },
+        { "<", Exp.Op.Less },
+        { "~", Exp.Op.Drag },
+        { "*", Exp.Op.Mul },
+        { "/", Exp.Op.Div },
     };
 
     Dictionary <string, double> constants = new Dictionary<string, double> {
@@ -38,7 +102,7 @@ public class ExpParser {
     int index = 0;
     
     public List<Param> parameters = new List<Param>();
-    
+    public List<Param> newParameters = new List<Param>();
     
 	public static void Test() {
 		List<string> exps = new List<string> {
@@ -50,13 +114,18 @@ public class ExpParser {
 			"a * (b + c)",
 			" a * b + c * (d + e) * f - 1 ",
 			" a * (b + c) * (d + e) * (f - 1) ",
-			" (a * ((b + c) + (d + e)) * 3 + (f - 1) * 5)) ",
+			"((a * ((b + c) + (d + e)) * 3 + (f - 1) * 5))",
+			"a / b * c + 1"
 		};
 
 		foreach(var e in exps) {
 			var parser = new ExpParser(e);
-			var exp = parser.Parse();
-			Debug.Log("src: \"" + e + "\" -> \"" + exp.ToString() + "\"");
+			try {
+				var exp = parser.Parse();
+				Debug.Log("src: \"" + e + "\" -> \"" + exp.ToString() + "\"");
+			} catch (Exception except) {
+				Debug.LogError("can't parse src: \"" + e + "\" with error " + except.ToString());
+			}
 		}
 
 		Dictionary<string, double> results = new Dictionary<string, double> {
@@ -81,18 +150,35 @@ public class ExpParser {
 			var exp = parser.Parse();
 			Debug.Log("src: \"" + e + "\" -> \"" + exp.ToString() + "\" = " + exp.Eval().ToStr());
 			if(exp.Eval() != e.Value) {
-				Debug.Log("result fail: get \"" + exp.Eval() + "\" excepted: \"" + e.Value + "\"");
+				Debug.LogError("result fail: get \"" + exp.Eval() + "\" excepted: \"" + e.Value + "\"");
 			}
 		}
 
 	}
 
+	static ExpParser() {
+		Test();
+	}
+
     public ExpParser(string str) {
-        toParse = str;
+        SetString(str);
     }
 
+    public ExpParser(ExpressionData data) {
+        SetString(data.source);
+		if(data.parameters != null) {
+			parameters.AddRange(data.parameters);
+		}
+		parameters.AddRange(data.obj.sketch.userParameters);
+    }
+
+	string Normalize(string str) {
+		if(str == null) return "";
+		return str.Replace(" ", "").Replace("\t", "");
+	}
+
 	public void SetString(string str) {
-		toParse = str;
+		toParse = Normalize(str);
 		index = 0;
 	}
     
@@ -117,18 +203,12 @@ public class ExpParser {
 	bool IsAlpha(char c) {
 		return Char.IsLetter(c);
 	}
-
-	void SkipSpaces() {
-		if(!HasNext()) return;
-        while(HasNext() && IsSpace(next)) index++;
-    }
     
     Param GetParam(string name) {
         return parameters.Find(p => p.name == name);
     }
     
     void Skip(char c) {
-        SkipSpaces();
 		if(!HasNext() || next != c) {
 			error("\"" + c + "\" excepted!");
 		}
@@ -136,7 +216,6 @@ public class ExpParser {
     }
     
     bool SkipIf(char c) {
-        SkipSpaces();
 		if(!HasNext() || next != c) {
 			return false;
 		}
@@ -145,7 +224,6 @@ public class ExpParser {
     }
     
     bool ParseDigits(ref double digits) {
-        SkipSpaces();
 		if(!HasNext()) error("operand exepted");
         if(!IsDigit(next)) return false;
         var start = index;
@@ -156,11 +234,10 @@ public class ExpParser {
     }
     
     bool ParseAlphas(ref string alphas) {
-        SkipSpaces();
 		if(!HasNext()) error("operand exepted");
-        if(!IsAlpha(next)) return false;
+        if(!IsAlpha(next) && next != '_') return false;
         var start = index;
-        while(HasNext() && (IsAlpha(next) || IsDigit(next))) index++;
+        while(HasNext() && (IsAlpha(next) || IsDigit(next) || next == '_')) index++;
         alphas = toParse.Substring(start, index - start);
 		return true;
     }
@@ -169,6 +246,8 @@ public class ExpParser {
         if(functions.ContainsKey(name)) {
             return functions[name];
         }
+		var cus = CustomFunction.GetFunction(name);
+		if(cus != null) return cus.Op;
         return Exp.Op.Undefined;
     }
 
@@ -182,7 +261,7 @@ public class ExpParser {
 	void error(string error = "") {
 		var str = toParse;
 		if(index < str.Length) {
-			str.Insert(index, "?");
+			str = str.Insert(index, "?");
 		}
 		var msg = error + " (error in \"" + str + "\")";
 		Debug.Log(msg);
@@ -195,23 +274,29 @@ public class ExpParser {
         if(ParseDigits(ref digits)) {
             return new Exp(digits);
         }
-		bool braced = false;
         
         string alphas = "";
         if(ParseAlphas(ref alphas)) {
             var func = GetFunction(alphas);
             if(func != Exp.Op.Undefined) {
                 if(SkipIf('(')) {
-                    Exp a = ParseExp(ref braced);
+                    Exp a = ParseMain();
                     Exp b = null;
+					Exp c = null;
                     if(SkipIf(',')) {
-                        b = ParseExp(ref braced);
+                        b = ParseMain();
+                    }
+                    if(SkipIf(',')) {
+                        c = ParseMain();
                     }
                     Skip(')');
-					if(func == Exp.Op.Atan2 && b == null) {
+					if((func == Exp.Op.Atan2 || func == Exp.Op.If) && b == null) {
 						error("second function argument execpted");
 					}
-                    return new Exp(func, a, b);
+					if(func == Exp.Op.If && c == null) {
+						error("third function argument execpted");
+					}
+                    return new Exp(func, a, b, c);
                 } else error("function arguments execpted");
             }
 
@@ -221,7 +306,8 @@ public class ExpParser {
             var param = GetParam(alphas);
             if(param == null) {
                 param = new Param(alphas);
-                parameters.Add(param);
+				//param.solvable = false;
+                newParameters.Add(param);
             }
             return new Exp(param);
         }
@@ -229,35 +315,34 @@ public class ExpParser {
 		return null;
     }
     
-    int OrderOf(Exp.Op op) {
-        switch(op) {
-            case Exp.Op.Add:
-            case Exp.Op.Sub:
-                return 1;
-            case Exp.Op.Mul:
-            case Exp.Op.Div:
-                return 2;
-            default:
-                return 0;
-        }
-    }
-	
-	Exp.Op ParseOp() {
-		SkipSpaces();
-		if(operators.ContainsKey(next)) {
-			var result = operators[next];
-			index++;
-			return result;
+	IEnumerable<KeyValuePair<string, Exp.Op>> allOperators => operators.Concat(CustomFunction.operatorNames.Select(on => new KeyValuePair<string, Exp.Op>(on.Key, on.Value.Op)));
+
+	Exp.Op CheckOp(Func<Exp.Op, bool> filter = null) {
+		foreach(var op in allOperators) {
+			if(filter != null && !filter(op.Value)) continue;
+			if(!HasNext(op.Key.Length)) continue;
+			if(op.Key == toParse.Substring(index, op.Key.Length)) {
+				return op.Value;
+			}
 		}
 		return Exp.Op.Undefined;
 	}
 
-	bool HasNext() {
-		return index < toParse.Length;
+	void SkipOp(Exp.Op op) {
+		index += allOperators.First(o => o.Value == op).Key.Length;
+	}
+
+	Exp.Op ParseOp() {
+		var result = CheckOp();
+		if(result != Exp.Op.Undefined) SkipOp(result);
+		return result;
+	}
+
+	bool HasNext(int length = 1) {
+		return index + length - 1 < toParse.Length;
 	}
 
 	Exp.Op ParseUnary() {
-		SkipSpaces();
 		if(next == '+') {
 			index++;
 			return Exp.Op.Pos;
@@ -266,53 +351,81 @@ public class ExpParser {
 			index++;
 			return Exp.Op.Neg;
 		}
-		return Exp.Op.Undefined;
+		return CheckOp(op => {
+			var cus = CustomFunction.Get(op);
+			return cus != null && cus.ArgCount == 1;
+		});
 	}
-	    
-    Exp ParseExp(ref bool braced) {
+	
+	Exp ParseMain() {
+				
+		Exp a = ParseExp(0);
+		while(HasNext() && next != ')' && next != ',')  {
+			var op = CheckOp();
+			if(op == Exp.Op.Undefined) error("operator expected");
+			//var curSingle = Exp.IsEquation(op);
+			//if(curSingle && single) error("operators like \"" + operators.First(o => o.Value == op).Key + "\" can be used only one time per expression");
+			//single = curSingle;
+			var curOrder = Exp.OrderOf(op);
+			SkipOp(op);
+			var b = ParseExp(curOrder);
+			a = new Exp(op, a, b);
+		}
+		return a;
+	}
+
+    Exp ParseExp(int minOrder) {
 
 		var uop = ParseUnary();
 				
 		Exp a = null;
-		bool aBraced = false;
         if(SkipIf('(')) {
-			bool br = false;
-            a = ParseExp(ref br);
+            a = ParseMain();
             Skip(')');
-			aBraced = true;
         } else {
 			a = ParseValue();
 		}
-		if(uop != Exp.Op.Undefined && uop != Exp.Op.Pos) {
+		if(uop != Exp.Op.Undefined) {
 			a = new Exp(uop, a, null);
 		}
         
-		SkipSpaces();
-		if(!HasNext() || next == ')' || next == ',') {
-			braced = aBraced;
-			return a;
+		bool single = false;
+		while(HasNext() && next != ')' && next != ',')  {
+			var op = CheckOp();
+			if(op == Exp.Op.Undefined) error("operator expected");
+			//var curSingle = Exp.IsEquation(op);
+			//if(curSingle && single) error("operators like \"" + operators.First(o => o.Value == op).Key + "\" can be used only one time per expression");
+			//single = curSingle;
+			var curOrder = Exp.OrderOf(op);
+			if(curOrder <= minOrder) {
+				return a;
+			}
+			SkipOp(op);
+
+			var b = ParseExp(curOrder);
+        
+			a = new Exp(op, a, b);
 		}
-        
-		var op = ParseOp();
-		if(op == Exp.Op.Undefined) error("operator execpted");
-        
-		bool bBraced = false;
-		var b = ParseExp(ref bBraced);
-        
-		if(!bBraced && b.HasTwoOperands() && OrderOf(op) > OrderOf(b.op)) {
-			b.a = new Exp(op, a, b.a);
-			return b;
-		}
-	    return new Exp(op, a, b);
+		return a;
     }
     
 	public Exp Parse() {
 		try {
-			bool braced = false;
-			return ParseExp(ref braced);
+			var result = ParseMain();
+			if(HasNext()) {
+				error("unexcepted token");
+			}
+			/*
+			var resStr = Normalize(result.ToString());
+			if(resStr != toParse) {
+				Debug.LogErrorFormat("Result expression isn't equal to source\nres: {0}\nsrc: {1}", resStr, toParse);
+			}
+			*/
+			return result;
+
 		} catch (System.Exception) {
 			return null;
 		}
 	}
-    
-}
+
+  }

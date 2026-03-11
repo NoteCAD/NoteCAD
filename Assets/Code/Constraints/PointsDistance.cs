@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Linq;
 using System;
+using NoteCAD;
 
 [Serializable]
 public class PointsDistance : ValueConstraint {
@@ -10,6 +11,7 @@ public class PointsDistance : ValueConstraint {
 	public ExpVector p1exp { get { return GetPointInPlane(1, sketch.plane); } }
 
 	public PointsDistance(Sketch sk) : base(sk) { }
+	public PointsDistance(Sketch sk, Id id) : base(sk, id) { }
 
 	public PointsDistance(Sketch sk, IEntity p0, IEntity p1) : base(sk) {
 		AddEntity(p0);
@@ -22,12 +24,14 @@ public class PointsDistance : ValueConstraint {
 		Satisfy();
 	}
 
-	public override IEnumerable<Exp> equations {
+	protected override IEnumerable<Exp> constraintEquations {
 		get {
-			yield return (p1exp - p0exp).Magnitude() - value.exp;
+			yield return (p1exp - p0exp).Magnitude() - value;
 		}
 	}
-	
+
+	public override ValueUnits units => ValueUnits.LENGTH;
+
 	ExpVector GetPointInPlane(int i, IPlane plane) {
 		if(HasEntitiesOfType(IEntityType.Line, 1)) {
 			return GetEntityOfType(IEntityType.Line, 0).GetPointAtInPlane(i, plane);
@@ -48,7 +52,7 @@ public class PointsDistance : ValueConstraint {
 		return Vector3.zero;
 	}
 
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 		Vector3 p0p = GetPointPosInPlane(0, null);
 		Vector3 p1p = GetPointPosInPlane(1, null);
 		drawPointsDistance(p0p, p1p, canvas, Camera.main, false, true, true, 0);

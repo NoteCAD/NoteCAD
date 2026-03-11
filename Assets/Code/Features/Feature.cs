@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 public abstract class Feature : CADObject {
 	IEnumerator<Entity> entities { get { yield break; } }
@@ -97,18 +98,18 @@ public abstract class Feature : CADObject {
 		sourceChanged = false;
 	}
 
-	public void Write(XmlTextWriter xml) {
-		xml.WriteStartElement("feature");
-		xml.WriteAttributeString("type", this.GetType().Name);
-		xml.WriteAttributeString("id", guid.ToString());
+	public void Write(Writer xml) {
+		xml.WriteBeginArrayElement("feature");
+		xml.WriteAttribute("type", this.GetType().Name);
+		xml.WriteAttribute("id", guid.ToString());
 		if(source != null) {
-			xml.WriteAttributeString("source", source.guid.ToString());
+			xml.WriteAttribute("source", source.guid.ToString());
 		}
 		OnWrite(xml);
-		xml.WriteEndElement();
+		xml.WriteEndArrayElement();
 	}
 
-	protected virtual void OnWrite(XmlTextWriter xml) {
+	protected virtual void OnWrite(Writer xml) {
 
 	}
 
@@ -157,11 +158,11 @@ public abstract class Feature : CADObject {
 	public virtual void MarqueeSelect(Rect rect, bool wholeObject, Camera camera, UnityEngine.Matrix4x4 tf, ref List<ICADObject> result) {
 	}
 
-	public virtual ICADObject Hover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
-		return OnHover(mouse, camera, tf, ref dist);
+	public virtual ICADObject Hover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, HoverFilter filter, ref double dist) {
+		return OnHover(mouse, camera, tf, filter, ref dist);
 	}
 
-	protected virtual ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, ref double dist) {
+	protected virtual ICADObject OnHover(Vector3 mouse, Camera camera, UnityEngine.Matrix4x4 tf, HoverFilter filter, ref double dist) {
 		return null;
 	}
 
@@ -273,7 +274,7 @@ public abstract class MeshFeature : SketchFeatureBase {
 		return OnGenerateMesh();
 	}
 
-	protected virtual void OnWriteMeshFeature(XmlTextWriter xml) {
+	protected virtual void OnWriteMeshFeature(Writer xml) {
 
 	}
 
@@ -281,8 +282,8 @@ public abstract class MeshFeature : SketchFeatureBase {
 
 	}
 
-	protected sealed override void OnWriteSketchFeatureBase(XmlTextWriter xml) {
-		xml.WriteAttributeString("op", operation.ToString());
+	protected sealed override void OnWriteSketchFeatureBase(Writer xml) {
+		xml.WriteAttribute("op", operation.ToString());
 		OnWriteMeshFeature(xml);
 	}
 

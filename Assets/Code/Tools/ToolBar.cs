@@ -48,9 +48,12 @@ public class ToolBar : MonoBehaviour {
 	float doubleClickTime;
 	int doubleClickFrame;
 	void Update() {
+		if(!DetailEditor.instance.isActiveAndEnabled) return;
 		doubleClickTime += Time.deltaTime;
 		doubleClickFrame++;
-		if(!IsInputFieldFocused()) {
+		// if input field is focued, esc defocuses it, but also
+		// we need reaction from the tool which activates by esc hotkey
+		if(!IsInputFieldFocused() || Input.GetKeyDown(KeyCode.Escape)) {
 			foreach(var t in tools) {
 				bool activated = false;
 				foreach(var hk in t.hotkeys) {
@@ -100,7 +103,9 @@ public class ToolBar : MonoBehaviour {
 
 		if(activeTool != null) {
 			activeTool.DoUpdate();
-			description.text = activeTool.GetDescription();
+			if (description != null) {
+				description.text = activeTool.GetDescription();
+			}
 		}
 
 		if(activeTool.shouldStop) {
@@ -109,7 +114,7 @@ public class ToolBar : MonoBehaviour {
 	}
 
 	void ActivateTool(Tool tool) {
-		if(tool == activeTool) return;
+		if(!tool.canActivateWhenActive && tool == activeTool) return;
 		if(!tool.CanActivate()) return;
 		if(activeTool != null) {
 			var btn = activeTool.GetComponent<Button>();
@@ -126,7 +131,9 @@ public class ToolBar : MonoBehaviour {
 			cb.normalColor = pressedColor;
 			btn.colors = cb;
 			activeTool.Activate();
-			description.text = activeTool.GetDescription();
+			if (description != null) {
+				description.text = activeTool.GetDescription();
+			}
 		}
 	}
 

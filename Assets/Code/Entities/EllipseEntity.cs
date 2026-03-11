@@ -3,11 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Xml;
 using UnityEngine;
+using NoteCAD;
 
 [Serializable]
 public class EllipseEntity : Entity, ILoopEntity {
 
+	[NonSerialized]
 	public PointEntity c;
+
 	public Param r0 = new Param("r0");
 	public Param r1 = new Param("r1");
 	ExpBasis2d basis = new ExpBasis2d();
@@ -47,9 +50,9 @@ public class EllipseEntity : Entity, ILoopEntity {
 	}
 
 	public PointEntity center { get { return c; } }
-	public IEnumerable<Vector3> loopPoints {
+	public IEnumerable<IEnumerable<Vector3>> loopPoints {
 		get {
-			return getSegmentsUsingPointOn(36);
+			yield return getSegmentsUsingPointOn(36);
 		}
 	}
 
@@ -57,10 +60,10 @@ public class EllipseEntity : Entity, ILoopEntity {
 		return false;
 	}
 
-	protected override void OnWrite(XmlTextWriter xml) {
-		xml.WriteAttributeString("r0", Math.Abs(r0.value).ToStr());
-		xml.WriteAttributeString("r1", Math.Abs(r1.value).ToStr());
-		xml.WriteAttributeString("basis", basis.ToString());
+	protected override void OnWrite(Writer xml) {
+		xml.WriteAttribute("r0", Math.Abs(r0.value));
+		xml.WriteAttribute("r1", Math.Abs(r1.value));
+		xml.WriteAttribute("basis", basis.ToString());
 	}
 
 	protected override void OnRead(XmlNode xml) {

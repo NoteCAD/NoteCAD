@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using NoteCAD;
 
 [Serializable]
 public class Perpendicular : Constraint {
@@ -16,6 +17,7 @@ public class Perpendicular : Constraint {
 	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }
 
 	public Perpendicular(Sketch sk) : base(sk) { }
+	public Perpendicular(Sketch sk, Id id) : base(sk, id) { }
 
 	public Perpendicular(Sketch sk, IEntity l0, IEntity l1) : base(sk) {
 		AddEntity(l0);
@@ -31,6 +33,13 @@ public class Perpendicular : Constraint {
 			ExpVector d0 = l0.GetPointAtInPlane(0, sketch.plane) - l0.GetPointAtInPlane(1, sketch.plane);
 			ExpVector d1 = l1.GetPointAtInPlane(0, sketch.plane) - l1.GetPointAtInPlane(1, sketch.plane);
 
+			//yield return ExpVector.Cross(d0, d1).Magnitude() - d0.Magnitude() * d1.Magnitude();
+			//yield return (ExpVector.Cross(d0, d1) / d0.Magnitude() / d1.Magnitude()).Magnitude() - 1.0;
+			//yield return ExpVector.Dot(d0, d1) / d0.Magnitude() / d1.Magnitude();
+			//yield return ExpVector.Dot(d0, d1);
+			//yield return (d1 - d0).MagnitudeSqr() - (d0.MagnitudeSqr() + d1.MagnitudeSqr());
+			//yield break;
+			
 			Exp angle = sketch.is3d ? ConstraintExp.angle3d(d0, d1) : ConstraintExp.angle2d(d0, d1);
 			switch(option) {
 				case Option.LeftHand: yield return angle - Math.PI / 2.0; break;
@@ -39,7 +48,7 @@ public class Perpendicular : Constraint {
 		}
 	}
 
-	void DrawStroke(LineCanvas canvas, IEntity line, int rpt) {
+	void DrawStroke(ICanvas canvas, IEntity line, int rpt) {
 		var p0 = line.GetPointAtInPlane(0, null).Eval();
 		var p1 = line.GetPointAtInPlane(1, null).Eval();
 		float len = (p1 - p0).magnitude;
@@ -62,7 +71,7 @@ public class Perpendicular : Constraint {
 		}
 	}
 	*/
-	protected override void OnDraw(LineCanvas canvas) {
+	protected override void OnDraw(ICanvas canvas) {
 
 		var line0 = GetEntityOfType(IEntityType.Line, 0);
 		var line1 = GetEntityOfType(IEntityType.Line, 1);
@@ -110,7 +119,7 @@ public class Perpendicular : Constraint {
 				ref_points[i] = sketch.plane.ToPlane(p - perp * pix * 6.0f);
 			}
 
-			if(DetailEditor.instance.hovered == this) {
+			if(shouldDrawLink) {
 				DrawReferenceLink(canvas, Camera.main);
 			}
 		}

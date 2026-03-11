@@ -442,7 +442,7 @@ public class MeshCheck {
 		return result;
 	}
 
-	public void drawErrors(LineCanvas renderer) {
+	public void drawErrors(ICanvas renderer) {
 		int i = 0;
 				
 		int num_errors = 0;
