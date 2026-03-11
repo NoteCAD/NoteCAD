@@ -148,6 +148,7 @@ public class MoveTool : Tool {
 		}
 		click = pos;
 		worldClick = WorldPlanePos;
+		editor.suppressSolve = false;
 	}
 
 	protected override void OnMouseUp(Vector3 pos, ICADObject sko) {

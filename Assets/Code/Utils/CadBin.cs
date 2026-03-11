@@ -1,3 +1,4 @@
+using g3;
 using SharpFont;
 using System;
 using System.Collections.Generic;
@@ -50,7 +51,6 @@ class CadBin {
 	public static readonly int NameCoords1		= MAGIC("uv1\0");
 	//};
 
-
 	byte[] header = new byte[64];
 
 	List<CadBinRec> records = new();
@@ -77,6 +77,40 @@ class CadBin {
 			return false;
 		}
 		to = BitConverter.ToInt32(data, data.Length - available);
+		available -= size;
+		return true;
+	}
+
+	static bool bread(ref uint to, byte[] data, ref int available)
+	{
+		var size = sizeof(uint);
+		if (available < size) {
+			return false;
+		}
+		to = BitConverter.ToUInt32(data, data.Length - available);
+		available -= size;
+		return true;
+	}
+
+
+	static bool bread(ref short to, byte[] data, ref int available)
+	{
+		var size = sizeof(short);
+		if (available < size) {
+			return false;
+		}
+		to = BitConverter.ToInt16(data, data.Length - available);
+		available -= size;
+		return true;
+	}
+
+	static bool bread(ref ushort to, byte[] data, ref int available)
+	{
+		var size = sizeof(ushort);
+		if (available < size) {
+			return false;
+		}
+		to = BitConverter.ToUInt16(data, data.Length - available);
 		available -= size;
 		return true;
 	}
@@ -140,6 +174,42 @@ class CadBin {
 		return true;
 	}
 
+	static bool bread(ref uint[] to, byte[] data, ref int available)
+	{
+		var size = to.Length * sizeof(uint);
+		if (available < size) {
+			return false;
+		}
+		for(int i = 0; i < to.Length; i++) {
+			bread(ref to[i], data, ref available);
+		}
+		return true;
+	}
+
+	static bool bread(ref short[] to, byte[] data, ref int available)
+	{
+		var size = to.Length * sizeof(short);
+		if (available < size) {
+			return false;
+		}
+		for(int i = 0; i < to.Length; i++) {
+			bread(ref to[i], data, ref available);
+		}
+		return true;
+	}
+
+	static bool bread(ref ushort[] to, byte[] data, ref int available)
+	{
+		var size = to.Length * sizeof(ushort);
+		if (available < size) {
+			return false;
+		}
+		for(int i = 0; i < to.Length; i++) {
+			bread(ref to[i], data, ref available);
+		}
+		return true;
+	}
+
 	public bool read(byte[] data) {
 		records.Clear();
 		int available = data.Length;
@@ -179,7 +249,6 @@ class CadBin {
 		if(type == TypeF64)  return 8;
 		return -1;
 	}
-
 	public bool toMesh(Mesh mesh, LineCanvas canvas) {
 		mesh.Clear();
 		int submesh = 0;
@@ -198,41 +267,67 @@ class CadBin {
 				}
 			} else
 			if(rec.name == NameEdges) {
-				if(rec.type != TypeUI32) {
-					continue;
-				}
-				var edges = new int[count * rec.dim];
-				if(!bread(ref edges, rec.data, ref available)) {
-					return false;
-				}
+				if(rec.type == TypeUI32) {
+					var edges = new uint[count * rec.dim];
+					if(!bread(ref edges, rec.data, ref available)) {
+						return false;
+					}
 
-				for(int i = 0; i < edges.Length; i+=rec.dim) {
-					canvas.DrawLine(vertices[edges[i]], vertices[edges[i + 1]]);
+					for(int i = 0; i < edges.Length; i+=rec.dim) {
+						canvas.DrawLine(vertices[edges[i]], vertices[edges[i + 1]]);
+					}
+				} else
+				if(rec.type == TypeUI16) {
+					var edges = new ushort[count * rec.dim];
+					if(!bread(ref edges, rec.data, ref available)) {
+						return false;
+					}
+
+					for(int i = 0; i < edges.Length; i+=rec.dim) {
+						canvas.DrawLine(vertices[edges[i]], vertices[edges[i + 1]]);
+					}
 				}
 			} else
 			if(rec.name == NameTriangles) {
-				if(rec.type != TypeUI32) {
-					continue;
-				}
-				var triangles = new int[count * rec.dim];
-				if(!bread(ref triangles, rec.data, ref available)) {
-					return false;
-				}
+				if(rec.type == TypeUI32) {
+					var triangles = new int[count * rec.dim];
+					if(!bread(ref triangles, rec.data, ref available)) {
+						return false;
+					}
 
-				var newVertices = new Vector3[triangles.Length];
+					var newVertices = new Vector3[triangles.Length];
 
-				for(int i = 0; i < triangles.Length; i++) {
-					newVertices[i] = vertices[triangles[i]];
-					triangles[i] = i;
+					for(int i = 0; i < triangles.Length; i++) {
+						newVertices[i] = vertices[triangles[i]];
+						triangles[i] = i;
+					}
+					mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+					mesh.SetVertices(newVertices);
+					mesh.SetTriangles(triangles, submesh);
+					submesh++;
+				} else
+				if(rec.type == TypeUI16) {
+					var triangles = new ushort[count * rec.dim];
+					var newTriangles = new int[count * rec.dim];
+					if(!bread(ref triangles, rec.data, ref available)) {
+						return false;
+					}
+
+					var newVertices = new Vector3[triangles.Length];
+
+					for(int i = 0; i < triangles.Length; i++) {
+						newVertices[i] = vertices[triangles[i]];
+						newTriangles[i] = i;
+					}
+					mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+					mesh.SetVertices(newVertices);
+					mesh.SetTriangles(newTriangles, submesh);
+					submesh++;
 				}
-
-				mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-				mesh.SetVertices(newVertices);
-				mesh.SetTriangles(triangles, submesh);
 				mesh.RecalculateBounds();
 				mesh.RecalculateNormals();
 				mesh.RecalculateTangents();
-				submesh++;
+
 			}
 		}
 		return true;

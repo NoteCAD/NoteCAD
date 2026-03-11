@@ -55,7 +55,7 @@
     <UnityVersion>6000.0.3f1</UnityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Analyzer Include="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
+    <Analyzer Include="C:\Program Files\Microsoft Visual Studio\18\Community\Common7\IDE\Extensions\Microsoft\Visual Studio Tools for Unity\Analyzers\Microsoft.Unity.Analyzers.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.0.3f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.SourceGenerators.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.0.3f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.Properties.SourceGenerator.dll" />
     <Analyzer Include="C:\Program Files\Unity\Hub\Editor\6000.0.3f1\Editor\Data\Tools\Unity.SourceGenerators\Unity.UIToolkit.SourceGenerator.dll" />
@@ -385,9 +385,9 @@
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\Entities\KnotParameterization.cs" />
     <Compile Include="Assets\Code\External\gsSlicer\toolpathing\SupportPostProcessors.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\Header\XClipFrameType.cs" />
-    <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\IO\Templates\CadBlockCtrlObjectTemplate.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\Objects\Collections\MLineStyleCollection.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\TextAttachmentDirectionType.cs" />
+    <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\IO\Templates\CadBlockCtrlObjectTemplate.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\IHandledCadObject.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\Header\ObjectSnapMode.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\PropertyReflection.cs" />
@@ -1136,6 +1136,7 @@
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\IO\Templates\CadMLeaderAnnotContextTemplate.cs" />
     <Compile Include="Assets\Code\External\netDxf\netDxf\GTE\BSplineCurve.cs" />
     <Compile Include="Assets\Code\External\geometry3Sharp\solvers\IMatrix.cs" />
+    <Compile Include="Assets\Code\Utils\Translator.cs" />
     <Compile Include="Assets\Code\External\gsSlicer\toolpathing\SparseLinesFillPolygon.cs" />
     <Compile Include="Assets\Code\External\geometry3Sharp\math\AxisAlignedBox2d.cs" />
     <Compile Include="Assets\Code\Tools\PolygonTool.cs" />
@@ -1149,6 +1150,7 @@
     <Compile Include="Assets\Code\External\netDxf\netDxf\GTE\BSplineCurveFit.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\IO\NotificationEventHandler.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\Entities\TableEntity.TableCellStateFlags.cs" />
+    <Compile Include="Assets\Code\Utils\CadBin.cs" />
     <Compile Include="Assets\Code\External\netDxf\netDxf\Entities\Arc.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\Entities\TableEntity.CellContent.cs" />
     <Compile Include="Assets\Code\External\geometry3Sharp\curve\EllipseArc2.cs" />

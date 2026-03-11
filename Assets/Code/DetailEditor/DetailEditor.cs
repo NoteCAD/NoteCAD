@@ -211,6 +211,7 @@ public class DetailEditor : MonoBehaviour {
 	public bool suppressSolve = false;
 
 	private void UpdateMesh() {
+		canvas.ClearStyle("edges");
 		mesh.Clear();
 		Solid result = null;
 		int combinedCount = 0;

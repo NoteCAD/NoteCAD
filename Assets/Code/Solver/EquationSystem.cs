@@ -137,7 +137,7 @@ public class EquationSystem  {
 			parameters[i].value += (random.NextDouble() * 2.0 - 1.0) * range;
 		}
 	}
-	
+
 	double GetMaxParamChange() {
 		double result = 0.0;
 		for(int i = 0; i < parameters.Count; i++) {
@@ -428,7 +428,7 @@ public class EquationSystem  {
 			for(int p = 0; p <= perturbationSteps; p++) {
 				int steps = 0;
 				do {
-					bool isDragStep = steps <= dragSteps;
+					bool isDragStep = steps < dragSteps;
 					Eval(ref B, clearDrag: !isDragStep);
 					if (steps == 0 && avoidJumping) {
 						deviation = B.Aggregate(0.0, (a, b) => Math.Max(a, Math.Abs(b)));
