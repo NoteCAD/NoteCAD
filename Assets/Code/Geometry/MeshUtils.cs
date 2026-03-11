@@ -80,7 +80,7 @@ public static class MeshUtils {
 				}
 			}
 
-			start = vertices.Count();
+			start = vertices.Count;
 
 			if(inversed) {
 				for(int i = 0; i < p.Count; i++) {

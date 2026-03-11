@@ -71,7 +71,7 @@ public class ExpParser {
         { "sign",	Exp.Op.Sign },
         { "norm",	Exp.Op.Norm },
         { "acos",	Exp.Op.ACos },
-        { "asin",	Exp.Op.Cos },
+        { "asin",	Exp.Op.ASin },
         { "exp",	Exp.Op.Exp },
         { "sinh",	Exp.Op.Sinh },
         { "cosh",	Exp.Op.Cosh },

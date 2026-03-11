@@ -277,7 +277,7 @@ public class Exp {
 		*/
 		return Math.Sign(x) * (
 			1.0 / 2.0 - ((1 + 0.926 * ax) / (2 + 1.792 * ax + 3.104 * ax2)) * Math.Cos(Math.PI * ax2 / 2)
-			-(1 / (2 + 4.142 + 3.492 * ax2 + 6.67 * ax3)) * Math.Sin(Math.PI * ax2 / 2)
+			-(1 / (2 + 4.142 * ax + 3.492 * ax2 + 6.67 * ax3)) * Math.Sin(Math.PI * ax2 / 2)
 		);
 	}
 
