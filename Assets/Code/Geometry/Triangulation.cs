@@ -71,15 +71,7 @@ public static class Triangulation {
 		if(holes != null) {
 			foreach(var hole in holes) {
 				if(hole.Count < 3) continue;
-				// Compute twice the signed area (shoelace sum without the ½ factor).
-				// Comparing against a small epsilon is valid: a near-zero area is also near-zero
-				// when doubled, so the exact factor doesn't affect the degeneracy test.
-				float holeArea = 0f;
-				for(int k = 0; k < hole.Count; k++) {
-					int nk = (k + 1) % hole.Count;
-					holeArea += hole[k].x * hole[nk].y - hole[nk].x * hole[k].y;
-				}
-				if(Mathf.Abs(holeArea) < 1e-9f) continue;
+				if(Mathf.Abs(SignedArea2x(hole)) < 1e-9f) continue;
 				// Holes are CW (same orientation as outer polygons).
 				// Triangle.NET locates the hole region via FindInteriorPoint regardless of winding.
 				var holeVerts = hole.Select(v => new Vertex(v.x, v.y)).ToList();
@@ -102,6 +94,19 @@ public static class Triangulation {
 			result.Add(new Vector3((float)v1.x, (float)v1.y, 0f));
 		}
 		return result;
+	}
+
+	// Returns twice the signed area of a polygon (shoelace sum without the ½ factor).
+	// Positive for CW winding (screen/Unity convention), negative for CCW.
+	// Comparing the raw sum against an epsilon is valid for degeneracy checks because
+	// a near-zero area polygon is near-zero regardless of the ½ factor.
+	public static float SignedArea2x(List<Vector3> polygon) {
+		float area = 0f;
+		for(int k = 0; k < polygon.Count; k++) {
+			int nk = (k + 1) % polygon.Count;
+			area += polygon[k].x * polygon[nk].y - polygon[nk].x * polygon[k].y;
+		}
+		return area;
 	}
 
 	static readonly Vector3 rayDir = Vector3.forward;
