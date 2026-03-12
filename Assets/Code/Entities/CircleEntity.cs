@@ -59,7 +59,7 @@ public class CircleEntity : Entity, ILoopEntity {
 		int subdiv = 36;
 		var vz = Vector3.forward;
 		for(int i = 0; i < subdiv; i++) {
-			var nrv = Quaternion.AngleAxis((float)a.value + 360.0f / (subdiv - 1) * i, vz) * rv;
+			var nrv = Quaternion.AngleAxis((float)a.value + 360.0f / subdiv * i, vz) * rv;
 			yield return nrv + cp;
 		}
 	}

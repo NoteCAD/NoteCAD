@@ -90,7 +90,7 @@ public class LineTool : Tool {
 			}
 			if(angleValueNotChanged) {
 				angle?.Destroy();
-			} else if(dimension != null) {
+			} else if(angle != null) {
 				angle.enabled = true;
 				angle.SetValue(angleValue);
 			}
