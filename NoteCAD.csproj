@@ -414,6 +414,10 @@
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\Tables\Collections\UCSTable.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\IO\Templates\CadTableEntityTemplate.cs" />
     <Compile Include="Assets\Code\Geometry\MeshUtils.cs" />
+    <Compile Include="Assets\Code\Geometry\IBooleanOperations.cs" />
+    <Compile Include="Assets\Code\Geometry\CsgBooleanOperations.cs" />
+    <Compile Include="Assets\Code\Geometry\OccBooleanOperations.cs" />
+    <Compile Include="Assets\Code\Geometry\GeometryKernel.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\CSUtilities\CSMath\BoundingBox.cs" />
     <Compile Include="Assets\Code\External\ACadSharp\src\ACadSharp\Objects\FaceLightingQualityType.cs" />
     <Compile Include="Assets\Code\Tools\RectTool.cs" />
