@@ -32,12 +32,10 @@ NoteCAD is an open-source, parametric CAD application built on the Unity engine 
 ### 3D Features
 - Extrusion
 - Revolve
-- Linear array
 - Mesh import
-- Slice
 
 ### Import / Export
-- Import: DXF, STL
+- Import: DXF, STL, SolveSpace
 - Export: STL, G-code
 
 ---
@@ -88,7 +86,7 @@ Assets/
     Constraints/   # Geometric constraint implementations
     Entities/      # Sketch entity types (line, arc, circle, …)
     Features/      # 3D feature operations (extrude, revolve, …)
-    Solver/        # Algebraic constraint solver (Gaussian elimination)
+    Solver/        # Algebraic constraint solver (Newton method)
     Tools/         # Editor tools and UI actions
     Behaviours/    # Unity MonoBehaviour helpers
     Geometry/      # Core geometry utilities
