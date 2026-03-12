@@ -92,6 +92,8 @@ StyleAddTool@button	Добавить	Add
 DistanceTool@name	Размер	DistanceTool
 DistanceTool@description	Выберите линию, чтобы задать ее длину,  или окружность (дугу), чтобы задать диаметр (радиус). Выберите точки/линии/окружности/дуги чтобы задать расстояния или углы между ними.	click a line to constrain length or circle(arc) to constrain daimeter(radius). Click two entities of type point/line/circle/arc to constrain distance or angle between them.
 DistanceTool@button	Размер	Dim
+DistanceOptions@DistanceOptions	Размер	DistanceOptions
+DistanceOptions@UseHorizVert	Гор./Верт.	Use Horiz/Vert
 NewTool@name	Создать Новый Файл	NewTool
 NewTool@description	Введите имя файла в окне опций и нажимите кнопку «Создать»	
 NewTool@button	Новый	New

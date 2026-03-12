@@ -6,12 +6,24 @@ using NoteCAD;
 
 public class DistanceTool : Tool {
 
+	[System.Serializable]
+	class DistanceOptions {
+		bool useHorizVert_ = false;
+		public bool useHorizVert { get { return useHorizVert_; } set { useHorizVert_ = value; } }
+	}
+
+	DistanceOptions options = new DistanceOptions();
+
 	IEntity e0;
 	ValueConstraint constraint;
 	Vector3 click;
 
 	DistanceTool() {
 		enableHoverFilter = true;
+	}
+
+	protected override void OnActivate() {
+		Inspect(options);
 	}
 
 	protected override bool OnTryHover(Constraint c) {
@@ -113,8 +125,58 @@ public class DistanceTool : Tool {
 	protected override void OnMouseMove(Vector3 pos, ICADObject entity) {
 		if(constraint != null) {
 			constraint.Drag(WorldPlanePos - click);
+			AutoSelectHVOption();
 		}
 		click = WorldPlanePos;
+	}
+
+	void AutoSelectHVOption() {
+		var pd = constraint as PointsDistance;
+		if(pd == null) return;
+		if(!options.useHorizVert) {
+			if(pd.option != PointsDistance.Option.Closest) {
+				var worldPos = constraint.pos;
+				pd.option = PointsDistance.Option.Closest;
+				constraint.pos = worldPos;
+				pd.Satisfy();
+			}
+			return;
+		}
+		var plane = DetailEditor.instance.currentSketch.GetSketch().plane;
+		if(plane == null) return;
+
+		var labelDir = plane.DirToPlane(WorldPlanePos - pd.GetMidpoint());
+		if(labelDir.magnitude < 1e-4f) return;
+
+		// Use atan2 to compute the drag angle, folded into [0°, 90°]:
+		//   0°–30°   → near-horizontal drag → Vertical span
+		//   60°–90°  → near-vertical drag   → Horizontal span
+		//   30°–60°  → diagonal             → Closest (linear)
+		float angleDeg = Mathf.Abs(Mathf.Atan2(labelDir.y, labelDir.x) * Mathf.Rad2Deg);
+		// Fold into [0°, 90°] by mirroring at 90°.
+		if(angleDeg > 90f) angleDeg = 180f - angleDeg;
+
+		PointsDistance.Option newOption;
+		if(angleDeg < 30f) {
+			// Near-horizontal drag → Vertical span; pick sign from current positions.
+			newOption = (pd.p1exp.y.Eval() >= pd.p0exp.y.Eval())
+				? PointsDistance.Option.VerticalPositive
+				: PointsDistance.Option.VerticalNegative;
+		} else if(angleDeg > 60f) {
+			// Near-vertical drag → Horizontal span; pick sign from current positions.
+			newOption = (pd.p1exp.x.Eval() >= pd.p0exp.x.Eval())
+				? PointsDistance.Option.HorizontalPositive
+				: PointsDistance.Option.HorizontalNegative;
+		} else {
+			newOption = PointsDistance.Option.Closest;
+		}
+
+		if(newOption != pd.option) {
+			var worldPos = constraint.pos;
+			pd.option = newOption;
+			constraint.pos = worldPos;
+			pd.Satisfy();
+		}
 	}
 
 	protected override string OnGetDescription() {
