@@ -1,0 +1,36 @@
+; Godot Project Configuration — NoteCAD.Godot
+; Engine: Godot 4.x (open-source alternative to Unity3D)
+; C# / .NET: references NoteCAD.Core for the CAD engine logic
+;
+; Build targets:
+;   Windows  — export via "Windows Desktop" preset
+;   Linux    — export via "Linux/X11" preset
+;   WebAssembly — export via "Web" preset (WASM + JS)
+
+[application]
+
+config/name="NoteCAD"
+config/description="Small but powerful parametric CAD application"
+config/version="0.5"
+run/main_scene="res://Main.tscn"
+config/features=PackedStringArray("4.3", "C#")
+config/icon="res://icon.svg"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray()
+
+[filesystem]
+
+import/blender/enabled=false
+
+[rendering]
+
+renderer/rendering_method="forward_plus"
+textures/vram_compression/import_etc2_astc=false

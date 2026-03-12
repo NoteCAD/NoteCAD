@@ -1,0 +1,20 @@
+# Godot project gitignore
+# Build artifacts and generated files produced by Godot and dotnet
+
+# .NET/MSBuild output
+bin/
+obj/
+
+# Godot import cache
+.godot/
+
+# Godot export presets (contains platform-specific paths)
+export_presets.cfg
+
+# macOS metadata
+.DS_Store
+
+# Rider / VSCode IDE files
+.idea/
+.vscode/
+*.user
