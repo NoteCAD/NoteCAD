@@ -228,10 +228,10 @@ public class DetailEditor : MonoBehaviour {
 							//}
 						//#endif
 						switch(mf.operation) {
-							case CombineOp.Union: mf.combined = Solids.Union(result, mf.solid); break;
-							case CombineOp.Difference: mf.combined = Solids.Difference(result, mf.solid); break;
-							case CombineOp.Intersection: mf.combined = Solids.Intersection(result, mf.solid); break;
-							case CombineOp.Assembly: mf.combined = Solids.Assembly(result, mf.solid); break;
+							case CombineOp.Union: mf.combined = GeometryKernel.BooleanOps.Union(result, mf.solid); break;
+							case CombineOp.Difference: mf.combined = GeometryKernel.BooleanOps.Difference(result, mf.solid); break;
+							case CombineOp.Intersection: mf.combined = GeometryKernel.BooleanOps.Intersection(result, mf.solid); break;
+							case CombineOp.Assembly: mf.combined = GeometryKernel.BooleanOps.Assembly(result, mf.solid); break;
 						}
 						combinedCount++;
 					}
