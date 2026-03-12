@@ -644,7 +644,7 @@ namespace UnityEngine
 
         public Bounds(Vector3 center, Vector3 size) { this.center = center; this.size = size; }
 
-        public Vector3 min { get => center - size * 0.5f; set => size = (value - center) * -2; }
+        public Vector3 min { get => center - size * 0.5f; set => size = (center - value) * 2; }
         public Vector3 max { get => center + size * 0.5f; set => size = (value - center) * 2; }
 
         // Unity: extents = size / 2; setting extents sets size = extents * 2

@@ -12,6 +12,11 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+# Restrict GITHUB_TOKEN to read-only access by default; individual jobs
+# may elevate permissions if they need to create releases or write packages.
+permissions:
+  contents: read
+
 env:
   GODOT_VERSION: "4.3"
   DOTNET_VERSION: "8.0.x"
@@ -193,9 +198,15 @@ jobs:
       - name: Export ${{ matrix.platform }} binary
         working-directory: NoteCAD.Godot
         run: |
+          # Export the project. Without fully imported assets (editor not run),
+          # Godot may exit with a non-zero code for missing export templates or
+          # unimported resources. We treat that as a warning here; the artifact
+          # upload below will simply be empty if the export truly failed.
+          # A fully-configured export with Godot templates is covered by the
+          # godot-ci container; failures will be visible in the step log.
           godot --headless --export-release "${{ matrix.preset }}" \
             ${{ matrix.output_dir }}/${{ matrix.output_file }} || \
-          echo "Export completed (some warnings may appear without full asset import)"
+          echo "::warning::Godot export returned non-zero exit code. Check logs above for details."
 
       - name: Upload ${{ matrix.platform }} artifact
         uses: actions/upload-artifact@v4

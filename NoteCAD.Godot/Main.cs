@@ -96,7 +96,7 @@ public partial class Main : Node2D
         {
             foreach (var segment in entity.segments)
             {
-                var pts = new System.Collections.Generic.List<global::UnityEngine.Vector3>(segment);
+                var pts = new System.Collections.Generic.List<UnityEngine.Vector3>(segment);
                 for (int i = 1; i < pts.Count; i++)
                 {
                     var a = new Vector2(pts[i - 1].x, -pts[i - 1].y);
