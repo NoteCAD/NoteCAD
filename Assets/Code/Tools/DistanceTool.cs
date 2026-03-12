@@ -125,24 +125,24 @@ public class DistanceTool : Tool {
 		if(plane == null) return;
 
 		var labelDir = plane.DirToPlane(WorldPlanePos - pd.GetMidpoint());
-		float dx = Mathf.Abs(labelDir.x);
-		float dy = Mathf.Abs(labelDir.y);
-		if(dx < 1e-4f && dy < 1e-4f) return;
+		if(labelDir.magnitude < 1e-4f) return;
+
+		// Use atan2 to compute the drag angle, folded into [0°, 90°]:
+		//   0°–30°   → near-horizontal drag → Vertical span
+		//   60°–90°  → near-vertical drag   → Horizontal span
+		//   30°–60°  → diagonal             → Closest (linear)
+		float angleDeg = Mathf.Abs(Mathf.Atan2(labelDir.y, labelDir.x) * Mathf.Rad2Deg);
+		// Fold into [0°, 90°] by mirroring at 90°.
+		if(angleDeg > 90f) angleDeg = 180f - angleDeg;
 
 		PointsDistance.Option newOption;
-		// Three zones defined by 30° thresholds around the horizontal and vertical axes:
-		//   |y| < |x| * tan(30°)  →  mostly horizontal drag  →  Vertical dimension line
-		//   |x| < |y| * tan(30°)  →  mostly vertical drag    →  Horizontal dimension line
-		//   diagonal zone (45° sectors)                       →  Closest (linear)
-		// tan(30°) threshold to define three zones: horizontal, vertical, and closest (diagonal).
-		const float tan30 = 0.5774f; // tan(30° * π/180)
-		if(dy < dx * tan30) {
-			// Drag is mostly horizontal → use vertical span; pick sign from current positions.
+		if(angleDeg < 30f) {
+			// Near-horizontal drag → Vertical span; pick sign from current positions.
 			newOption = (pd.p1exp.y.Eval() >= pd.p0exp.y.Eval())
 				? PointsDistance.Option.VerticalPositive
 				: PointsDistance.Option.VerticalNegative;
-		} else if(dx < dy * tan30) {
-			// Drag is mostly vertical → use horizontal span; pick sign from current positions.
+		} else if(angleDeg > 60f) {
+			// Near-vertical drag → Horizontal span; pick sign from current positions.
 			newOption = (pd.p1exp.x.Eval() >= pd.p0exp.x.Eval())
 				? PointsDistance.Option.HorizontalPositive
 				: PointsDistance.Option.HorizontalNegative;
