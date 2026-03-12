@@ -71,8 +71,17 @@ public static class Triangulation {
 		if(holes != null) {
 			foreach(var hole in holes) {
 				if(hole.Count < 3) continue;
-				// Hole polygons have been reversed to CCW order in GroupPolygons.
-				// Passing hole=true tells Triangle.NET to treat the interior as void.
+				// Compute twice the signed area (shoelace sum without the ½ factor).
+				// Comparing against a small epsilon is valid: a near-zero area is also near-zero
+				// when doubled, so the exact factor doesn't affect the degeneracy test.
+				float holeArea = 0f;
+				for(int k = 0; k < hole.Count; k++) {
+					int nk = (k + 1) % hole.Count;
+					holeArea += hole[k].x * hole[nk].y - hole[nk].x * hole[k].y;
+				}
+				if(Mathf.Abs(holeArea) < 1e-9f) continue;
+				// Holes are CW (same orientation as outer polygons).
+				// Triangle.NET locates the hole region via FindInteriorPoint regardless of winding.
 				var holeVerts = hole.Select(v => new Vertex(v.x, v.y)).ToList();
 				poly.Add(new Contour(holeVerts), true);
 			}

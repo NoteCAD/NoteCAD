@@ -550,13 +550,12 @@ public class Sketch : CADObject  {
 			for(int j = 0; j < polygons.Count; j++) {
 				if(j == i || depths[j] != depths[i] + 1 || polygons[j].Count == 0) continue;
 				if(!PointInPolygon2D(polygons[j][0], outer)) continue;
-				var hole = new List<Vector3>(polygons[j]);
-				hole.Reverse();
-				holes.Add(hole);
+				// Keep holes in their original CW orientation (same as outer polygons).
+				// The extrusion/revolve wall helpers (ShouldReverseWinding) rely on CW holes
+				// to produce inward-facing normals on the void surfaces.
+				holes.Add(polygons[j]);
 				if(ids != null && j < ids.Count) {
-					var hId = new List<IdPath>(ids[j]);
-					hId.Reverse();
-					holeIds_.Add(hId);
+					holeIds_.Add(ids[j]);
 				}
 			}
 			result.Add((outer, holes, outerIds_, holeIds_));
