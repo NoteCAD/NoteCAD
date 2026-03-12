@@ -178,7 +178,7 @@ public class TextEntity : Entity, ILoopEntity {
 		int subdiv = 16;
 		var vz = Vector3.forward;
 		for(int i = 0; i < subdiv; i++) {
-			var nrv = Quaternion.AngleAxis(360.0f / subdiv * i, vz) * rv;
+			var nrv = Quaternion.AngleAxis(360.0f / (subdiv - 1) * i, vz) * rv;
 			yield return nrv + cp;
 		}
 	}
