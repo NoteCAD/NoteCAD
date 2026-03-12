@@ -125,14 +125,29 @@ public class DistanceTool : Tool {
 		if(plane == null) return;
 
 		var labelDir = plane.DirToPlane(WorldPlanePos - pd.GetMidpoint());
+		float dx = Mathf.Abs(labelDir.x);
+		float dy = Mathf.Abs(labelDir.y);
+		if(dx < 1e-4f && dy < 1e-4f) return;
+
 		PointsDistance.Option newOption;
-		// When label is dragged horizontally (left/right), show vertical span (vertical option).
-		// When label is dragged vertically (up/down), show horizontal span (horizontal option).
-		// The label is placed perpendicular to the measurement direction.
-		if(Math.Abs(labelDir.x) > Math.Abs(labelDir.y)) {
-			newOption = PointsDistance.Option.Vertical;
+		// Three zones defined by 30° thresholds around the horizontal and vertical axes:
+		//   |y| < |x| * tan(30°)  →  mostly horizontal drag  →  Vertical dimension line
+		//   |x| < |y| * tan(30°)  →  mostly vertical drag    →  Horizontal dimension line
+		//   diagonal zone (45° sectors)                       →  Closest (linear)
+		// tan(30°) threshold to define three zones: horizontal, vertical, and closest (diagonal).
+		const float tan30 = 0.5774f; // tan(30° * π/180)
+		if(dy < dx * tan30) {
+			// Drag is mostly horizontal → use vertical span; pick sign from current positions.
+			newOption = (pd.p1exp.y.Eval() >= pd.p0exp.y.Eval())
+				? PointsDistance.Option.VerticalPositive
+				: PointsDistance.Option.VerticalNegative;
+		} else if(dx < dy * tan30) {
+			// Drag is mostly vertical → use horizontal span; pick sign from current positions.
+			newOption = (pd.p1exp.x.Eval() >= pd.p0exp.x.Eval())
+				? PointsDistance.Option.HorizontalPositive
+				: PointsDistance.Option.HorizontalNegative;
 		} else {
-			newOption = PointsDistance.Option.Horizontal;
+			newOption = PointsDistance.Option.Closest;
 		}
 
 		if(newOption != pd.option) {

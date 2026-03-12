@@ -9,13 +9,18 @@ public class PointsDistance : ValueConstraint {
 
 	public enum Option {
 		Closest,
-		Horizontal,
-		Vertical,
+		HorizontalPositive,
+		HorizontalNegative,
+		VerticalPositive,
+		VerticalNegative,
 	}
 
 	Option option_;
 	public Option option { get { return option_; } set { option_ = value; sketch.MarkDirtySketch(topo:true); } }
 	protected override Enum optionInternal { get { return option; } set { option = (Option)value; } }
+
+	bool isHorizontal => option == Option.HorizontalPositive || option == Option.HorizontalNegative;
+	bool isVertical   => option == Option.VerticalPositive   || option == Option.VerticalNegative;
 
 	public ExpVector p0exp { get { return GetPointInPlane(0, sketch.plane); } }
 	public ExpVector p1exp { get { return GetPointInPlane(1, sketch.plane); } }
@@ -37,15 +42,11 @@ public class PointsDistance : ValueConstraint {
 	protected override IEnumerable<Exp> constraintEquations {
 		get {
 			switch(option) {
-				case Option.Horizontal:
-					yield return Exp.Sqrt(Exp.Sqr(p1exp.x - p0exp.x)) - value;
-					break;
-				case Option.Vertical:
-					yield return Exp.Sqrt(Exp.Sqr(p1exp.y - p0exp.y)) - value;
-					break;
-				default:
-					yield return (p1exp - p0exp).Magnitude() - value;
-					break;
+				case Option.HorizontalPositive: yield return p1exp.x - p0exp.x - value; break;
+				case Option.HorizontalNegative: yield return p0exp.x - p1exp.x - value; break;
+				case Option.VerticalPositive:   yield return p1exp.y - p0exp.y - value; break;
+				case Option.VerticalNegative:   yield return p0exp.y - p1exp.y - value; break;
+				default: yield return (p1exp - p0exp).Magnitude() - value; break;
 			}
 		}
 	}
@@ -87,51 +88,39 @@ public class PointsDistance : ValueConstraint {
 		Vector3 p0l = plane.ToPlane(p0p);
 		Vector3 p1l = plane.ToPlane(p1p);
 		Vector3 labelW = getLabelOffset();
-		float midU = (p0l.x + p1l.x) * 0.5f;
-		float midV = (p0l.y + p1l.y) * 0.5f;
 
 		Vector3 dim0l, dim1l;
 		if(horizontal) {
 			float labelV = Vector3.Dot(labelW - plane.o, plane.v);
-			float sy = (labelV >= midV) ? 1f : -1f;
-			float dimY = midV + sy * Mathf.Max(15f * pix, Mathf.Abs(labelV - midV));
-			dim0l = new Vector3(p0l.x, dimY, 0);
-			dim1l = new Vector3(p1l.x, dimY, 0);
+			dim0l = new Vector3(p0l.x, labelV, 0);
+			dim1l = new Vector3(p1l.x, labelV, 0);
 		} else {
 			float labelU = Vector3.Dot(labelW - plane.o, plane.u);
-			float sx = (labelU >= midU) ? 1f : -1f;
-			float dimX = midU + sx * Mathf.Max(15f * pix, Mathf.Abs(labelU - midU));
-			dim0l = new Vector3(dimX, p0l.y, 0);
-			dim1l = new Vector3(dimX, p1l.y, 0);
+			dim0l = new Vector3(labelU, p0l.y, 0);
+			dim1l = new Vector3(labelU, p1l.y, 0);
 		}
 
 		Vector3 dim0 = plane.FromPlane(dim0l);
 		Vector3 dim1 = plane.FromPlane(dim1l);
 
+		// Draw witness lines with a small salient beyond the dimension line.
 		float salient = 8f * pix;
 		if(length(dim0 - p0p) > EPSILON)
 			canvas.DrawLine(p0p, dim0 + normalize(dim0 - p0p) * salient);
 		if(length(dim1 - p1p) > EPSILON)
 			canvas.DrawLine(p1p, dim1 + normalize(dim1 - p1p) * salient);
 
-		canvas.DrawLine(dim0, dim1);
-
-		if(length(dim0 - dim1) > EPSILON) {
-			Vector3 dir = normalize(dim1 - dim0);
-			float half_dist = length(dim0 - dim1) * 0.5f;
-			bool stroke = half_dist <= (R_ARROW_W * 2f + 1f) * pix;
-			drawArrow(canvas, dim0, dir, stroke);
-			drawArrow(canvas, dim1, -dir, stroke);
-		}
-
-		SetLabelPos(plane.FromPlane((dim0l + dim1l) * 0.5f));
+		// Delegate the dimension line, arrows and label positioning to the shared helper.
+		// Since dim0/dim1 are already on the sketch plane, drawPointProjection is a no-op
+		// and all arrow/outside-label logic is handled correctly.
+		drawPointsDistance(dim0, dim1, canvas, Camera.main, label: false, arrow0: true, arrow1: true, style: 0);
 	}
 
 	protected override void OnDraw(ICanvas canvas) {
 		Vector3 p0p = GetPointPosInPlane(0, null);
 		Vector3 p1p = GetPointPosInPlane(1, null);
-		if(option == Option.Horizontal || option == Option.Vertical) {
-			DrawHVDistance(p0p, p1p, canvas, option == Option.Horizontal);
+		if(isHorizontal || isVertical) {
+			DrawHVDistance(p0p, p1p, canvas, isHorizontal);
 		} else {
 			drawPointsDistance(p0p, p1p, canvas, Camera.main, false, true, true, 0);
 		}
@@ -141,17 +130,18 @@ public class PointsDistance : ValueConstraint {
 		var p0pos = GetPointPosInPlane(0, null);
 		var p1pos = GetPointPosInPlane(1, null);
 		var plane = sketch.plane;
-		if(plane != null && (option == Option.Horizontal || option == Option.Vertical)) {
-			var p0l = plane.ToPlane(p0pos);
-			var p1l = plane.ToPlane(p1pos);
-			var origin = plane.FromPlane(new Vector3((p0l.x + p1l.x) * 0.5f, (p0l.y + p1l.y) * 0.5f, 0));
-			if(option == Option.Horizontal) {
-				return UnityExt.Basis(plane.u, plane.v, plane.n, origin);
+		if(plane != null && (isHorizontal || isVertical)) {
+			var midpointWorld = (p0pos + p1pos) * 0.5f;
+			// For horizontal: x-axis = plane.u (along dim line), y-axis = plane.v (label offset direction).
+			// For vertical:   x-axis = plane.v (along dim line), y-axis = plane.u (label offset direction).
+			if(isHorizontal) {
+				return UnityExt.Basis(plane.u, plane.v, plane.n, midpointWorld);
 			} else {
-				return UnityExt.Basis(plane.v, plane.u, plane.n, origin);
+				return UnityExt.Basis(plane.v, plane.u, plane.n, midpointWorld);
 			}
 		}
 		return getPointsDistanceBasis(p0pos, p1pos, sketch.plane);
 	}
 
 }
+
