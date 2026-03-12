@@ -53,7 +53,7 @@ public class DetailSettings {
 		xml.WriteAttribute(nameof(showConstraints), showConstraints);
 		xml.WriteAttribute(nameof(showDimensions), showDimensions);
 		xml.WriteAttribute(nameof(displayPoints), displayPoints);
-		xml.WriteAttribute(nameof(autoconstraining), showDimensions);
+		xml.WriteAttribute(nameof(autoconstraining), autoconstraining);
 		xml.WriteAttribute(nameof(drawingDimensions), drawingDimensions);
 		xml.WriteAttribute(nameof(checkSketchErrors), checkSketchErrors);
 		xml.WriteAttribute(nameof(detectContours), detectContours);
