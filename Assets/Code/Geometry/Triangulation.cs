@@ -64,7 +64,10 @@ public static class Triangulation {
 
 		// Outer contour: Triangle.NET expects CCW for outer boundary.
 		// Our outer polygon is CW, so reverse before adding.
-		var outerVerts = outer.Select(v => new Vertex(v.x, v.y)).ToList();
+		// Deduplicate first to prevent StackOverflow in DivconqRecurse.
+		var outerDedup = DeduplicateVertices(outer);
+		if(outerDedup.Count < 3) return Triangulate(new List<Vector3>(outer));
+		var outerVerts = outerDedup.Select(v => new Vertex(v.x, v.y)).ToList();
 		outerVerts.Reverse();
 		poly.Add(new Contour(outerVerts));
 
@@ -74,24 +77,57 @@ public static class Triangulation {
 				if(Mathf.Abs(SignedArea2x(hole)) < 1e-9f) continue;
 				// Holes are CW (same orientation as outer polygons).
 				// Triangle.NET locates the hole region via FindInteriorPoint regardless of winding.
-				var holeVerts = hole.Select(v => new Vertex(v.x, v.y)).ToList();
+				var holeDedup = DeduplicateVertices(hole);
+				if(holeDedup.Count < 3) continue;
+				var holeVerts = holeDedup.Select(v => new Vertex(v.x, v.y)).ToList();
 				poly.Add(new Contour(holeVerts), true);
 			}
 		}
 
 		var options = new ConstraintOptions { ConformingDelaunay = false };
-		var mesh = poly.Triangulate(options);
+		try {
+			var mesh = poly.Triangulate(options);
+			// Triangle.NET outputs CCW triangles; return CW (matching Triangulate output).
+			var result = new List<Vector3>(mesh.Triangles.Count * 3);
+			foreach(var tri in mesh.Triangles) {
+				var v0 = tri.GetVertex(0);
+				var v1 = tri.GetVertex(1);
+				var v2 = tri.GetVertex(2);
+				// Reverse CCW → CW
+				result.Add(new Vector3((float)v0.x, (float)v0.y, 0f));
+				result.Add(new Vector3((float)v2.x, (float)v2.y, 0f));
+				result.Add(new Vector3((float)v1.x, (float)v1.y, 0f));
+			}
+			return result;
+		} catch(System.Exception e) {
+			// Fall back to simple ear-clipping on the outer contour when Triangle.NET fails.
+			Debug.LogWarning($"TriangulateWithHoles fell back to ear-clipping: {e.Message}");
+			return Triangulate(new List<Vector3>(outer));
+		}
+	}
 
-		// Triangle.NET outputs CCW triangles; return CW (matching Triangulate output).
-		var result = new List<Vector3>(mesh.Triangles.Count * 3);
-		foreach(var tri in mesh.Triangles) {
-			var v0 = tri.GetVertex(0);
-			var v1 = tri.GetVertex(1);
-			var v2 = tri.GetVertex(2);
-			// Reverse CCW → CW
-			result.Add(new Vector3((float)v0.x, (float)v0.y, 0f));
-			result.Add(new Vector3((float)v2.x, (float)v2.y, 0f));
-			result.Add(new Vector3((float)v1.x, (float)v1.y, 0f));
+	// Removes consecutive duplicate vertices (within eps) and also removes the last
+	// vertex if it duplicates the first, preventing Triangle.NET's DivconqRecurse from
+	// entering infinite recursion on degenerate input.
+	static List<Vector3> DeduplicateVertices(List<Vector3> points, float eps = 1e-6f) {
+		if(points.Count == 0) return points;
+		float epsSq = eps * eps;
+		var result = new List<Vector3>();
+		result.Add(points[0]);
+		for(int i = 1; i < points.Count; i++) {
+			float dx = points[i].x - result[result.Count - 1].x;
+			float dy = points[i].y - result[result.Count - 1].y;
+			if(dx * dx + dy * dy > epsSq) {
+				result.Add(points[i]);
+			}
+		}
+		// Remove last if it wraps back to first
+		if(result.Count > 1) {
+			float dx = result[result.Count - 1].x - result[0].x;
+			float dy = result[result.Count - 1].y - result[0].y;
+			if(dx * dx + dy * dy <= epsSq) {
+				result.RemoveAt(result.Count - 1);
+			}
 		}
 		return result;
 	}
