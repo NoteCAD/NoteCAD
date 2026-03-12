@@ -1,10 +1,53 @@
 # NoteCAD - C# Geometric Constraint Solver and CAD Sketcher
 
-NoteCAD is an open-source, parametric CAD application built on the Unity engine with a fully custom geometric constraint solver written in C#. The project was created from scratch — all source code is written in C#.
+NoteCAD is an open-source, parametric CAD application with a fully custom
+geometric constraint solver written in C#. The project was created from
+scratch — all source code is written in C#.
 
 **Try it online:** http://NoteCAD.online
 
 **Licensing contacts:** contact at notecad dot pro
+
+---
+
+## Engine Migration: Unity → Godot 4
+
+The codebase is being migrated from the proprietary **Unity3D** engine to
+the open-source **[Godot 4](https://godotengine.org/)** engine. The
+migration preserves all existing C# code and supports the same target
+platforms:
+
+| Platform | Status |
+|---|---|
+| **Windows** (64-bit) | ✅ Core library builds; Godot export in progress |
+| **Linux** (64-bit)   | ✅ Core library builds; Godot export in progress |
+| **WebAssembly**      | ✅ Core library builds; Godot Web export in progress |
+
+### Architecture
+
+The project is split into two layers:
+
+```
+NoteCAD.Core/          ← Engine-independent C# library (NEW)
+  Assets/Code/         ← All existing CAD source files (unchanged)
+  UnityCompat/         ← Unity math-type shim (Vector3, Mathf, …)
+
+NoteCAD.Godot/         ← Godot 4 rendering/UI layer (NEW)
+  Main.cs              ← Entry point, wires Godot ↔ NoteCAD.Core
+  Main.tscn            ← Godot scene tree
+
+Assets/                ← Legacy Unity project (still functional)
+ProjectSettings/       ← Legacy Unity settings
+```
+
+**NoteCAD.Core** compiles as a plain .NET 8 library with *no dependency on
+any game engine*. A thin compatibility shim (`UnityCompat/`) provides
+`Vector3`, `Mathf`, `Matrix4x4` and other Unity math types so the existing
+source files compile without modification.
+
+**NoteCAD.Godot** is the new open-source frontend. It references
+NoteCAD.Core and uses Godot's rendering, input, and platform APIs instead
+of Unity's proprietary equivalents.
 
 ---
 
@@ -42,58 +85,76 @@ NoteCAD is an open-source, parametric CAD application built on the Unity engine 
 
 ## Building Locally
 
-### Prerequisites
+### Option A — NoteCAD.Core (.NET, no engine required)
 
-- **Unity 6** (version `6000.0.3f1` or compatible). Download Unity Hub from https://unity.com/download and install the matching Unity Editor version.
+Build the engine-independent library with the standard .NET SDK:
+
+```bash
+# Prerequisites: .NET 8 SDK (https://dotnet.microsoft.com/download)
+git clone --recurse-submodules https://github.com/NoteCAD/NoteCAD.git
+cd NoteCAD
+dotnet build NoteCAD.Core/NoteCAD.Core.csproj
+```
+
+### Option B — NoteCAD.Godot (open-source build)
+
+> **Status:** Godot 4 integration is in progress. The project structure is
+> in place; full export support will land as the rendering layer is
+> implemented.
+
+1. Install **[Godot 4](https://godotengine.org/download)** (version 4.3 or
+   later) with **.NET / C# support** enabled.
+2. Clone the repository (with submodules).
+3. Open `NoteCAD.Godot/` in the Godot editor.
+4. Use **Project → Export** to build for Windows, Linux, or Web (WASM).
+
+Automated builds for all platforms run via GitHub Actions on every push
+(see [`.github/workflows/build.yml`](.github/workflows/build.yml)).
+
+### Option C — Legacy Unity build
+
+The original Unity project is still fully functional:
+
+- **Unity 6** (version `6000.0.3f1` or compatible). Download Unity Hub from
+  https://unity.com/download and install the matching Unity Editor version.
 - **Git** with **Git LFS** support.
-
-### Clone the Repository
-
-The project uses Git submodules for external libraries. Clone with submodules in one step:
 
 ```bash
 git clone --recurse-submodules https://github.com/NoteCAD/NoteCAD.git
 ```
 
-If you have already cloned without submodules, initialise them afterwards:
-
-```bash
-git submodule update --init --recursive
-```
-
-### Open in Unity
-
 1. Launch **Unity Hub**.
-2. Click **Add** → **Add project from disk** and select the cloned `NoteCAD` folder.
-3. Open the project. Unity will import all assets on the first launch (this may take a few minutes).
-4. In the **Project** window, open `Assets/Scenes/NoteCAD.unity`.
-5. Press **Play** to run the application inside the editor.
-
-### Build a Standalone / WebGL Binary
-
-1. Open **File → Build Settings**.
-2. Select your target platform (e.g. *WebGL*, *Windows*, *Linux*, *macOS*).
-3. Click **Switch Platform** if the target is not already active.
-4. Click **Build** (or **Build And Run**) and choose an output folder.
+2. Click **Add** → **Add project from disk** and select the cloned folder.
+3. Open `Assets/Scenes/NoteCAD.unity` and press **Play**.
+4. Build via **File → Build Settings** for your target platform.
 
 ---
 
 ## Project Structure
 
 ```
+NoteCAD.Core/              # Engine-independent C# library (NEW)
+  NoteCAD.Core.csproj      # .NET 8 project
+  UnityCompat/             # Unity math-type shim (no Unity DLL required)
+
+NoteCAD.Godot/             # Godot 4 open-source frontend (NEW)
+  project.godot            # Godot project configuration
+  NoteCAD.Godot.csproj     # C# project
+  Main.cs / Main.tscn      # Application entry point
+
 Assets/
   Code/
-    Constraints/   # Geometric constraint implementations
-    Entities/      # Sketch entity types (line, arc, circle, …)
-    Features/      # 3D feature operations (extrude, revolve, …)
-    Solver/        # Algebraic constraint solver (Newton method)
-    Tools/         # Editor tools and UI actions
-    Behaviours/    # Unity MonoBehaviour helpers
-    Geometry/      # Core geometry utilities
-    External/      # Third-party libraries (git submodules)
-  Scenes/          # Unity scenes (NoteCAD, NoteCAM, SketchEditorExample)
-  Prefabs/         # UI and object prefabs
-ProjectSettings/   # Unity project settings
+    Constraints/           # Geometric constraint implementations
+    Entities/              # Sketch entity types (line, arc, circle, …)
+    Features/              # 3D feature operations (extrude, revolve, …)
+    Solver/                # Algebraic constraint solver (Newton method)
+    Tools/                 # Editor tools and UI actions
+    Behaviours/            # Unity MonoBehaviour helpers
+    Geometry/              # Core geometry utilities
+    External/              # Third-party libraries (git submodules)
+  Scenes/                  # Unity scenes (NoteCAD, NoteCAM, …)
+  Prefabs/                 # UI and object prefabs
+ProjectSettings/           # Unity project settings
 ```
 
 ### External Libraries (submodules)
@@ -113,4 +174,5 @@ ProjectSettings/   # Unity project settings
 
 ## Contributing
 
-Contributions, bug reports and feature requests are welcome. Please open an issue or submit a pull request on [GitHub](https://github.com/NoteCAD/NoteCAD).
+Contributions, bug reports and feature requests are welcome. Please open an
+issue or submit a pull request on [GitHub](https://github.com/NoteCAD/NoteCAD).
