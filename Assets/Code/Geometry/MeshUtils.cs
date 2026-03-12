@@ -10,12 +10,11 @@ using NoteCAD;
 public static class MeshUtils {
 
 	public static void CreateMeshRegion(List<List<Vector3>> polygons, ref Mesh mesh) {
-		var capacity = polygons.Sum(p => p.Count - 2) * 3;
-		var vertices = new List<Vector3>(capacity);
-		var indices = new List<int>(capacity);
-		foreach(var p in polygons) {
-			var pv = new List<Vector3>(p);
-			var triangles = Triangulation.Triangulate(pv);
+		var regions = Sketch.GroupPolygons(polygons, null);
+		var vertices = new List<Vector3>();
+		var indices = new List<int>();
+		foreach(var (outer, holes, _, __) in regions) {
+			var triangles = Triangulation.TriangulateWithHoles(outer, holes);
 			var start = vertices.Count;
 			vertices.AddRange(triangles);
 			for(int i = 0; i < triangles.Count; i++) {
@@ -119,22 +118,20 @@ public static class MeshUtils {
 	public static Solid CreateSolidExtrusion(List<List<IEntity>> entitiyLoops, float extrude, UnityEngine.Matrix4x4 tf, IdPath feature) {
 		var ids = new List<List<IdPath>>();
 		var polygons = Sketch.GetPolygons(entitiyLoops, ref ids);
+		var regions = Sketch.GroupPolygons(polygons, ids);
 		bool inversed = extrude < 0f;
 		
 		var polys = new List<Polygon>();
 
 		Func<Vector3, Vector3> TF = v => tf.MultiplyPoint(v);
 
-		for(int pi = 0; pi < polygons.Count; pi++) {
-			var p = polygons[pi];
-			var pid = ids[pi];
-			var pv = new List<Vector3>(p);
-			var triangles = Triangulation.Triangulate(pv);
+		foreach(var (outer, holes, outerIds, holeIdsList) in regions) {
+			var extrudeVector = Vector3.forward * extrude;
+			var triangles = Triangulation.TriangulateWithHoles(outer, holes);
 
 			IdPath polyId = feature.With(new Id(-1)); 
 			bool invComp = true;
 			var shift = Vector3.zero;
-			var extrudeVector = Vector3.forward * extrude;
 
 			for(int side = 0; side < 2; side++) {
 				for(int i = 0; i < triangles.Count / 3; i++) {
@@ -150,35 +147,49 @@ public static class MeshUtils {
 				shift = extrudeVector;
 			}
 
-			Dictionary<IdPath, IdPath> paths = new Dictionary<IdPath, IdPath>();
-			for(int i = 0; i < p.Count; i++) {
-				var polygonVertices = new List<Vertex>();
-				polygonVertices.Add(TF(p[i]).ToVertex());
-				polygonVertices.Add(TF(p[(i + 1) % p.Count]).ToVertex());
-				polygonVertices.Add(TF((p[(i + 1) % p.Count] + extrudeVector)).ToVertex());
-				polygonVertices.Add(TF((p[i] + extrudeVector)).ToVertex());
-				if(!inversed) polygonVertices.Reverse();
-				IdPath curPath = null;
+			AddWallsExtrusion(polys, outer, extrudeVector, inversed, outerIds, TF, false);
+			for(int h = 0; h < holes.Count; h++) {
+				var holeIds = h < holeIdsList.Count ? holeIdsList[h] : null;
+				AddWallsExtrusion(polys, holes[h], extrudeVector, inversed, holeIds, TF, true);
+			}
+		}
+		return Solid.FromPolygons(polys);
+	}
+
+	// Holes need opposite winding from outer walls so CSG normals remain outward-facing.
+	static bool ShouldReverseWinding(bool isHole, bool inversed) => isHole ? inversed : !inversed;
+
+	static void AddWallsExtrusion(List<Polygon> polys, List<Vector3> p, Vector3 extrudeVector, bool inversed,
+		List<IdPath> pid, Func<Vector3, Vector3> TF, bool isHole) {
+		var paths = new Dictionary<IdPath, IdPath>();
+		for(int i = 0; i < p.Count; i++) {
+			var polygonVertices = new List<Vertex>();
+			polygonVertices.Add(TF(p[i]).ToVertex());
+			polygonVertices.Add(TF(p[(i + 1) % p.Count]).ToVertex());
+			polygonVertices.Add(TF((p[(i + 1) % p.Count] + extrudeVector)).ToVertex());
+			polygonVertices.Add(TF((p[i] + extrudeVector)).ToVertex());
+			if(ShouldReverseWinding(isHole, inversed)) polygonVertices.Reverse();
+			IdPath curPath = null;
+			if(pid != null && i < pid.Count) {
 				if(!paths.ContainsKey(pid[i])) {
 					//curPath = feature.With(pid[i]);
 					paths.Add(pid[i], curPath);
 				} else {
 					curPath = paths[pid[i]];
 				}
-				polys.Add(new Polygon(polygonVertices, curPath));
 			}
+			polys.Add(new Polygon(polygonVertices, curPath));
 		}
-		return Solid.FromPolygons(polys);
 	}
 
 	public static Solid CreateSolidRevolve(List<List<IEntity>> entitiyLoops, float angle, float helixStep, Vector3 axis, Vector3 origin,  float angleStep, UnityEngine.Matrix4x4 tf, IdPath feature) {
 		var ids = new List<List<IdPath>>();
 		var polygons = Sketch.GetPolygons(entitiyLoops, ref ids);
+		var regions = Sketch.GroupPolygons(polygons, ids);
 		bool isHelix = (Math.Abs(helixStep) > 1e-6);
 		if(!isHelix && Mathf.Abs(angle) > 360f) angle = Mathf.Sign(angle) * 360f;
 		bool inversed = angle < 0f;
 		int subdiv = (int)Mathf.Ceil(Math.Abs(angle) / angleStep);
-		//var drot = UnityEngine.Matrix4x4.Translate(origin) * UnityEngine.Matrix4x4.Rotate(Quaternion.AngleAxis(angle / subdiv, axis)) * UnityEngine.Matrix4x4.Translate(-origin);
 
 		Func<float, Vector3, Vector3> PointOn = (float a, Vector3 point) => {
 			var ax = axis;
@@ -195,11 +206,8 @@ public static class MeshUtils {
 		var polys = new List<Polygon>();
 		Func<Vector3, Vector3> TF = v => tf.MultiplyPoint(v);
 
-		for(int pi = 0; pi < polygons.Count ; pi++) {
-			var p = polygons[pi];
-			var pid = ids[pi];
-			var pv = new List<Vector3>(p);
-			var triangles = Triangulation.Triangulate(pv);
+		foreach(var (outer, holes, outerIds, holeIdsList) in regions) {
+			var triangles = Triangulation.TriangulateWithHoles(outer, holes);
 
 			IdPath polyId = feature.With(new Id(-1)); 
 			bool invComp = true;
@@ -221,45 +229,57 @@ public static class MeshUtils {
 				}
 			}
 
-			Dictionary<IdPath, IdPath> paths = new Dictionary<IdPath, IdPath>();
-			for(int i = 0; i < p.Count; i++) {
-				float a = 0f;
-				float da = angle / subdiv;
-				for(int j = 0; j < subdiv; j++) {
-					var polygonVertices = new List<Vertex>();
-					polygonVertices.Add(PointOn(a, TF(p[(i + 1) % p.Count])).ToVertex());
-					polygonVertices.Add(PointOn(a + da, TF(p[(i + 1) % p.Count])).ToVertex());
-					polygonVertices.Add(PointOn(a + da, TF(p[i])).ToVertex());
-					polygonVertices.Add(PointOn(a, TF(p[i])).ToVertex());
-					a += da;
-					if(!inversed) polygonVertices.Reverse();
-					IdPath curPath = null;
+			AddWallsRevolve(polys, outer, PointOn, angle, subdiv, inversed, isHelix, outerIds, TF, false);
+			for(int h = 0; h < holes.Count; h++) {
+				var holeIds = h < holeIdsList.Count ? holeIdsList[h] : null;
+				AddWallsRevolve(polys, holes[h], PointOn, angle, subdiv, inversed, isHelix, holeIds, TF, true);
+			}
+		}
+		return Solid.FromPolygons(polys);
+	}
+
+	static void AddWallsRevolve(List<Polygon> polys, List<Vector3> p, Func<float, Vector3, Vector3> PointOn,
+		float angle, int subdiv, bool inversed, bool isHelix,
+		List<IdPath> pid, Func<Vector3, Vector3> TF, bool isHole) {
+		var paths = new Dictionary<IdPath, IdPath>();
+		for(int i = 0; i < p.Count; i++) {
+			float a = 0f;
+			float da = angle / subdiv;
+			for(int j = 0; j < subdiv; j++) {
+				var polygonVertices = new List<Vertex>();
+				polygonVertices.Add(PointOn(a, TF(p[(i + 1) % p.Count])).ToVertex());
+				polygonVertices.Add(PointOn(a + da, TF(p[(i + 1) % p.Count])).ToVertex());
+				polygonVertices.Add(PointOn(a + da, TF(p[i])).ToVertex());
+				polygonVertices.Add(PointOn(a, TF(p[i])).ToVertex());
+				a += da;
+				if(ShouldReverseWinding(isHole, inversed)) polygonVertices.Reverse();
+				IdPath curPath = null;
+				if(pid != null && i < pid.Count) {
 					if(!paths.ContainsKey(pid[i])) {
 						//curPath = feature.With(pid[i]);
 						paths.Add(pid[i], curPath);
 					} else {
 						curPath = paths[pid[i]];
 					}
+				}
 
-					if(isHelix) {
-						var verts = new List<Vertex>();
-						verts.Add(polygonVertices[0]);
-						verts.Add(polygonVertices[1]);
-						verts.Add(polygonVertices[2]);
-						polys.Add(new Polygon(verts, curPath));
+				if(isHelix) {
+					var verts = new List<Vertex>();
+					verts.Add(polygonVertices[0]);
+					verts.Add(polygonVertices[1]);
+					verts.Add(polygonVertices[2]);
+					polys.Add(new Polygon(verts, curPath));
 
-						verts = new List<Vertex>();
-						verts.Add(polygonVertices[0]);
-						verts.Add(polygonVertices[2]);
-						verts.Add(polygonVertices[3]);
-						polys.Add(new Polygon(verts, curPath));
-					} else {
-						polys.Add(new Polygon(polygonVertices, curPath));
-					}
+					verts = new List<Vertex>();
+					verts.Add(polygonVertices[0]);
+					verts.Add(polygonVertices[2]);
+					verts.Add(polygonVertices[3]);
+					polys.Add(new Polygon(verts, curPath));
+				} else {
+					polys.Add(new Polygon(polygonVertices, curPath));
 				}
 			}
 		}
-		return Solid.FromPolygons(polys);
 	}
 	
 	public static Vector3D ToVector3D(this Vector3 v) {

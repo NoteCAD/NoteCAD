@@ -509,6 +509,61 @@ public class Sketch : CADObject  {
 		return result;
 	}
 
+	// Ray-casting point-in-polygon test (2D, uses x/y coordinates only).
+	// Returns true if point is strictly inside the polygon.
+	static bool PointInPolygon2D(Vector3 point, List<Vector3> polygon) {
+		bool inside = false;
+		int j = polygon.Count - 1;
+		for(int i = 0; i < polygon.Count; i++) {
+			// Only consider edges whose y-range straddles the test point's y.
+			// The division is safe because the condition ensures the two y-values differ.
+			if((polygon[i].y > point.y) != (polygon[j].y > point.y) &&
+				point.x < (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x) {
+				inside = !inside;
+			}
+			j = i;
+		}
+		return inside;
+	}
+
+	public static List<(List<Vector3> outer, List<List<Vector3>> holes, List<IdPath> outerIds, List<List<IdPath>> holeIds)>
+	GroupPolygons(List<List<Vector3>> polygons, List<List<IdPath>> ids) {
+		var result = new List<(List<Vector3>, List<List<Vector3>>, List<IdPath>, List<List<IdPath>>)>();
+		if(polygons == null || polygons.Count == 0) return result;
+
+		var depths = new int[polygons.Count];
+		for(int i = 0; i < polygons.Count; i++) {
+			if(polygons[i].Count == 0) continue;
+			for(int j = 0; j < polygons.Count; j++) {
+				if(i == j || polygons[j].Count == 0) continue;
+				if(PointInPolygon2D(polygons[i][0], polygons[j])) depths[i]++;
+			}
+		}
+
+		for(int i = 0; i < polygons.Count; i++) {
+			if(depths[i] % 2 != 0) continue;
+			var outer = polygons[i];
+			var outerIds_ = (ids != null && i < ids.Count) ? ids[i] : null;
+			var holes = new List<List<Vector3>>();
+			var holeIds_ = new List<List<IdPath>>();
+
+			for(int j = 0; j < polygons.Count; j++) {
+				if(j == i || depths[j] != depths[i] + 1 || polygons[j].Count == 0) continue;
+				if(!PointInPolygon2D(polygons[j][0], outer)) continue;
+				var hole = new List<Vector3>(polygons[j]);
+				hole.Reverse();
+				holes.Add(hole);
+				if(ids != null && j < ids.Count) {
+					var hId = new List<IdPath>(ids[j]);
+					hId.Reverse();
+					holeIds_.Add(hId);
+				}
+			}
+			result.Add((outer, holes, outerIds_, holeIds_));
+		}
+		return result;
+	}
+
 	public void Write(Writer xml, Func<SketchObject, bool> filter = null) {
 		if(parameters.Count > 0) {
 			xml.WriteBeginArray("parameters");

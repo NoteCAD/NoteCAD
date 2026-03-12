@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using TriangleNet.Geometry;
+using TriangleNet.Meshing;
 
 public static class Triangulation {
 
@@ -53,6 +55,42 @@ public static class Triangulation {
 					}
 				}
 			}
+		}
+		return result;
+	}
+
+	public static List<Vector3> TriangulateWithHoles(List<Vector3> outer, List<List<Vector3>> holes) {
+		var poly = new Polygon();
+
+		// Outer contour: Triangle.NET expects CCW for outer boundary.
+		// Our outer polygon is CW, so reverse before adding.
+		var outerVerts = outer.Select(v => new Vertex(v.x, v.y)).ToList();
+		outerVerts.Reverse();
+		poly.Add(new Contour(outerVerts));
+
+		if(holes != null) {
+			foreach(var hole in holes) {
+				if(hole.Count < 3) continue;
+				// Hole polygons have been reversed to CCW order in GroupPolygons.
+				// Passing hole=true tells Triangle.NET to treat the interior as void.
+				var holeVerts = hole.Select(v => new Vertex(v.x, v.y)).ToList();
+				poly.Add(new Contour(holeVerts), true);
+			}
+		}
+
+		var options = new ConstraintOptions { ConformingDelaunay = false };
+		var mesh = poly.Triangulate(options);
+
+		// Triangle.NET outputs CCW triangles; return CW (matching Triangulate output).
+		var result = new List<Vector3>(mesh.Triangles.Count * 3);
+		foreach(var tri in mesh.Triangles) {
+			var v0 = tri.GetVertex(0);
+			var v1 = tri.GetVertex(1);
+			var v2 = tri.GetVertex(2);
+			// Reverse CCW → CW
+			result.Add(new Vector3((float)v0.x, (float)v0.y, 0f));
+			result.Add(new Vector3((float)v2.x, (float)v2.y, 0f));
+			result.Add(new Vector3((float)v1.x, (float)v1.y, 0f));
 		}
 		return result;
 	}
