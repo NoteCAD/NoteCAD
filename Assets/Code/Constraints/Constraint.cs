@@ -152,9 +152,12 @@ public class Constraint : SketchObject {
 	public override void Read(XmlNode xml) {
 		ids.Clear();
 		if(Enum.GetNames(optionInternal.GetType()).Length >= 2) {
-			Enum output = optionInternal;
-			xml.Attributes["chirality"].Value.ToEnum(ref output);
-			optionInternal = output;
+			var chiralityAttr = xml.Attributes["chirality"];
+			if(chiralityAttr != null) {
+				Enum output = optionInternal;
+				chiralityAttr.Value.ToEnum(ref output);
+				optionInternal = output;
+			}
 		}
 		foreach(XmlNode node in xml.ChildNodes) {
 			if(node.Name != "entity" && node.Name != "link") continue;

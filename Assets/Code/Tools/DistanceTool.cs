@@ -113,8 +113,34 @@ public class DistanceTool : Tool {
 	protected override void OnMouseMove(Vector3 pos, ICADObject entity) {
 		if(constraint != null) {
 			constraint.Drag(WorldPlanePos - click);
+			AutoSelectHVOption();
 		}
 		click = WorldPlanePos;
+	}
+
+	void AutoSelectHVOption() {
+		var pd = constraint as PointsDistance;
+		if(pd == null) return;
+		var plane = DetailEditor.instance.currentSketch.GetSketch().plane;
+		if(plane == null) return;
+
+		var labelDir = plane.DirToPlane(WorldPlanePos - pd.GetMidpoint());
+		PointsDistance.Option newOption;
+		// When label is dragged horizontally (left/right), show vertical span (vertical option).
+		// When label is dragged vertically (up/down), show horizontal span (horizontal option).
+		// The label is placed perpendicular to the measurement direction.
+		if(Math.Abs(labelDir.x) > Math.Abs(labelDir.y)) {
+			newOption = PointsDistance.Option.Vertical;
+		} else {
+			newOption = PointsDistance.Option.Horizontal;
+		}
+
+		if(newOption != pd.option) {
+			var worldPos = constraint.pos;
+			pd.option = newOption;
+			constraint.pos = worldPos;
+			pd.Satisfy();
+		}
 	}
 
 	protected override string OnGetDescription() {
