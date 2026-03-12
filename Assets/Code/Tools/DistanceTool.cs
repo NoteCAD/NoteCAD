@@ -6,12 +6,24 @@ using NoteCAD;
 
 public class DistanceTool : Tool {
 
+	[System.Serializable]
+	class DistanceOptions {
+		bool useHorizVert_ = false;
+		public bool useHorizVert { get { return useHorizVert_; } set { useHorizVert_ = value; } }
+	}
+
+	DistanceOptions options = new DistanceOptions();
+
 	IEntity e0;
 	ValueConstraint constraint;
 	Vector3 click;
 
 	DistanceTool() {
 		enableHoverFilter = true;
+	}
+
+	protected override void OnActivate() {
+		Inspect(options);
 	}
 
 	protected override bool OnTryHover(Constraint c) {
@@ -121,6 +133,15 @@ public class DistanceTool : Tool {
 	void AutoSelectHVOption() {
 		var pd = constraint as PointsDistance;
 		if(pd == null) return;
+		if(!options.useHorizVert) {
+			if(pd.option != PointsDistance.Option.Closest) {
+				var worldPos = constraint.pos;
+				pd.option = PointsDistance.Option.Closest;
+				constraint.pos = worldPos;
+				pd.Satisfy();
+			}
+			return;
+		}
 		var plane = DetailEditor.instance.currentSketch.GetSketch().plane;
 		if(plane == null) return;
 
