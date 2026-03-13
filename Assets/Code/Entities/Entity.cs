@@ -462,7 +462,7 @@ namespace NoteCAD {
 			return (lo + hi) / 2.0;
 		}
 
-		public List<Vector3> GetAllIntersections(Entity e, bool refine = false) {
+		public List<Vector3> GetAllIntersections(Entity e, bool refine = false, bool includeTouches = false) {
 			var result = new List<Vector3>();
 			bool hasBbox = !bbox.Equals(new BBox(Vector3.zero, Vector3.zero));
 			bool otherHasBbox = !e.bbox.Equals(new BBox(Vector3.zero, Vector3.zero));
@@ -479,8 +479,21 @@ namespace NoteCAD {
 					foreach(var lp in entity.segmentPoints) foreach(var ep in lp) {
 						if(!otherFirst) {
 							Vector3 itr = Vector3.zero;
-							if(GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f) == GeomUtils.Cross.INTERSECTION) {
+							var cross = GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f);
+							if(cross == GeomUtils.Cross.INTERSECTION) {
 								result.Add(refine ? RefineIntersection(this, e, itr) : itr);
+							} else if(includeTouches) {
+								// isSegmentsCrossed misses endpoint-on-endpoint contacts (the ray cast
+								// returns distance=0 which Unity treats as no hit). Check directly:
+								// if an endpoint of the other segment lies ON the self segment, add it.
+								// Note: callers are expected to deduplicate (multiple segment pairs may
+								// report the same touch point at shared vertices).
+								var clA = GeomUtils.classify(otherPrev, selfPrev, sp, 1e-6f);
+								if(clA == GeomUtils.Classify.etTOUCHA || clA == GeomUtils.Classify.etTOUCHB || clA == GeomUtils.Classify.etBETWEEN)
+									result.Add(refine ? RefineIntersection(this, e, otherPrev) : otherPrev);
+								var clB = GeomUtils.classify(ep, selfPrev, sp, 1e-6f);
+								if(clB == GeomUtils.Classify.etTOUCHA || clB == GeomUtils.Classify.etTOUCHB || clB == GeomUtils.Classify.etBETWEEN)
+									result.Add(refine ? RefineIntersection(this, e, ep) : ep);
 							}
 						}
 						otherFirst = false;
