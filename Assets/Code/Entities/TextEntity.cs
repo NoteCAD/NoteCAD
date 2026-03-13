@@ -320,6 +320,9 @@ public class TextEntity : Entity, ILoopEntity {
 		}
 	}
 
+	public IEnumerable<IEnumerable<Vector3>> segmentPoints =>
+		loopPoints.Select(loop => loop.Concat(loop.Take(1)));
+
 	public override ExpVector PointOn(Exp t) {
 		return null;
 	}

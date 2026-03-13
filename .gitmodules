@@ -22,3 +22,6 @@
 [submodule "Assets/Code/External/ACadSharp"]
 	path = Assets/Code/External/ACadSharp
 	url = https://github.com/NoteCAD/ACadSharp.git
+[submodule "Assets/Code/External/TriangleNet"]
+	path = Assets/Code/External/TriangleNet
+	url = https://github.com/NoteCAD/Triangle.NET

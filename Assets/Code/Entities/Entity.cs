@@ -358,9 +358,9 @@ namespace NoteCAD {
 		public virtual bool IsCrossed(Entity e, ref Vector3 itr) {
 			var boxZero = new BBox(Vector3.zero, Vector3.zero);
 			if(!e.bbox.Overlaps(bbox) && !e.bbox.Equals(boxZero) && !bbox.Equals(boxZero)) return false;
-			if(this is ISegmentaryEntity && e is ISegmentaryEntity) {
-				var self = this as ISegmentaryEntity;
-				var entity = e as ISegmentaryEntity;
+			if(this is ISegmentProvider && e is ISegmentProvider) {
+				var self = this as ISegmentProvider;
+				var entity = e as ISegmentProvider;
 
 				Vector3 selfPrev = Vector3.zero;
 				bool selfFirst = true;
@@ -546,13 +546,16 @@ namespace NoteCAD {
 
 	}
 
-	public interface ISegmentaryEntity {
-		PointEntity begin { get; }
-		PointEntity end { get; }
+	public interface ISegmentProvider {
 		IEnumerable<IEnumerable<Vector3>> segmentPoints { get; }
 	}
 
-	public interface ILoopEntity {
+	public interface ISegmentaryEntity : ISegmentProvider {
+		PointEntity begin { get; }
+		PointEntity end { get; }
+	}
+
+	public interface ILoopEntity : ISegmentProvider {
 		IEnumerable<IEnumerable<Vector3>> loopPoints { get; }
 	}
 }

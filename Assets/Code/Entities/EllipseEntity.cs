@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 using UnityEngine;
 using NoteCAD;
@@ -56,9 +57,8 @@ public class EllipseEntity : Entity, ILoopEntity {
 		}
 	}
 
-	public override bool IsCrossed(Entity e, ref Vector3 itr) {
-		return false;
-	}
+	public IEnumerable<IEnumerable<Vector3>> segmentPoints =>
+		loopPoints.Select(loop => loop.Concat(loop.Take(1)));
 
 	protected override void OnWrite(Writer xml) {
 		xml.WriteAttribute("r0", Math.Abs(r0.value));
