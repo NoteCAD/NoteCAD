@@ -130,7 +130,7 @@ NoteCAD can be integrated into other Unity 3D applications as a UPM (Unity Packa
 
 ### Example Scene
 
-An example demonstrating how to embed the sketch editor is included in the package. After adding the package, open:
+An example demonstrating how to embed the sketch editor is included in the package. After adding the package, copy to your project folder and open the following scene:
 
 ```
 Packages/com.macroshape.notecad/Scenes/SketchEditorExample.unity
