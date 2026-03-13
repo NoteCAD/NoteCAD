@@ -198,6 +198,9 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 	}
 
 	public List<List<IEntity>> GetLoops() {
+		if(detail.settings.checkSketchErrors) {
+			return loops.Where(l => l.All(e => !(e is Entity) || !(e as Entity).isError)).ToList();
+		}
 		return loops;
 	}
 
