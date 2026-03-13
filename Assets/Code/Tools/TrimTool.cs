@@ -14,6 +14,7 @@ public class TrimTool : Tool {
 
 	const double ENDPOINT_TOLERANCE  = 1e-4;
 	const double DUPLICATE_TOLERANCE = 1e-3;
+	const float  ON_ENTITY_TOL_SQ    = 1e-6f; // endpoint-on-entity check: distance < ~0.001 units
 
 	TrimTool() {
 		enableHoverFilter = true;
@@ -89,7 +90,8 @@ public class TrimTool : Tool {
 	}
 
 	// Collect all intersections with other entities; uses Newton refinement for precision.
-	// Also includes PointOn constraint positions so adjacent endpoints act as boundaries.
+	// Also includes PointOn constraint positions and endpoints of adjacent entities so that
+	// T-intersections and PointsCoincident-based connections act as trim boundaries.
 	List<(Vector3 pos, double t)> CollectIntersections(Entity entity) {
 		var result = new List<(Vector3 pos, double t)>();
 		foreach(var other in entity.sketch.entityList) {
@@ -104,8 +106,31 @@ public class TrimTool : Tool {
 			if(pon == null || pon.on != entity) continue;
 			AddIntersectionIfNew(entity, pon.pointPos, result);
 		}
+		// Also detect endpoints of other segmentary entities that lie ON this entity.
+		// GetAllIntersections uses Cross.INTERSECTION only and misses endpoint touches
+		// (Cross.TOUCH), so PointsCoincident-based T-junctions and adjacent connections
+		// would otherwise be silently skipped.
+		Param pCheck = new Param("pCheck");
+		var ptOnExpr = entity.PointOn(pCheck);
+		foreach(var other in entity.sketch.entityList) {
+			if(other == entity) continue;
+			var seg = other as ISegmentaryEntity;
+			if(seg == null) continue;
+			TryAddEndpointOnEntity(entity, pCheck, ptOnExpr, seg.begin.pos, result);
+			TryAddEndpointOnEntity(entity, pCheck, ptOnExpr, seg.end.pos, result);
+		}
 		result.Sort((a, b) => a.t.CompareTo(b.t));
 		return result;
+	}
+
+	void TryAddEndpointOnEntity(Entity entity, Param pOn, ExpVector ptOnExpr,
+		Vector3 pt, List<(Vector3 pos, double t)> result)
+	{
+		pOn.value = entity.FindParameter(pt);
+		Vector3 onPt = ptOnExpr.Eval();
+		if((onPt - pt).sqrMagnitude < ON_ENTITY_TOL_SQ) {
+			AddIntersectionIfNew(entity, onPt, result);
+		}
 	}
 
 	void AddIntersectionIfNew(Entity entity, Vector3 pt, List<(Vector3 pos, double t)> result) {
