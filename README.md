@@ -111,6 +111,35 @@ ProjectSettings/   # Unity project settings
 
 ---
 
+## Using NoteCAD as an External Package
+
+NoteCAD can be integrated into other Unity 3D applications as a UPM (Unity Package Manager) package.
+
+### Adding the Package
+
+1. Open your Unity project.
+2. Open **Window → Package Manager**.
+3. Click the **+** button in the top-left corner and choose **Add package from git URL…**.
+4. Enter the following URL and click **Add**:
+
+   ```
+   https://github.com/Evil-Spirit/NoteCADPro.git?path=/Assets
+   ```
+
+5. Unity will download and import the NoteCAD package into your project.
+
+### Example Scene
+
+An example demonstrating how to embed the sketch editor is included in the package. After adding the package, open:
+
+```
+Packages/com.macroshape.notecad/Scenes/SketchEditorExample.unity
+```
+
+This scene shows the minimal setup required to use the NoteCAD sketch editor inside your own application.
+
+---
+
 ## Contributing
 
 Contributions, bug reports and feature requests are welcome. Please open an issue or submit a pull request on [GitHub](https://github.com/NoteCAD/NoteCAD).
