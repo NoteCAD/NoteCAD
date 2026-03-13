@@ -91,6 +91,16 @@ public class EllipticArcEntity : Entity, ISegmentaryEntity {
 		return part;
 	}
 
+	public override double FindParameter(Vector3 pos) {
+		var toP0 = p0.pos - c.pos;
+		var toPos = pos - c.pos;
+		float arcAngle = (float)GetAngle();
+		if(arcAngle < 1e-6f) return 0.0;
+		float angleToPos = GeomUtils.GetAngle(toP0, toPos);
+		if(angleToPos < 0f) angleToPos += 2f * Mathf.PI;
+		return (double)Mathf.Clamp01(angleToPos / arcAngle);
+	}
+
 	/*
 	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
 		float angle = GetAngle() * Mathf.Rad2Deg;

@@ -57,6 +57,13 @@ public class LineEntity : Entity, ISegmentaryEntity {
 		return part;
 	}
 
+	public override double FindParameter(Vector3 pos) {
+		var dir = p1.pos - p0.pos;
+		float len2 = Vector3.Dot(dir, dir);
+		if(len2 < 1e-10f) return 0.0;
+		return (double)Mathf.Clamp01(Vector3.Dot(pos - p0.pos, dir) / len2);
+	}
+
 	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
 		var ap = camera.WorldToScreenPoint(tf.MultiplyPoint(p0.GetPosition()));
 		var bp = camera.WorldToScreenPoint(tf.MultiplyPoint(p1.GetPosition()));

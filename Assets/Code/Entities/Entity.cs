@@ -422,7 +422,72 @@ namespace NoteCAD {
 		}
 
 		public Entity Split(Vector3 position) {
-			return OnSplit(position);
+			var part = OnSplit(position);
+			if(part != null && this is ISegmentaryEntity && part is ISegmentaryEntity) {
+				sketch.ReplaceEntityInConstraints((this as ISegmentaryEntity).end, (part as ISegmentaryEntity).end);
+			}
+			return part;
+		}
+
+		public virtual double FindParameter(Vector3 pos) {
+			Param pOn = new Param("pOn");
+			var on = PointOn(pOn);
+			int steps = 32;
+			double best_t = 0.0;
+			double best_dist = double.MaxValue;
+			for(int i = 0; i <= steps; i++) {
+				pOn.value = (double)i / steps;
+				var p = on.Eval();
+				var d = (p - pos).sqrMagnitude;
+				if(d < best_dist) {
+					best_dist = d;
+					best_t = pOn.value;
+				}
+			}
+			double lo = Math.Max(0.0, best_t - 1.0 / steps);
+			double hi = Math.Min(1.0, best_t + 1.0 / steps);
+			for(int iter = 0; iter < 20; iter++) {
+				double tl = lo + (hi - lo) / 3.0;
+				double tr = lo + 2.0 * (hi - lo) / 3.0;
+				pOn.value = tl;
+				double dl = (on.Eval() - pos).sqrMagnitude;
+				pOn.value = tr;
+				double dr = (on.Eval() - pos).sqrMagnitude;
+				if(dl < dr) hi = tr;
+				else lo = tl;
+			}
+			return (lo + hi) / 2.0;
+		}
+
+		public List<Vector3> GetAllIntersections(Entity e) {
+			var result = new List<Vector3>();
+			bool hasBbox = !bbox.Equals(new BBox(Vector3.zero, Vector3.zero));
+			bool otherHasBbox = !e.bbox.Equals(new BBox(Vector3.zero, Vector3.zero));
+			if(hasBbox && otherHasBbox && !e.bbox.Overlaps(bbox)) return result;
+			if(!(this is ISegmentProvider) || !(e is ISegmentProvider)) return result;
+			var self = this as ISegmentProvider;
+			var entity = e as ISegmentProvider;
+			Vector3 selfPrev = Vector3.zero;
+			bool selfFirst = true;
+			foreach(var spl in self.segmentPoints) foreach(var sp in spl) {
+				if(!selfFirst) {
+					Vector3 otherPrev = Vector3.zero;
+					bool otherFirst = true;
+					foreach(var lp in entity.segmentPoints) foreach(var ep in lp) {
+						if(!otherFirst) {
+							Vector3 itr = Vector3.zero;
+							if(GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f) == GeomUtils.Cross.INTERSECTION) {
+								result.Add(itr);
+							}
+						}
+						otherFirst = false;
+						otherPrev = ep;
+					}
+				}
+				selfFirst = false;
+				selfPrev = sp;
+			}
+			return result;
 		}
 
 		protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {

@@ -66,16 +66,50 @@ public class SplineEntity : Entity, ISegmentaryEntity {
 			return box;
 		}
 	}
-	/*
-	protected override Entity OnSplit(Vector3 position) {
-		var part = new ArcEntity(sketch);
-		part.center.pos = center.pos;
-		part.p1.pos = p1.pos;
-		p1.pos = position;
-		part.p0.pos = p1.pos;
+		protected override Entity OnSplit(Vector3 position) {
+		double t = FindParameter(position);
+		var part = new SplineEntity(sketch);
+		var p01 = Vector3.Lerp(p[0].pos, p[1].pos, (float)t);
+		var p12 = Vector3.Lerp(p[1].pos, p[2].pos, (float)t);
+		var p23 = Vector3.Lerp(p[2].pos, p[3].pos, (float)t);
+		var p012 = Vector3.Lerp(p01, p12, (float)t);
+		var p123 = Vector3.Lerp(p12, p23, (float)t);
+		var p0123 = Vector3.Lerp(p012, p123, (float)t);
+		part.p[0].pos = p0123;
+		part.p[1].pos = p123;
+		part.p[2].pos = p23;
+		part.p[3].pos = p[3].pos;
+		p[1].pos = p01;
+		p[2].pos = p012;
+		p[3].pos = p0123;
 		return part;
 	}
-	*/
+
+	public override double FindParameter(Vector3 pos) {
+		int steps = 32;
+		double best_t = 0.0;
+		double best_dist = double.MaxValue;
+		for(int i = 0; i <= steps; i++) {
+			double t = (double)i / steps;
+			var pt = PointOn(t);
+			var d = (pt - pos).sqrMagnitude;
+			if(d < best_dist) {
+				best_dist = d;
+				best_t = t;
+			}
+		}
+		double lo = System.Math.Max(0.0, best_t - 1.0 / steps);
+		double hi = System.Math.Min(1.0, best_t + 1.0 / steps);
+		for(int iter = 0; iter < 20; iter++) {
+			double tl = lo + (hi - lo) / 3.0;
+			double tr = lo + 2.0 * (hi - lo) / 3.0;
+			var pl = PointOn(tl);
+			var pr = PointOn(tr);
+			if((pl - pos).sqrMagnitude < (pr - pos).sqrMagnitude) hi = tr;
+			else lo = tl;
+		}
+		return (lo + hi) / 2.0;
+	}
 	public override ExpVector PointOn(Exp t) {
 		var p0 = p[0].exp;
 		var p1 = p[1].exp;

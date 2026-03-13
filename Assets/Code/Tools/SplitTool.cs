@@ -11,11 +11,10 @@ public class SplitTool : Tool {
 		editor.PushUndo();
 		var e = sko as Entity;
 		var part = e.Split(pos);
-		if(e is ISegmentaryEntity) {
+		if(e is ISegmentaryEntity && part != null) {
 			var s0 = e as ISegmentaryEntity;
 			var s1 = part as ISegmentaryEntity;
-			e.sketch.ReplaceEntityInConstraints(s0.end, s1.end);
-			new PointsCoincident(e.sketch, s0.end, s1.begin);
+			if(s1 != null) new PointsCoincident(e.sketch, s0.end, s1.begin);
 		}
 	}
 }
