@@ -88,22 +88,32 @@ public class TrimTool : Tool {
 		}
 	}
 
-	// Collect all intersections with other entities; uses Newton refinement for precision
+	// Collect all intersections with other entities; uses Newton refinement for precision.
+	// Also includes PointOn constraint positions so adjacent endpoints act as boundaries.
 	List<(Vector3 pos, double t)> CollectIntersections(Entity entity) {
 		var result = new List<(Vector3 pos, double t)>();
 		foreach(var other in entity.sketch.entityList) {
 			if(other == entity) continue;
 			foreach(var pt in entity.GetAllIntersections(other, refine: true)) {
-				double t = entity.FindParameter(pt);
-				bool dupe = false;
-				foreach(var existing in result) {
-					if(Math.Abs(existing.t - t) < DUPLICATE_TOLERANCE) { dupe = true; break; }
-				}
-				if(!dupe) result.Add((pt, t));
+				AddIntersectionIfNew(entity, pt, result);
 			}
+		}
+		// PointOn constraints where this entity is the "on" entity act as trim boundaries
+		foreach(var c in entity.constraints) {
+			var pon = c as PointOn;
+			if(pon == null || pon.on != entity) continue;
+			AddIntersectionIfNew(entity, pon.pointPos, result);
 		}
 		result.Sort((a, b) => a.t.CompareTo(b.t));
 		return result;
+	}
+
+	void AddIntersectionIfNew(Entity entity, Vector3 pt, List<(Vector3 pos, double t)> result) {
+		double t = entity.FindParameter(pt);
+		foreach(var existing in result) {
+			if(Math.Abs(existing.t - t) < DUPLICATE_TOLERANCE) return;
+		}
+		result.Add((pt, t));
 	}
 
 	// For segmentary entities: find the trim segment containing the mouse parameter

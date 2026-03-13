@@ -423,8 +423,11 @@ namespace NoteCAD {
 
 		public Entity Split(Vector3 position) {
 			var part = OnSplit(position);
-			if(part != null && this is ISegmentaryEntity && part is ISegmentaryEntity) {
-				sketch.ReplaceEntityInConstraints((this as ISegmentaryEntity).end, (part as ISegmentaryEntity).end);
+			if(part != null) {
+				if(style != null) part.style = style;
+				if(this is ISegmentaryEntity && part is ISegmentaryEntity) {
+					sketch.ReplaceEntityInConstraints((this as ISegmentaryEntity).end, (part as ISegmentaryEntity).end);
+				}
 			}
 			return part;
 		}
