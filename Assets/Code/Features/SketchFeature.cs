@@ -22,7 +22,7 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		}
 	}
 	bool transformDirty = true;
-	
+
 	IdPath uId = new IdPath();
 	IdPath vId = new IdPath();
 	IdPath pId = new IdPath();
@@ -46,7 +46,7 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 			transformDirty = true;
 		}
 	}
-	
+
 	public IEntity p {
 		get {
 			return detail.GetObjectById(pId) as IEntity;
@@ -129,17 +129,42 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 	void CreateLoops() {
 		if(detail.settings.checkSketchErrors) {
 			var itr = new Vector3();
+
+			// check self intersection
 			foreach(var l in loops) {
 				var loop = l.OfType<Entity>();
 				loop.ForEach(e => e.isError = false);
 				foreach(var e0 in loop) {
 					foreach(var e1 in loop) {
+						if (e0 == e1) {
+							continue;
+						}
 						var cross = e0.IsCrossed(e1, ref itr);
-						e0.isError = e0.isError || cross;
-						e1.isError = e1.isError || cross;
+						if (cross) {
+							e0.isError = true;
+							e1.isError = true;
+						}
 					}
 				}
 			}
+			// check cross-loop intersection
+			for(int i = 0; i < loops.Count; i++) {
+				for(int j = i + 1; j < loops.Count; j++) {
+					var l0 = loops[i].OfType<Entity>();
+					var l1 = loops[j].OfType<Entity>();
+					foreach(var e0 in l0) {
+						foreach(var e1 in l1) {
+							var cross = e0.IsCrossed(e1, ref itr);
+							if (cross) {
+								e0.isError = true;
+								e1.isError = true;
+							}
+						}
+					}
+				}
+			}
+
+
 		}
 
 		mainMesh.Clear();
