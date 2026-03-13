@@ -197,10 +197,20 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		return part;
 	}
 
+	int GetSubdivisionSteps() {
+		double range = System.Math.Abs(tEnd - tBegin);
+		return System.Math.Max(64, subdivision * (int)System.Math.Ceiling(range > 0 ? range : 1.0));
+	}
+
+	public override double GetTrimPreviewStep() {
+		return 1.0 / GetSubdivisionSteps();
+	}
+
 	public override double FindParameter(Vector3 pos) {
 		Param pOn = new Param("pOn");
 		var on = PointOn(pOn);
-		int steps = 32;
+		// Use subdivision-based steps so oscillating functions are sampled densely enough
+		int steps = GetSubdivisionSteps();
 		double best_t = 0.0;
 		double best_dist = double.MaxValue;
 		for(int i = 0; i <= steps; i++) {

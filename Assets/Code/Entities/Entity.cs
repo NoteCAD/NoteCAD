@@ -429,6 +429,10 @@ namespace NoteCAD {
 			return part;
 		}
 
+		public virtual double GetTrimPreviewStep() {
+			return 1.0 / 64.0;
+		}
+
 		public virtual double FindParameter(Vector3 pos) {
 			Param pOn = new Param("pOn");
 			var on = PointOn(pOn);

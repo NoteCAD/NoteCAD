@@ -1,3 +1,4 @@
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using NoteCAD;
@@ -9,9 +10,25 @@ public class TrimTool : Tool {
 	double trimEnd;
 	Vector3 trimPosBegin;
 	Vector3 trimPosEnd;
-	bool hasBeginIntersection;
-	bool hasEndIntersection;
 	bool hasPreview;
+
+	// Dedicated style with render queue above hover so preview draws on top
+	static readonly StrokeStyle trimPreviewStyle = new StrokeStyle {
+		name = "trimPreview",
+		color = new Color(1f, 0.2f, 0.2f, 1f),
+		width = 2f,
+		inPixels = true,
+		dashesInPixels = true,
+		depthTest = false,
+		queue = 2100
+	};
+
+	const double ENDPOINT_TOLERANCE   = 1e-4;
+	const double DUPLICATE_TOLERANCE  = 1e-3;
+	const double NEWTON_CONVERGENCE   = 1e-12;
+	const double NEWTON_SINGULARITY   = 1e-15;
+	// Step for finite-difference Jacobian: small enough for precision, large enough to avoid cancellation
+	const double NEWTON_FD_STEP       = 1e-6;
 
 	TrimTool() {
 		enableHoverFilter = true;
@@ -22,7 +39,7 @@ public class TrimTool : Tool {
 	}
 
 	protected override bool OnTryHover(IEntity e) {
-		return e is ISegmentaryEntity;
+		return e is ISegmentaryEntity || e is ILoopEntity;
 	}
 
 	protected override void OnActivate() {
@@ -39,17 +56,21 @@ public class TrimTool : Tool {
 		hasPreview = false;
 		var entity = sko as Entity;
 		if(entity == null) return;
-		if(!(entity is ISegmentaryEntity)) return;
 		if(entity.sketch == null) return;
+		bool isLoop = entity is ILoopEntity;
+		bool isSegment = entity is ISegmentaryEntity;
+		if(!isSegment && !isLoop) return;
 
 		var intersections = CollectIntersections(entity);
-		if(intersections.Count == 0) return;
-
 		double t_mouse = entity.FindParameter(pos);
-		ComputeTrimSegment(intersections, t_mouse,
-			out trimBegin, out trimEnd,
-			out trimPosBegin, out trimPosEnd,
-			out hasBeginIntersection, out hasEndIntersection);
+
+		if(isLoop) {
+			ComputeLoopTrimSegment(intersections, t_mouse,
+				out trimBegin, out trimEnd, out trimPosBegin, out trimPosEnd);
+		} else {
+			ComputeTrimSegment(intersections, t_mouse,
+				out trimBegin, out trimEnd, out trimPosBegin, out trimPosEnd);
+		}
 
 		hoveredEntity = entity;
 		hasPreview = true;
@@ -60,85 +81,191 @@ public class TrimTool : Tool {
 		if(hoveredEntity == null) return;
 
 		editor.PushUndo();
-		PerformTrim(hoveredEntity, trimPosBegin, trimPosEnd, hasBeginIntersection, hasEndIntersection);
+		if(hoveredEntity is ILoopEntity) {
+			PerformLoopTrim(hoveredEntity, trimBegin, trimEnd, trimPosBegin, trimPosEnd);
+		} else {
+			PerformTrim(hoveredEntity, trimBegin, trimEnd, trimPosBegin, trimPosEnd);
+		}
 		hasPreview = false;
 		hoveredEntity = null;
 	}
 
 	void DrawPreview(ICanvas canvas) {
 		if(!hasPreview || hoveredEntity == null) return;
-		canvas.SetStyle("error");
-		hoveredEntity.DrawParamRange(canvas, 0.0, trimBegin, trimEnd, 0.05, null);
+		canvas.SetStyle(trimPreviewStyle);
+		double step = hoveredEntity.GetTrimPreviewStep();
+		// For loop entities the trim segment may wrap around past t=1
+		if(hoveredEntity is ILoopEntity && trimBegin > trimEnd + 1e-6) {
+			hoveredEntity.DrawParamRange(canvas, 0.0, trimBegin, 1.0, step, null);
+			hoveredEntity.DrawParamRange(canvas, 0.0, 0.0, trimEnd, step, null);
+		} else {
+			hoveredEntity.DrawParamRange(canvas, 0.0, trimBegin, trimEnd, step, null);
+		}
 	}
 
+	// Collect all intersections with other entities, Newton-refined for precision
 	List<(Vector3 pos, double t)> CollectIntersections(Entity entity) {
 		var result = new List<(Vector3 pos, double t)>();
 		foreach(var other in entity.sketch.entityList) {
 			if(other == entity) continue;
 			var crossings = entity.GetAllIntersections(other);
-			foreach(var c in crossings) {
-				double t = entity.FindParameter(c);
-				if(t > 1e-4 && t < 1.0 - 1e-4) {
-					result.Add((c, t));
+			foreach(var roughPt in crossings) {
+				var refined = RefineIntersection(entity, other, roughPt);
+				double t = entity.FindParameter(refined);
+				bool dupe = false;
+				foreach(var existing in result) {
+					if(Math.Abs(existing.t - t) < DUPLICATE_TOLERANCE) { dupe = true; break; }
 				}
+				if(!dupe) result.Add((refined, t));
 			}
 		}
 		result.Sort((a, b) => a.t.CompareTo(b.t));
 		return result;
 	}
 
+	// Apply Newton iteration to refine a rough segment-segment intersection
+	static Vector3 RefineIntersection(Entity entityA, Entity entityB, Vector3 roughPt) {
+		Param sa = new Param("sa");
+		Param tb = new Param("tb");
+		sa.value = entityA.FindParameter(roughPt);
+		tb.value = entityB.FindParameter(roughPt);
+
+		var ptA = entityA.PointOn(sa);
+		var ptB = entityB.PointOn(tb);
+
+		for(int iter = 0; iter < 10; iter++) {
+			double ax = ptA.x.Eval(), ay = ptA.y.Eval();
+			double bx = ptB.x.Eval(), by = ptB.y.Eval();
+			double fx = ax - bx, fy = ay - by;
+			if(fx * fx + fy * fy < NEWTON_CONVERGENCE) break;
+
+			sa.value += NEWTON_FD_STEP;
+			double dAx = (ptA.x.Eval() - ax) / NEWTON_FD_STEP;
+			double dAy = (ptA.y.Eval() - ay) / NEWTON_FD_STEP;
+			sa.value -= NEWTON_FD_STEP;
+
+			tb.value += NEWTON_FD_STEP;
+			double dBx = (ptB.x.Eval() - bx) / NEWTON_FD_STEP;
+			double dBy = (ptB.y.Eval() - by) / NEWTON_FD_STEP;
+			tb.value -= NEWTON_FD_STEP;
+
+			// Solve J*[ds,dt] = -[fx,fy] where J = [[dAx,-dBx],[dAy,-dBy]]
+			double det = -dAx * dBy + dBx * dAy;
+			if(Math.Abs(det) < NEWTON_SINGULARITY) break;
+			double ds = ( fx * dBy - dBx * fy) / det;
+			double dt = (-dAx * fy + fx  * dAy) / det;
+
+			sa.value = Math.Max(0.0, Math.Min(1.0, sa.value + ds));
+			tb.value = Math.Max(0.0, Math.Min(1.0, tb.value + dt));
+		}
+		return new Vector3((float)ptA.x.Eval(), (float)ptA.y.Eval(), 0f);
+	}
+
+	// For segmentary entities: find the trim segment containing the mouse parameter
 	void ComputeTrimSegment(
 		List<(Vector3 pos, double t)> intersections, double t_mouse,
 		out double t_begin, out double t_end,
-		out Vector3 pos_begin, out Vector3 pos_end,
-		out bool has_begin, out bool has_end)
+		out Vector3 pos_begin, out Vector3 pos_end)
 	{
 		t_begin = 0.0;
 		t_end = 1.0;
 		pos_begin = Vector3.zero;
 		pos_end = Vector3.zero;
-		has_begin = false;
-		has_end = false;
-
 		foreach(var itr in intersections) {
 			if(itr.t <= t_mouse) {
 				t_begin = itr.t;
 				pos_begin = itr.pos;
-				has_begin = true;
 			} else {
 				t_end = itr.t;
 				pos_end = itr.pos;
-				has_end = true;
 				break;
 			}
 		}
 	}
 
-	void PerformTrim(Entity entity, Vector3 posBegin, Vector3 posEnd, bool hasBegin, bool hasEnd) {
-		if(!hasBegin && !hasEnd) {
-			entity.Destroy();
-			return;
+	// For loop entities: find the trim segment (with wraparound support)
+	void ComputeLoopTrimSegment(
+		List<(Vector3 pos, double t)> intersections, double t_mouse,
+		out double t_begin, out double t_end,
+		out Vector3 pos_begin, out Vector3 pos_end)
+	{
+		t_begin = 0.0;
+		t_end = 1.0;
+		pos_begin = Vector3.zero;
+		pos_end = Vector3.zero;
+		int n = intersections.Count;
+		if(n < 2) return;
+		for(int i = 0; i < n; i++) {
+			double tA = intersections[i].t;
+			double tB = intersections[(i + 1) % n].t;
+			bool inSeg = (i + 1 < n)
+				? (t_mouse >= tA && t_mouse <= tB)
+				: (t_mouse >= tA || t_mouse <= tB);
+			if(inSeg) {
+				t_begin = tA;
+				pos_begin = intersections[i].pos;
+				t_end = tB;
+				pos_end = intersections[(i + 1) % n].pos;
+				return;
+			}
 		}
+	}
 
-		if(!hasBegin) {
-			// Trim beginning: split at posEnd, destroy the first part (original entity)
+	void PerformTrim(Entity entity, double t_begin, double t_end, Vector3 posBegin, Vector3 posEnd) {
+		bool fromStart = t_begin < ENDPOINT_TOLERANCE;
+		bool toEnd    = t_end   > 1.0 - ENDPOINT_TOLERANCE;
+
+		if(fromStart && toEnd) { entity.Destroy(); return; }
+
+		if(fromStart) {
+			// Split at posEnd, keep second part, destroy first
 			var part = entity.Split(posEnd);
 			entity.Destroy();
 			return;
 		}
-
-		if(!hasEnd) {
-			// Trim end: split at posBegin, destroy the second part
+		if(toEnd) {
+			// Split at posBegin, keep first part, destroy second
 			var part = entity.Split(posBegin);
 			if(part != null) part.Destroy();
 			return;
 		}
-
-		// Trim middle: split at posBegin, then split remainder at posEnd, destroy the middle
+		// Middle trim
 		var part1 = entity.Split(posBegin);
 		if(part1 == null) return;
 		var part2 = part1.Split(posEnd);
 		part1.Destroy();
+	}
+
+	void PerformLoopTrim(Entity entity, double t_begin, double t_end, Vector3 posBegin, Vector3 posEnd) {
+		// If no valid pair of intersections, remove the whole loop
+		if(t_begin < ENDPOINT_TOLERANCE && t_end > 1.0 - ENDPOINT_TOLERANCE) {
+			entity.Destroy();
+			return;
+		}
+		var sketch = entity.sketch;
+		var style = entity.style;
+		Param pOn = new Param("pOn");
+		var ptOn = entity.PointOn(pOn);
+		// Keep arc from t_end to t_begin (counterclockwise, wrapping past t=0)
+		pOn.value = t_end;
+		var arcP0 = ptOn.Eval();
+		pOn.value = t_begin;
+		var arcP1 = ptOn.Eval();
+
+		if(entity is CircleEntity circle) {
+			var arc = new ArcEntity(sketch);
+			arc.p0.pos = arcP0;
+			arc.p1.pos = arcP1;
+			arc.center.pos = circle.center.pos;
+			if(style != null) arc.style = style;
+		} else if(entity is EllipseEntity ellipse) {
+			var arc = new EllipticArcEntity(sketch);
+			arc.p0.pos = arcP0;
+			arc.p1.pos = arcP1;
+			arc.center.pos = ellipse.center.pos;
+			if(style != null) arc.style = style;
+		}
+		entity.Destroy();
 	}
 
 	protected override string OnGetDescription() {

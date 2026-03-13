@@ -409,7 +409,7 @@ public class DetailEditor : MonoBehaviour {
 			canvas.ClearStyle("constraints");
 		}
 
-		canvas.ClearStyle("error");
+		canvas.ClearStyle("trimPreview");
 		toolPreviewDraw?.Invoke(canvas);
 	}
 
