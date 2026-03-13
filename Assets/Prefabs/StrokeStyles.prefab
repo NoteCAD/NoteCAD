@@ -109,6 +109,14 @@ MonoBehaviour:
     queue: 3004
     color: {r: 1, g: 0.45699304, b: 0.29699993, a: 1}
     dashes: []
+  - name: trimPreview
+    width: 3
+    depthTest: 0
+    inPixels: 1
+    dashesInPixels: 1
+    queue: 3007
+    color: {r: 0.9, g: 0.2, b: 0.2, a: 1}
+    dashes: []
   - name: edges
     width: 2
     depthTest: 1

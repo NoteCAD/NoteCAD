@@ -12,23 +12,8 @@ public class TrimTool : Tool {
 	Vector3 trimPosEnd;
 	bool hasPreview;
 
-	// Dedicated style with render queue above hover so preview draws on top
-	static readonly StrokeStyle trimPreviewStyle = new StrokeStyle {
-		name = "trimPreview",
-		color = new Color(1f, 0.2f, 0.2f, 1f),
-		width = 2f,
-		inPixels = true,
-		dashesInPixels = true,
-		depthTest = false,
-		queue = 2100
-	};
-
-	const double ENDPOINT_TOLERANCE   = 1e-4;
-	const double DUPLICATE_TOLERANCE  = 1e-3;
-	const double NEWTON_CONVERGENCE   = 1e-12;
-	const double NEWTON_SINGULARITY   = 1e-15;
-	// Step for finite-difference Jacobian: small enough for precision, large enough to avoid cancellation
-	const double NEWTON_FD_STEP       = 1e-6;
+	const double ENDPOINT_TOLERANCE  = 1e-4;
+	const double DUPLICATE_TOLERANCE = 1e-3;
 
 	TrimTool() {
 		enableHoverFilter = true;
@@ -92,8 +77,8 @@ public class TrimTool : Tool {
 
 	void DrawPreview(ICanvas canvas) {
 		if(!hasPreview || hoveredEntity == null) return;
-		canvas.SetStyle(trimPreviewStyle);
-		double step = hoveredEntity.GetTrimPreviewStep();
+		canvas.SetStyle("trimPreview");
+		double step = (hoveredEntity is FunctionEntity fe) ? fe.GetTrimPreviewStep() : 1.0 / 64.0;
 		// For loop entities the trim segment may wrap around past t=1
 		if(hoveredEntity is ILoopEntity && trimBegin > trimEnd + 1e-6) {
 			hoveredEntity.DrawParamRange(canvas, 0.0, trimBegin, 1.0, step, null);
@@ -103,62 +88,22 @@ public class TrimTool : Tool {
 		}
 	}
 
-	// Collect all intersections with other entities, Newton-refined for precision
+	// Collect all intersections with other entities; uses Newton refinement for precision
 	List<(Vector3 pos, double t)> CollectIntersections(Entity entity) {
 		var result = new List<(Vector3 pos, double t)>();
 		foreach(var other in entity.sketch.entityList) {
 			if(other == entity) continue;
-			var crossings = entity.GetAllIntersections(other);
-			foreach(var roughPt in crossings) {
-				var refined = RefineIntersection(entity, other, roughPt);
-				double t = entity.FindParameter(refined);
+			foreach(var pt in entity.GetAllIntersections(other, refine: true)) {
+				double t = entity.FindParameter(pt);
 				bool dupe = false;
 				foreach(var existing in result) {
 					if(Math.Abs(existing.t - t) < DUPLICATE_TOLERANCE) { dupe = true; break; }
 				}
-				if(!dupe) result.Add((refined, t));
+				if(!dupe) result.Add((pt, t));
 			}
 		}
 		result.Sort((a, b) => a.t.CompareTo(b.t));
 		return result;
-	}
-
-	// Apply Newton iteration to refine a rough segment-segment intersection
-	static Vector3 RefineIntersection(Entity entityA, Entity entityB, Vector3 roughPt) {
-		Param sa = new Param("sa");
-		Param tb = new Param("tb");
-		sa.value = entityA.FindParameter(roughPt);
-		tb.value = entityB.FindParameter(roughPt);
-
-		var ptA = entityA.PointOn(sa);
-		var ptB = entityB.PointOn(tb);
-
-		for(int iter = 0; iter < 10; iter++) {
-			double ax = ptA.x.Eval(), ay = ptA.y.Eval();
-			double bx = ptB.x.Eval(), by = ptB.y.Eval();
-			double fx = ax - bx, fy = ay - by;
-			if(fx * fx + fy * fy < NEWTON_CONVERGENCE) break;
-
-			sa.value += NEWTON_FD_STEP;
-			double dAx = (ptA.x.Eval() - ax) / NEWTON_FD_STEP;
-			double dAy = (ptA.y.Eval() - ay) / NEWTON_FD_STEP;
-			sa.value -= NEWTON_FD_STEP;
-
-			tb.value += NEWTON_FD_STEP;
-			double dBx = (ptB.x.Eval() - bx) / NEWTON_FD_STEP;
-			double dBy = (ptB.y.Eval() - by) / NEWTON_FD_STEP;
-			tb.value -= NEWTON_FD_STEP;
-
-			// Solve J*[ds,dt] = -[fx,fy] where J = [[dAx,-dBx],[dAy,-dBy]]
-			double det = -dAx * dBy + dBx * dAy;
-			if(Math.Abs(det) < NEWTON_SINGULARITY) break;
-			double ds = ( fx * dBy - dBx * fy) / det;
-			double dt = (-dAx * fy + fx  * dAy) / det;
-
-			sa.value = Math.Max(0.0, Math.Min(1.0, sa.value + ds));
-			tb.value = Math.Max(0.0, Math.Min(1.0, tb.value + dt));
-		}
-		return new Vector3((float)ptA.x.Eval(), (float)ptA.y.Eval(), 0f);
 	}
 
 	// For segmentary entities: find the trim segment containing the mouse parameter

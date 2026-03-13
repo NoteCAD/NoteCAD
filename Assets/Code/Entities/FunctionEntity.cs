@@ -202,7 +202,7 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		return System.Math.Max(64, subdivision * (int)System.Math.Ceiling(range > 0 ? range : 1.0));
 	}
 
-	public override double GetTrimPreviewStep() {
+	public double GetTrimPreviewStep() {
 		return 1.0 / GetSubdivisionSteps();
 	}
 

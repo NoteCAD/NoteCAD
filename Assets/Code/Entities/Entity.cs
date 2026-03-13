@@ -429,10 +429,6 @@ namespace NoteCAD {
 			return part;
 		}
 
-		public virtual double GetTrimPreviewStep() {
-			return 1.0 / 64.0;
-		}
-
 		public virtual double FindParameter(Vector3 pos) {
 			Param pOn = new Param("pOn");
 			var on = PointOn(pOn);
@@ -463,7 +459,7 @@ namespace NoteCAD {
 			return (lo + hi) / 2.0;
 		}
 
-		public List<Vector3> GetAllIntersections(Entity e) {
+		public List<Vector3> GetAllIntersections(Entity e, bool refine = false) {
 			var result = new List<Vector3>();
 			bool hasBbox = !bbox.Equals(new BBox(Vector3.zero, Vector3.zero));
 			bool otherHasBbox = !e.bbox.Equals(new BBox(Vector3.zero, Vector3.zero));
@@ -481,7 +477,7 @@ namespace NoteCAD {
 						if(!otherFirst) {
 							Vector3 itr = Vector3.zero;
 							if(GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f) == GeomUtils.Cross.INTERSECTION) {
-								result.Add(itr);
+								result.Add(refine ? RefineIntersection(this, e, itr) : itr);
 							}
 						}
 						otherFirst = false;
@@ -492,6 +488,28 @@ namespace NoteCAD {
 				selfPrev = sp;
 			}
 			return result;
+		}
+
+		// Refine a rough segment-segment intersection using EquationSystem Newton steps.
+		// Solves entityA.PointOn(sa) == entityB.PointOn(tb) with 2 parameters and 2 equations.
+		// revertWhenNotConverged=false keeps the last Newton iterate (closest approach) rather than
+		// snapping back to the rough initial point when the solver hasn't fully converged.
+		static private Vector3 RefineIntersection(Entity entityA, Entity entityB, Vector3 roughPt) {
+			Param sa = new Param("sa");
+			Param tb = new Param("tb");
+			sa.value = entityA.FindParameter(roughPt);
+			tb.value = entityB.FindParameter(roughPt);
+			var ptA = entityA.PointOn(sa);
+			var ptB = entityB.PointOn(tb);
+			var diff = ptA - ptB;
+			var sys = new EquationSystem();
+			sys.revertWhenNotConverged = false;
+			sys.AddParameter(sa);
+			sys.AddParameter(tb);
+			sys.AddEquation(diff.x);
+			sys.AddEquation(diff.y);
+			sys.Solve();
+			return new Vector3((float)ptA.x.Eval(), (float)ptA.y.Eval(), 0f);
 		}
 
 		protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
