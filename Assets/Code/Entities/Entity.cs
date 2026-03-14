@@ -459,6 +459,30 @@ namespace NoteCAD {
 				if(dl < dr) hi = tr;
 				else lo = tl;
 			}
+			// For loop entities, PointOn(0)==PointOn(1): when best_t is at the boundary
+			// (near 0 or 1) the clamped range may miss the true closest parameter on the
+			// opposite side of the seam. Run a second ternary search from that side and
+			// keep whichever result is geometrically closer.
+			if(this is ILoopEntity && (best_t < 1.0 / steps || best_t > 1.0 - 1.0 / steps)) {
+				double lo2 = best_t < 0.5 ? 1.0 - 1.0 / steps : 0.0;
+				double hi2 = best_t < 0.5 ? 1.0 : 1.0 / steps;
+				for(int iter = 0; iter < 20; iter++) {
+					double tl = lo2 + (hi2 - lo2) / 3.0;
+					double tr = lo2 + 2.0 * (hi2 - lo2) / 3.0;
+					pOn.value = tl;
+					double dl = (on.Eval() - pos).sqrMagnitude;
+					pOn.value = tr;
+					double dr = (on.Eval() - pos).sqrMagnitude;
+					if(dl < dr) hi2 = tr;
+					else lo2 = tl;
+				}
+				double t_alt = (lo2 + hi2) / 2.0;
+				pOn.value = t_alt;
+				double d_alt = (on.Eval() - pos).sqrMagnitude;
+				pOn.value = (lo + hi) / 2.0;
+				double d_main = (on.Eval() - pos).sqrMagnitude;
+				if(d_alt < d_main) return t_alt;
+			}
 			return (lo + hi) / 2.0;
 		}
 
@@ -524,7 +548,8 @@ namespace NoteCAD {
 			sys.AddParameter(tb);
 			sys.AddEquation(diff.x);
 			sys.AddEquation(diff.y);
-			sys.Solve();
+			var result = sys.Solve();
+			if(result != EquationSystem.SolveResult.OKAY) return roughPt;
 			return new Vector3((float)ptA.x.Eval(), (float)ptA.y.Eval(), 0f);
 		}
 

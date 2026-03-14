@@ -49,6 +49,7 @@ public class Tool : MonoBehaviour {
 		if(enableHoverFilter) {
 			editor.hoverFilter = HoverFilter;
 		}
+		editor.toolPreviewDraw = DrawPreview;
 		OnActivate();
 	}
 
@@ -59,7 +60,14 @@ public class Tool : MonoBehaviour {
 			editor.Inspect(null);
 		}
 		editor.hoverFilter = null;
+		editor.toolPreviewDraw = null;
 	}
+
+	public void DrawPreview(ICanvas canvas) {
+		OnDrawPreview(canvas);
+	}
+
+	protected virtual void OnDrawPreview(ICanvas canvas) { }
 
 	public void DoUpdate() {
 		OnUpdate();

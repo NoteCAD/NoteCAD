@@ -28,12 +28,10 @@ public class TrimTool : Tool {
 	}
 
 	protected override void OnActivate() {
-		editor.toolPreviewDraw = DrawPreview;
 		hasPreview = false;
 	}
 
 	protected override void OnDeactivate() {
-		editor.toolPreviewDraw = null;
 		hasPreview = false;
 	}
 
@@ -75,7 +73,7 @@ public class TrimTool : Tool {
 		hoveredEntity = null;
 	}
 
-	void DrawPreview(ICanvas canvas) {
+	protected override void OnDrawPreview(ICanvas canvas) {
 		if(!hasPreview || hoveredEntity == null) return;
 		canvas.SetStyle("trimPreview");
 		double step = (hoveredEntity is FunctionEntity fe) ? fe.GetTrimPreviewStep() : 1.0 / 64.0;
