@@ -159,15 +159,21 @@ public class EllipticArcEntity : Entity, ISegmentaryEntity {
 
 	public override Exp Length() {
 		// Arc length = ∫[a0 to a1] sqrt(r0²·sin²(t) + r1²·cos²(t)) dt
-		// = rmax * (E(π/2 − a0, k) − E(π/2 − a1, k))
-		// where rmax = max(|r0|,|r1|), k = sqrt(1 − (rmin/rmax)²)
+		// Two forms (same k = sqrt(1-(rmin/rmax)²)):
+		//   r0 >= r1: integrand = rmax·sqrt(1-k²·cos²t) → substitute u=π/2-t
+		//             L = rmax·(E(π/2−a0, k) − E(π/2−a1, k))
+		//   r0 <  r1: integrand = rmax·sqrt(1-k²·sin²t) directly
+		//             L = rmax·(E(a1, k) − E(a0, k))
 		var ar0 = Exp.Abs(r0);
 		var ar1 = Exp.Abs(r1);
 		var absDiff = Exp.Abs(ar0 - ar1);
 		var rmax = (ar0 + ar1 + absDiff) / 2.0;
 		var rmin = (ar0 + ar1 - absDiff) / 2.0;
 		var k = Exp.Sqrt(Exp.one - Exp.Sqr(rmin) / Exp.Sqr(rmax));
-		return rmax * (Exp.EllInt(Math.PI / 2.0 - a0.exp, k) - Exp.EllInt(Math.PI / 2.0 - a1.exp, k));
+		var cond = new Exp(Exp.Op.GEqual, ar0, ar1);
+		var L0 = rmax * (Exp.EllInt(Math.PI / 2.0 - a0.exp, k) - Exp.EllInt(Math.PI / 2.0 - a1.exp, k));
+		var L1 = rmax * (Exp.EllInt(a1.exp, k) - Exp.EllInt(a0.exp, k));
+		return new Exp(Exp.Op.If, cond, L0, L1);
 	}
 
 	public override Exp Radius() {

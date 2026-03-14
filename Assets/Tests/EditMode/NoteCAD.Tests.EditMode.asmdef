@@ -1,0 +1,17 @@
+{
+    "name": "NoteCAD.Tests.EditMode",
+    "references": [
+        "NoteCAD"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "autoReferenced": false,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "isEditorOnly": true
+}
