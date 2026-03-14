@@ -6,6 +6,7 @@ public class DxfExport : CadExportBase {
 		using (var stream = new MemoryStream()) {
 			using (var writer = new DxfWriter(stream, document, false)) {
 				writer.Configuration.CloseStream = false;
+				writer.Configuration.UpdateDimensionsInModel = true;
 				writer.Write();
 			}
 			return stream.ToArray();

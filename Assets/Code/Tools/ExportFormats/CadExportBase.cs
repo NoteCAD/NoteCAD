@@ -6,7 +6,8 @@ using ACadSharp.Tables;
 using NoteCAD;
 
 public abstract class CadExportBase : ICanvas {
-	protected CadDocument document = new CadDocument();
+	// Use R2000 (AC1015) for maximum compatibility with QCAD, LibreCAD, etc.
+	protected CadDocument document = new CadDocument(ACadVersion.AC1015);
 	protected Style currentStyle;
 
 	// ICanvas - fallback for entities without a native counterpart
