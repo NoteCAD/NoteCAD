@@ -77,6 +77,8 @@ public class ExpParser {
         { "cosh",	Exp.Op.Cosh },
         { "sfres",	Exp.Op.SFres },
         { "cfres",	Exp.Op.CFres },
+        { "ellint",  Exp.Op.EllInt  },
+        { "ellintf", Exp.Op.EllIntF },
         { "if",		Exp.Op.If },
     };
     

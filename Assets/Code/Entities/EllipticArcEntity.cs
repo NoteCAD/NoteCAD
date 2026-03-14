@@ -158,7 +158,16 @@ public class EllipticArcEntity : Entity, ISegmentaryEntity {
 	}
 
 	public override Exp Length() {
-		return null;
+		// Arc length = ∫[a0 to a1] sqrt(r0²·sin²(t) + r1²·cos²(t)) dt
+		// = rmax * (E(π/2 − a0, k) − E(π/2 − a1, k))
+		// where rmax = max(|r0|,|r1|), k = sqrt(1 − (rmin/rmax)²)
+		var ar0 = Exp.Abs(r0);
+		var ar1 = Exp.Abs(r1);
+		var absDiff = Exp.Abs(ar0 - ar1);
+		var rmax = (ar0 + ar1 + absDiff) / 2.0;
+		var rmin = (ar0 + ar1 - absDiff) / 2.0;
+		var k = Exp.Sqrt(Exp.one - Exp.Sqr(rmin) / Exp.Sqr(rmax));
+		return rmax * (Exp.EllInt(Math.PI / 2.0 - a0.exp, k) - Exp.EllInt(Math.PI / 2.0 - a1.exp, k));
 	}
 
 	public override Exp Radius() {
