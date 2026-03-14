@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NoteCAD Manual</title>
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #1c1e22;
+      --surface:   #23262d;
+      --surface2:  #2a2d36;
+      --border:    #353840;
+      --accent:    #00b4d8;
+      --accent2:   #0077b6;
+      --text:      #dde1e9;
+      --text-dim:  #8a8f9a;
+      --green:     #2d8f4e;
+      --warning:   #e5a020;
+      --radius:    8px;
+      --sidebar-w: 260px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar navigation ── */
+    #sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      padding: 24px 0 40px;
+      z-index: 100;
+    }
+    #sidebar .logo {
+      padding: 0 20px 20px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+    }
+    #sidebar .logo span {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+    #sidebar .logo sub {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-left: 4px;
+    }
+    #sidebar nav a {
+      display: block;
+      padding: 7px 20px;
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 0.85rem;
+      border-left: 3px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+    #sidebar nav a:hover,
+    #sidebar nav a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+      background: rgba(0,180,216,0.07);
+    }
+    #sidebar nav .section-label {
+      padding: 14px 20px 4px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    /* ── Main content ── */
+    main {
+      margin-left: var(--sidebar-w);
+      padding: 48px 56px 80px;
+      max-width: 960px;
+      width: 100%;
+    }
+
+    /* ── Typography ── */
+    h1 { font-size: 2.2rem; color: var(--accent); margin-bottom: 8px; }
+    h2 {
+      font-size: 1.5rem; color: var(--accent);
+      margin: 60px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    h3 { font-size: 1.1rem; color: #c0d8e8; margin: 28px 0 8px; }
+    h4 { font-size: 0.95rem; color: var(--text); margin: 16px 0 4px; font-weight: 600; }
+    p  { margin-bottom: 12px; }
+    ul, ol { margin: 0 0 12px 20px; }
+    li { margin-bottom: 4px; }
+    a  { color: var(--accent); }
+    code {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.88em;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      color: #aee6f8;
+    }
+    kbd {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 0.82em;
+      font-family: inherit;
+      color: var(--warning);
+      box-shadow: 0 1px 0 var(--border);
+    }
+    .subtitle { color: var(--text-dim); font-size: 1rem; margin-bottom: 32px; }
+    .note {
+      background: rgba(0,180,216,0.08);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 10px 16px;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+    .warning {
+      background: rgba(229,160,32,0.1);
+      border-left: 4px solid var(--warning);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 10px 16px;
+      margin: 16px 0;
+      font-size: 0.9rem;
+    }
+
+    /* ── Screenshot ── */
+    .screenshot {
+      width: 100%;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin: 20px 0 8px;
+      display: block;
+    }
+    .screenshot-caption {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    /* ── Cards grid ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 16px 0 24px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+    }
+    .card h4 { margin-top: 0; color: var(--accent); }
+    .card .badge {
+      display: inline-block;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 7px;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    /* ── Table ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 0.9rem;
+    }
+    thead tr { background: var(--surface2); }
+    th {
+      text-align: left;
+      padding: 10px 14px;
+      color: var(--accent);
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: 8px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+
+    /* ── Annotated image layout ── */
+    .ui-diagram {
+      position: relative;
+      display: inline-block;
+      margin: 20px 0;
+      width: 100%;
+    }
+    .ui-diagram img {
+      width: 100%;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    /* ── Steps ── */
+    .steps { counter-reset: step; margin: 12px 0 20px; }
+    .steps li {
+      counter-increment: step;
+      list-style: none;
+      padding: 8px 0 8px 48px;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+    }
+    .steps li:last-child { border-bottom: none; }
+    .steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 28px; height: 28px;
+      background: var(--accent2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* ── Shortcut table highlight ── */
+    .shortcuts td:first-child { font-family: monospace; color: var(--warning); }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      #sidebar { display: none; }
+      main { margin-left: 0; padding: 24px 20px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════
+     SIDEBAR
+═══════════════════════════════════════════════════════ -->
+<aside id="sidebar">
+  <div class="logo">
+    <span>NoteCAD</span><sub>Manual</sub>
+  </div>
+  <nav>
+    <div class="section-label">Getting Started</div>
+    <a href="#overview">Overview</a>
+    <a href="#interface">Interface Tour</a>
+
+    <div class="section-label">Sketch Tools</div>
+    <a href="#entities">Drawing Entities</a>
+    <a href="#constraints">Constraints</a>
+    <a href="#editing">Editing &amp; Selection</a>
+
+    <div class="section-label">3D Features</div>
+    <a href="#workplane">Workplane</a>
+    <a href="#extrude">Extrude</a>
+    <a href="#revolve">Revolve</a>
+
+    <div class="section-label">Files &amp; Import/Export</div>
+    <a href="#files">File Operations</a>
+    <a href="#import">Import</a>
+    <a href="#export">Export</a>
+
+    <div class="section-label">Reference</div>
+    <a href="#shortcuts">Keyboard Shortcuts</a>
+    <a href="#status">Status Bar</a>
+    <a href="#tips">Tips &amp; Tricks</a>
+  </nav>
+</aside>
+
+<!-- ════════════════════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════════════════════ -->
+<main>
+
+  <!-- ── HERO ── -->
+  <h1>NoteCAD Manual</h1>
+  <p class="subtitle">Parametric CAD Sketcher — version 0.5 &nbsp;|&nbsp; <a href="http://NoteCAD.online" target="_blank">NoteCAD.online</a></p>
+
+  <!-- ── OVERVIEW ── -->
+  <section id="overview">
+    <h2>Overview</h2>
+    <p>
+      NoteCAD is an open-source, parametric 2-D/3-D CAD application built on the Unity engine.
+      It features a fully custom geometric constraint solver written in C# that lets you create
+      precise, dimension-driven sketches and then convert them into solid bodies through
+      Extrude and Revolve operations.
+    </p>
+    <p>Try it in your browser at <a href="http://NoteCAD.online" target="_blank">http://NoteCAD.online</a> — no installation needed.</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>Sketch Entities</h4>
+        <p>Points, segments, arcs, circles, ellipses, rectangles, polygons, splines, function curves, text, and offset entities.</p>
+      </div>
+      <div class="card">
+        <h4>Geometric Constraints</h4>
+        <p>Coincident, horizontal/vertical, parallel, perpendicular, tangent, equal, fixed, point-on, distance, length, angle, mid-point, and equation constraints.</p>
+      </div>
+      <div class="card">
+        <h4>3-D Features</h4>
+        <p>Workplane definition, Extrusion, and Revolve. Produces solid meshes you can export as STL or G-code.</p>
+      </div>
+      <div class="card">
+        <h4>Import / Export</h4>
+        <p>Import DXF, STL, and SolveSpace files. Export STL solids and G-code tool-paths.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── INTERFACE ── -->
+  <section id="interface">
+    <h2>Interface Tour</h2>
+    <p>The screenshot below shows NoteCAD with a variety of sketch entities on the canvas.
+    The numbered callouts reference the key UI areas described in the table beneath it.</p>
+
+    <img
+      class="screenshot"
+      src="https://github.com/user-attachments/assets/a6af6c7b-d60e-4227-a09c-c229a83f9e67"
+      alt="NoteCAD v0.5 — full interface screenshot showing toolbar, sidebars, and sketch canvas" />
+    <p class="screenshot-caption">NoteCAD v0.5 — full interface with sketch entities (polygon, arcs, circle, ellipse, spline, rectangle, text, and function curve).</p>
+
+    <table>
+      <thead>
+        <tr><th>#</th><th>Area</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1</td><td><strong>Top toolbar — File</strong></td><td>New, Load, Save, Export, and Help Options buttons.</td></tr>
+        <tr><td>2</td><td><strong>Top toolbar — Edit</strong></td><td>Move (default selection/drag tool), Delete, Undo <kbd>Ctrl+Z</kbd>, Redo <kbd>Ctrl+Y</kbd>, Copy <kbd>Ctrl+C</kbd>, Paste <kbd>Ctrl+V</kbd>.</td></tr>
+        <tr><td>3</td><td><strong>Top toolbar — Sketch</strong></td><td>Drawing tools: Point, Segment, Arc, Circle, Function, Spline, Ellipse, Rectangle, Polygon, Text, Offset.</td></tr>
+        <tr><td>4</td><td><strong>Top toolbar — 3D</strong></td><td>Wrkplne (Workplane), Extrude, Revolve.</td></tr>
+        <tr><td>5</td><td><strong>Left sidebar — Constraints</strong></td><td>PointOn, Dim, Length, Angle, Parallel, Tangent, Perpendicular (Perp-lar), Equal, Vertical/Horizontal (Vert[H]), Vert, MidPoint.</td></tr>
+        <tr><td>6</td><td><strong>Left sidebar — Utilities</strong></td><td>Import3D, Import2D, Fixation, Trim.</td></tr>
+        <tr><td>7</td><td><strong>Properties panel (right)</strong></td><td>Shows the active feature (Sketch / SketchFeature) and its solve-parent checkbox. Buttons: Source Licensing, Feedback.</td></tr>
+        <tr><td>8</td><td><strong>Style panel (top-right)</strong></td><td>Solid display selector and four style buttons: Assign, Edit, Add, Remove.</td></tr>
+        <tr><td>9</td><td><strong>Canvas</strong></td><td>Infinite 2-D/3-D viewport. Middle-drag to pan, scroll to zoom, right-drag to orbit in 3-D.</td></tr>
+        <tr><td>10</td><td><strong>Status bar (bottom)</strong></td><td>Current tool hint, memory usage, solver status (OKAY / error), Degrees of Freedom (DOF), Undo count, and Undo buffer size.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Navigation Controls</h3>
+    <table>
+      <thead>
+        <tr><th>Input</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Middle mouse button drag</td><td>Pan the camera</td></tr>
+        <tr><td>Scroll wheel</td><td>Zoom in / out</td></tr>
+        <tr><td>Right mouse button drag</td><td>Rotate camera (3-D mode)</td></tr>
+        <tr><td><kbd>Escape</kbd> or right click</td><td>Cancel current tool / return to Move tool</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── ENTITIES ── -->
+  <section id="entities">
+    <h2>Drawing Entities</h2>
+    <p>
+      All drawing tools are located in the top toolbar. Select a tool, then click (and optionally
+      drag) on the canvas to create the entity. Press <kbd>Escape</kbd> or right-click to finish
+      placing a tool.
+    </p>
+    <p>
+      When <em>drawing dimensions</em> is enabled (see Settings), a dimension is automatically
+      created as you draw. You can type a numeric value immediately after clicking to fix the
+      dimension, or press <kbd>Tab</kbd> to switch between the length and angle dimension inputs.
+    </p>
+
+    <div class="card-grid">
+
+      <div class="card">
+        <div class="badge">Point</div>
+        <h4>Point</h4>
+        <p>Creates a free reference point on the sketch. Useful as a handle for constraints or as an anchor in Workplane / Revolve operations.</p>
+        <p><em>How to use:</em> click once on the canvas to place the point.</p>
+      </div>
+
+      <div class="card">
+        <div class="badge">Segment</div>
+        <h4>Line Segment</h4>
+        <p>Draws straight line segments. Consecutive clicks chain segments together (the end-point of the previous segment becomes the start-point of the next).</p>
+        <p><em>How to use:</em> click the start point, then click the end point. Continue clicking to chain segments, or press <kbd>Escape</kbd> to stop.</p>
+        <p>While drawing, the tool snaps to horizontal, vertical, parallel, and perpendicular
+        alignments. Hold <kbd>Ctrl</kbd> to constrain direction to 45° increments.</p>
+      </div>
+
+      <div class="card">
+        <div class="badge">Arc</div>
+        <h4>Arc</h4>
+        <p>Creates a circular arc defined by two end-points. The center is set automatically midway and can be dragged afterwards.</p>
+        <p><em>How to use:</em> click the first end-point, move to define the arc, click the second end-point.</p>
+      </div>
+
+      <div class="card">
+        <div class="badge">Circle</div>
+        <h4>Circle</h4>
+        <p>Creates a full circle. The filled green circles visible in the screenshot are closed circles with a solid fill style applied.</p>
+        <p><em>How to use:</em> click the center point, move to set the radius, click to confirm.</p>
+      </div>
+
+      <div class="card">
+        <div class="badge">Ellipse</div>
+        <h4>Ellipse</h4>
+        <p>Creates an ellipse with independent horizontal and vertical radii. The large green tilted ellipse in the screenshot is an example.</p>
+        <p><em>How to use:</em> click the center point, move to set both radii simultaneously (X and Y half-axes correspond to mouse X/Y offset from center), click to confirm.</p>
+      </div>
+
+      <div class="card">
+        <div class="badge">Rectangle</div>
+        <h4>Rectangle</h4>
+        <p>Creates an axis-aligned rectangle (four connected line segments). The small green square in the screenshot is a rectangle.</p>
+        <p><em>How to use:</em> click one corner, move to the opposite corner, click to confirm.</p>
+      </div>
+
+      <div class="card">
+        <div class="badge">Polygon</div>
+        <h4>Regular Polygon</h4>
+        <p>Creates a regular n-sided polygon. The green hexagon with dimension labels in the screenshot is a polygon. The number of sides can be set in the tool options.</p>
+        <p><em>How to use:</em> click the center, move to control size, click to confirm.</p>
+      </div>
+
+      <div class="card">
+        <div class="badge">Spline[B]</div>
+        <h4>Cubic Bézier Spline</h4>
+        <p>Creates a smooth cubic Bézier spline through a series of clicked points. The wavy curve shown in the upper-right area of the screenshot is a spline.</p>
+        <p><em>How to use:</em> click to add control points; press <kbd>Escape</kbd> or right-click to finish the spline.</p>
+      </div>
+
+      <div class="card">
+        <div class="badge">Function</div>
+        <h4>Function Curve</h4>
+        <p>Creates a curve where X and Y are defined by user-supplied mathematical expressions (parametric equations). The wavy oscillating curve in the screenshot is a function curve.</p>
+        <p><em>How to use:</em> click the start and end points to define the parameter range end-points; enter expressions in the dialog.</p>
+      </div>
+
+      <div class="card">
+        <div class="badge">Text</div>
+        <h4>Text Entity</h4>
+        <p>Places a decorative text string on the sketch (as shown by "Text" in the screenshot). Text entities are sketch objects and can be moved and constrained like other entities.</p>
+        <p><em>How to use:</em> type the desired text in the tool options panel, then click on the canvas to place it.</p>
+      </div>
+
+      <div class="card">
+        <div class="badge">Offset</div>
+        <h4>Offset</h4>
+        <p>Creates an offset copy of an existing entity (line, arc, circle, etc.) at a specified distance.</p>
+        <p><em>How to use:</em> click an entity to create an offset; the offset distance can be controlled by the constraint applied automatically.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── CONSTRAINTS ── -->
+  <section id="constraints">
+    <h2>Constraints</h2>
+    <p>
+      Constraints are found in the <strong>left sidebar</strong>. They restrict the degrees of
+      freedom (DOF) of sketch entities. The status bar shows the current <code>DOF</code> count —
+      a fully constrained sketch has <code>DOF: 0</code>.
+    </p>
+    <p>
+      After applying a dimension constraint (Length, Dim, Angle, Equation), its value appears as
+      a label on the canvas. <strong>Double-click the label</strong> while the Move tool is
+      active to edit the value numerically.
+    </p>
+
+    <table>
+      <thead>
+        <tr><th>Constraint</th><th>Icon label</th><th>Description &amp; usage</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Point On</strong></td><td><code>PointOn</code></td>
+          <td>Forces a point to lie on a curve (line, arc, circle, etc.). Click the point, then click the target entity.</td>
+        </tr>
+        <tr>
+          <td><strong>Distance / Dim</strong></td><td><code>Dim</code></td>
+          <td>Sets the distance between two points, a point and a line/circle, two lines, or two circles. Click the entities and then click to place the dimension label. Change the value by double-clicking the label.</td>
+        </tr>
+        <tr>
+          <td><strong>Length</strong></td><td><code>Length</code></td>
+          <td>Constrains the length of a line segment or the diameter/radius of an arc or circle. Click the entity, then click to place the label.</td>
+        </tr>
+        <tr>
+          <td><strong>Angle</strong></td><td><code>Angle</code></td>
+          <td>Sets the angle between two lines or the sweep angle of an arc. Click an arc or two different lines; double-click the label to edit.</td>
+        </tr>
+        <tr>
+          <td><strong>Parallel</strong></td><td><code>Parallel</code></td>
+          <td>Makes two lines parallel to each other. Click (hover and click) two different lines.</td>
+        </tr>
+        <tr>
+          <td><strong>Tangent</strong></td><td><code>Tangent</code></td>
+          <td>Constrains two entities (line + arc, arc + arc, etc.) to be tangent at their shared point. Click two different entities.</td>
+        </tr>
+        <tr>
+          <td><strong>Perpendicular</strong></td><td><code>Perp-lar</code></td>
+          <td>Makes two lines (or a line and a curve) perpendicular. Click two different entities.</td>
+        </tr>
+        <tr>
+          <td><strong>Equal</strong></td><td><code>Equal</code></td>
+          <td>Sets two entities to have equal length, radius, or parameter. Click two entities of the same type (or two angle constraints).</td>
+        </tr>
+        <tr>
+          <td><strong>Horizontal / Vertical</strong></td><td><code>Vert[H]</code></td>
+          <td>Forces a line to be horizontal or vertical, or forces two points to share the same X or Y coordinate. Click two points or a line.</td>
+        </tr>
+        <tr>
+          <td><strong>Vertical</strong></td><td><code>Vert</code></td>
+          <td>Forces a line segment to be vertical (shortcut variant of Vert[H]).</td>
+        </tr>
+        <tr>
+          <td><strong>Mid-Point</strong></td><td><code>MidPoint</code></td>
+          <td>Forces a point to lie at the exact midpoint of an entity. Click the point and then the target entity.</td>
+        </tr>
+        <tr>
+          <td><strong>Coincident</strong></td><td><code>PointOn</code></td>
+          <td>Merges two points so they share the same position. Click a point and an entity (the point snaps onto the entity's closest point).</td>
+        </tr>
+        <tr>
+          <td><strong>Fixation</strong></td><td><code>Fixation</code></td>
+          <td>Locks an entity in place so the solver cannot move it. Click any entity or point to apply.</td>
+        </tr>
+        <tr>
+          <td><strong>Equation</strong></td><td>(via toolbar)</td>
+          <td>Allows writing a custom algebraic equation as a constraint. Useful for relating parameters that do not have a dedicated constraint type.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="note">
+      <strong>Tip:</strong> When the solver reports a non-zero DOF, the sketch is
+      <em>under-constrained</em> — entities shown in white can still move freely.
+      Entities shown in green are fully constrained.
+    </div>
+  </section>
+
+  <!-- ── EDITING ── -->
+  <section id="editing">
+    <h2>Editing &amp; Selection</h2>
+
+    <h3>Move Tool (default)</h3>
+    <p>
+      The <strong>Move</strong> tool (cursor icon, selected by default) is the primary interaction
+      tool. It lets you:
+    </p>
+    <ul>
+      <li><strong>Select</strong> entities and constraints by clicking them.</li>
+      <li><strong>Multi-select</strong> by holding <kbd>Shift</kbd> while clicking, or by
+          dragging a rectangular marquee on empty canvas space.
+          Dragging left-to-right selects only entities fully inside the rectangle;
+          dragging right-to-left also selects entities that cross the boundary.</li>
+      <li><strong>Move</strong> entities by holding the left mouse button and dragging.
+          The solver runs in real-time to maintain all constraints while you drag.</li>
+      <li><strong>Edit dimension values</strong> by double-clicking a dimension label;
+          type the new value and press <kbd>Enter</kbd>.</li>
+    </ul>
+
+    <h3>Delete</h3>
+    <p>Select one or more entities or constraints, then click <strong>Delete</strong> in the toolbar (or press <kbd>Del</kbd>) to remove them.</p>
+
+    <h3>Copy &amp; Paste</h3>
+    <p>Select entities, press <kbd>Ctrl+C</kbd> to copy, and <kbd>Ctrl+V</kbd> to paste a duplicate at a slight offset. All constraints within the selection are preserved.</p>
+
+    <h3>Undo / Redo</h3>
+    <p>Press <kbd>Ctrl+Z</kbd> to undo the last action, <kbd>Ctrl+Y</kbd> to redo it.
+       The status bar shows how many undo steps are available and the total undo buffer size.</p>
+
+    <h3>Trim</h3>
+    <p>
+      The <strong>Trim</strong> tool (scissors icon in the left sidebar) removes a segment of
+      an entity between its nearest intersections with other entities. Hover over a segment to
+      preview the part that will be removed (shown highlighted), then click to trim it.
+    </p>
+  </section>
+
+  <!-- ── WORKPLANE ── -->
+  <section id="workplane">
+    <h2>Workplane (Wrkplne)</h2>
+    <p>
+      A <strong>Workplane</strong> defines a flat surface in 3-D space on which a new sketch can
+      be drawn. You must create a Workplane before drawing sketch entities in 3-D mode or before
+      using Extrude / Revolve.
+    </p>
+    <ol class="steps">
+      <li>Click <strong>Wrkplne</strong> in the toolbar.</li>
+      <li>Click a <em>point</em> on the canvas to set the plane's origin.</li>
+      <li>Click a <em>line</em> to define the first axis direction (U direction).</li>
+      <li>Click a second, <em>non-parallel</em> line to define the second axis (V direction).</li>
+    </ol>
+    <p>
+      NoteCAD automatically orients the plane to face the camera.
+      After creation the camera animates to look straight at the new workplane for comfortable 2-D sketching.
+    </p>
+    <div class="note">
+      The <strong>Sketch</strong> label shown in the left properties panel corresponds to the
+      currently active SketchFeature (workplane + sketch). You can rename it and toggle
+      <em>Solve Parent</em> to include parent geometry in the constraint solve.
+    </div>
+  </section>
+
+  <!-- ── EXTRUDE ── -->
+  <section id="extrude">
+    <h2>Extrude</h2>
+    <p>
+      Extrusion sweeps the closed contours of the current sketch along the workplane's normal
+      direction to create a solid body.
+    </p>
+    <ol class="steps">
+      <li>Draw and fully close the sketch contours you want to extrude (circles, rectangles, polygons, or closed chains of lines/arcs).</li>
+      <li>Make sure you are in the correct Workplane (the sketch feature must be active).</li>
+      <li>Click <strong>Extrude</strong> in the toolbar.</li>
+      <li>A new Extrusion feature is created and activated. Use the Move tool to drag the extrusion depth handle, or double-click the depth dimension to type a value.</li>
+    </ol>
+    <div class="warning">
+      <strong>Important:</strong> Only <em>closed</em> contours are extruded. Open chains of lines
+      or arcs will not produce a solid body.
+    </div>
+  </section>
+
+  <!-- ── REVOLVE ── -->
+  <section id="revolve">
+    <h2>Revolve</h2>
+    <p>
+      Revolve sweeps the closed contours of the current sketch around a user-defined axis.
+    </p>
+    <ol class="steps">
+      <li>Draw the profile you want to revolve in the active sketch. The profile should be on one side of the intended axis.</li>
+      <li>Click <strong>Revolve</strong> in the toolbar.</li>
+      <li>Click a <em>point</em> to define the origin of the axis.</li>
+      <li>Click a <em>line</em> to define the direction of the axis.</li>
+    </ol>
+    <p>A Revolve feature is created and activated. The revolution angle can be set in the detail editor panel on the right.</p>
+  </section>
+
+  <!-- ── FILE OPERATIONS ── -->
+  <section id="files">
+    <h2>File Operations</h2>
+    <table>
+      <thead>
+        <tr><th>Button</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>New</strong></td>
+          <td>Creates a fresh empty document. Unsaved changes will be lost.</td>
+        </tr>
+        <tr>
+          <td><strong>Load</strong></td>
+          <td>Opens a file-picker dialog to load an existing NoteCAD project, DXF, STL, or SolveSpace file.</td>
+        </tr>
+        <tr>
+          <td><strong>Save</strong></td>
+          <td>Saves the current project in NoteCAD's native binary format.</td>
+        </tr>
+        <tr>
+          <td><strong>Export</strong></td>
+          <td>Exports the model to STL (3-D mesh) or G-code (CNC/3-D printing tool-path).</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── IMPORT ── -->
+  <section id="import">
+    <h2>Import</h2>
+    <p>NoteCAD can import geometry from external files via the left-sidebar buttons and the Load button:</p>
+    <table>
+      <thead>
+        <tr><th>Button</th><th>Format</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Import3D</strong></td>
+          <td>STL</td>
+          <td>Imports a 3-D mesh as a reference body. The mesh is displayed in the viewport but cannot be directly edited as sketch geometry.</td>
+        </tr>
+        <tr>
+          <td><strong>Import2D</strong></td>
+          <td>DXF, SolveSpace</td>
+          <td>Imports 2-D sketch geometry into the current sketch. Lines, arcs, and circles are converted to NoteCAD entities.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── EXPORT ── -->
+  <section id="export">
+    <h2>Export</h2>
+    <table>
+      <thead>
+        <tr><th>Format</th><th>How to export</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>STL</strong></td>
+          <td>Click <strong>Export</strong> → choose STL. The entire 3-D model (all solid features) is tessellated and written to a binary STL file.</td>
+        </tr>
+        <tr>
+          <td><strong>G-code</strong></td>
+          <td>Click <strong>Export</strong> → choose G-code (or use the Slice tool). Generates CNC mill or 3-D printer paths from the current solid geometry.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── SHORTCUTS ── -->
+  <section id="shortcuts">
+    <h2>Keyboard Shortcuts</h2>
+    <table class="shortcuts">
+      <thead>
+        <tr><th>Shortcut</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><kbd>Ctrl+Z</kbd></td><td>Undo</td></tr>
+        <tr><td><kbd>Ctrl+Y</kbd></td><td>Redo</td></tr>
+        <tr><td><kbd>Ctrl+C</kbd></td><td>Copy selected entities</td></tr>
+        <tr><td><kbd>Ctrl+V</kbd></td><td>Paste copied entities</td></tr>
+        <tr><td><kbd>Escape</kbd></td><td>Cancel current tool / return to Move tool</td></tr>
+        <tr><td><kbd>Del</kbd></td><td>Delete selected entities or constraints</td></tr>
+        <tr><td><kbd>Shift + click</kbd></td><td>Add / remove entity from selection</td></tr>
+        <tr><td><kbd>Ctrl + drag</kbd></td><td>Snap line direction to 45° increments (while drawing segments)</td></tr>
+        <tr><td><kbd>Tab</kbd></td><td>Switch between length and angle dimension inputs while drawing a line</td></tr>
+        <tr><td><kbd>Enter</kbd></td><td>Confirm dimension value typed in the input box</td></tr>
+        <tr><td>Middle mouse drag</td><td>Pan camera</td></tr>
+        <tr><td>Scroll wheel</td><td>Zoom in / out</td></tr>
+        <tr><td>Right mouse drag</td><td>Rotate camera (3-D)</td></tr>
+        <tr><td>Double-click dimension label</td><td>Edit dimension value inline</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── STATUS BAR ── -->
+  <section id="status">
+    <h2>Status Bar</h2>
+    <p>The status bar at the bottom of the screen provides live feedback:</p>
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Meaning</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Tool hint (left)</strong></td>
+          <td>Instructions for the currently active tool (e.g. "MoveTool [Escape]: hover over an entity…").</td>
+        </tr>
+        <tr>
+          <td><strong>Memory (right)</strong></td>
+          <td>Current Unity memory usage (e.g. "29.85 mb").</td>
+        </tr>
+        <tr>
+          <td><strong>Solver status</strong></td>
+          <td><code>OKAY</code> — all constraints are satisfied. Any other message indicates a solver conflict or unsatisfied constraint.</td>
+        </tr>
+        <tr>
+          <td><strong>DOF</strong></td>
+          <td>Degrees of Freedom remaining in the sketch. <code>DOF: 0</code> means the sketch is fully constrained. A positive number means under-constrained; entities may still move.</td>
+        </tr>
+        <tr>
+          <td><strong>Undo</strong></td>
+          <td>Number of undo steps currently available.</td>
+        </tr>
+        <tr>
+          <td><strong>UndoSize</strong></td>
+          <td>Total memory consumed by the undo buffer in bytes.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── TIPS ── -->
+  <section id="tips">
+    <h2>Tips &amp; Tricks</h2>
+
+    <h3>Creating a Solid Body from Scratch</h3>
+    <ol class="steps">
+      <li>Start a new document (<strong>New</strong>).</li>
+      <li>Draw the outline of your part using closed contours (rectangles, circles, polygons, or chained lines/arcs). Make sure every contour is closed — all end-points must be coincident.</li>
+      <li>Add dimensions and constraints until <code>DOF: 0</code> is shown in the status bar.</li>
+      <li>Click <strong>Extrude</strong> to create the solid. Adjust the depth.</li>
+      <li>To add a feature on a face, use <strong>Wrkplne</strong> to define a new sketch plane on that face, draw the new profile, and apply another Extrude or Revolve.</li>
+      <li>Export the finished model as STL with <strong>Export</strong>.</li>
+    </ol>
+
+    <h3>Fully Constraining a Sketch</h3>
+    <ul>
+      <li>Start by applying a <strong>Fixation</strong> to one anchor point so the sketch does not drift.</li>
+      <li>Use <strong>Length</strong> to fix edge lengths, <strong>Angle</strong> for orientations, and <strong>Horizontal/Vertical</strong> for axis-aligned segments.</li>
+      <li>Watch the DOF counter decrease as you add constraints. When it reaches 0, all geometry is grey/green (fully constrained).</li>
+    </ul>
+
+    <h3>Working with Styles</h3>
+    <p>
+      The top-right panel lets you create visual styles (line color, fill, weight) and assign
+      them to entities. Use <strong>Add</strong> to create a style, <strong>Edit</strong> to
+      modify it, <strong>Assign</strong> to apply it to selected entities, and <strong>Remove</strong>
+      to delete it.
+    </p>
+    <p>
+      The <em>Solid</em> dropdown sets the overall rendering mode of 3-D bodies in the viewport.
+    </p>
+
+    <h3>Snapping While Drawing Lines</h3>
+    <p>
+      The Line Segment tool automatically detects and snaps to:
+    </p>
+    <ul>
+      <li>Horizontal and vertical alignments.</li>
+      <li>Directions parallel or perpendicular to the previous segment.</li>
+      <li>Directions parallel to other existing lines in the sketch.</li>
+      <li>Point-to-point vertical/horizontal alignment (shown with a dashed guide).</li>
+    </ul>
+    <p>
+      Snapped constraints are applied permanently when you click. To prevent a constraint from
+      being applied, move the mouse away from the snap direction before clicking.
+    </p>
+
+    <h3>Editing Constraints After Creation</h3>
+    <p>
+      Switch to the <strong>Move</strong> tool and double-click any dimension label (length,
+      angle, distance) to open an inline text field. Type the new value and press <kbd>Enter</kbd>.
+      The solver updates all constrained geometry immediately.
+    </p>
+
+    <h3>Using NoteCAD as a Unity Package</h3>
+    <p>
+      NoteCAD can be embedded in your own Unity project via Unity Package Manager.
+      Add the package from git URL:
+    </p>
+    <code>https://github.com/Evil-Spirit/NoteCADPro.git?path=/Assets</code>
+    <p style="margin-top:8px;">
+      An example scene at <code>Packages/com.macroshape.notecad/Scenes/SketchEditorExample.unity</code>
+      shows the minimal setup needed to host the sketch editor inside another application.
+    </p>
+  </section>
+
+</main>
+
+<script>
+  // Highlight the current sidebar link based on scroll position
+  const sections = document.querySelectorAll('section[id]');
+  const links    = document.querySelectorAll('#sidebar nav a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`#sidebar nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
