@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using ACadSharp;
-using ACadSharp.Entities;
 using ACadSharp.Tables;
 using NoteCAD;
 
@@ -127,7 +126,7 @@ public abstract class CadExportBase : ICanvas {
 		Vector3 p1 = e.PointOnInPlane(1.0, null).Eval();
 		Vector3 labelPos = l.pos;
 
-		var dim = new DimensionAligned {
+		var dim = new ACadSharp.Entities.DimensionAligned {
 			FirstPoint = ToXYZ(p0),
 			SecondPoint = ToXYZ(p1),
 			TextMiddlePoint = ToXYZ(labelPos)
@@ -144,14 +143,14 @@ public abstract class CadExportBase : ICanvas {
 		Vector3 dir = (labelPos - center).normalized;
 
 		if (d.showAsRadius) {
-			var dim = new DimensionRadius {
+			var dim = new ACadSharp.Entities.DimensionRadius {
 				DefinitionPoint = ToXYZ(center + dir * r),
 				AngleVertex = ToXYZ(center),
 				TextMiddlePoint = ToXYZ(labelPos)
 			};
 			document.Entities.Add(dim);
 		} else {
-			var dim = new DimensionDiameter {
+			var dim = new ACadSharp.Entities.DimensionDiameter {
 				DefinitionPoint = ToXYZ(center + dir * r),
 				AngleVertex = ToXYZ(center - dir * r),
 				TextMiddlePoint = ToXYZ(labelPos)
