@@ -205,21 +205,31 @@ public class ExportSTLTool : Tool {
 	}
 
 	byte[] ExportDxf() {
-		var canvas = new DxfExport();
-		editor.currentSketch.DrawEntities(canvas, e => settings.construction || !e.isConstruction);
-		if(settings.constraints || settings.dimensions) {
-			editor.currentSketch.DrawConstraints(canvas, c => settings.constraints && !c.IsDimension || settings.dimensions && c.IsDimension);
-		}
-		return canvas.GetResult();
+		var exporter = new DxfExport();
+		ExportNativeEntities(exporter);
+		return exporter.GetResult();
 	}
 
 	byte[] ExportDwg() {
-		var canvas = new DwgExport();
-		editor.currentSketch.DrawEntities(canvas, e => settings.construction || !e.isConstruction);
-		if(settings.constraints || settings.dimensions) {
-			editor.currentSketch.DrawConstraints(canvas, c => settings.constraints && !c.IsDimension || settings.dimensions && c.IsDimension);
+		var exporter = new DwgExport();
+		ExportNativeEntities(exporter);
+		return exporter.GetResult();
+	}
+
+	void ExportNativeEntities(CadExportBase exporter) {
+		foreach (var e in editor.currentSketch.GetSketch().entityList) {
+			if (!e.isVisible) continue;
+			if (!settings.construction && e.isConstruction) continue;
+			exporter.AddSketchEntity(e);
 		}
-		return canvas.GetResult();
+		if (settings.dimensions) {
+			foreach (var c in editor.currentSketch.GetSketch().constraintList) {
+				if (!c.isVisible) continue;
+				if (c is ValueConstraint vc && vc.IsDimension) {
+					exporter.AddDimension(vc);
+				}
+			}
+		}
 	}
 
 	string ExportReplay() {
