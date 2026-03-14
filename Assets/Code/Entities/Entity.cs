@@ -532,8 +532,9 @@ namespace NoteCAD {
 
 		// Refine a rough segment-segment intersection using EquationSystem Newton steps.
 		// Solves entityA.PointOn(sa) == entityB.PointOn(tb) with 2 parameters and 2 equations.
-		// revertWhenNotConverged=false keeps the last Newton iterate (closest approach) rather than
-		// snapping back to the rough initial point when the solver hasn't fully converged.
+		// Limited to 5 Newton steps: if the system does not converge within that budget,
+		// the rough intersection is returned unchanged (the caller should treat it as valid
+		// only when the solver reports OKAY).
 		static private Vector3 RefineIntersection(Entity entityA, Entity entityB, Vector3 roughPt) {
 			Param sa = new Param("sa");
 			Param tb = new Param("tb");
@@ -543,6 +544,7 @@ namespace NoteCAD {
 			var ptB = entityB.PointOn(tb);
 			var diff = ptA - ptB;
 			var sys = new EquationSystem();
+			sys.maxSteps = 5;
 			sys.revertWhenNotConverged = false;
 			sys.AddParameter(sa);
 			sys.AddParameter(tb);
