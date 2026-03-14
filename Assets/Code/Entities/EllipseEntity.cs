@@ -14,7 +14,7 @@ public class EllipseEntity : Entity, ILoopEntity {
 
 	public Param r0 = new Param("r0");
 	public Param r1 = new Param("r1");
-	ExpBasis2d basis = new ExpBasis2d();
+	public ExpBasis2d basis = new ExpBasis2d();
 
 	public override IEntityType type { get { return IEntityType.Ellipse; } }
 
