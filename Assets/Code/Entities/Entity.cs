@@ -422,7 +422,110 @@ namespace NoteCAD {
 		}
 
 		public Entity Split(Vector3 position) {
-			return OnSplit(position);
+			var part = OnSplit(position);
+			if(part != null) {
+				if(style != null) part.style = style;
+				if(this is ISegmentaryEntity && part is ISegmentaryEntity) {
+					sketch.ReplaceEntityInConstraints((this as ISegmentaryEntity).end, (part as ISegmentaryEntity).end);
+				}
+			}
+			return part;
+		}
+
+		public virtual double FindParameter(Vector3 pos) {
+			Param pOn = new Param("pOn");
+			var on = PointOn(pOn);
+			int steps = 32;
+			double best_t = 0.0;
+			double best_dist = double.MaxValue;
+			for(int i = 0; i <= steps; i++) {
+				pOn.value = (double)i / steps;
+				var p = on.Eval();
+				var d = (p - pos).sqrMagnitude;
+				if(d < best_dist) {
+					best_dist = d;
+					best_t = pOn.value;
+				}
+			}
+			double lo = Math.Max(0.0, best_t - 1.0 / steps);
+			double hi = Math.Min(1.0, best_t + 1.0 / steps);
+			for(int iter = 0; iter < 20; iter++) {
+				double tl = lo + (hi - lo) / 3.0;
+				double tr = lo + 2.0 * (hi - lo) / 3.0;
+				pOn.value = tl;
+				double dl = (on.Eval() - pos).sqrMagnitude;
+				pOn.value = tr;
+				double dr = (on.Eval() - pos).sqrMagnitude;
+				if(dl < dr) hi = tr;
+				else lo = tl;
+			}
+			return (lo + hi) / 2.0;
+		}
+
+		public List<Vector3> GetAllIntersections(Entity e, bool refine = false, bool includeTouches = false) {
+			var result = new List<Vector3>();
+			bool hasBbox = !bbox.Equals(new BBox(Vector3.zero, Vector3.zero));
+			bool otherHasBbox = !e.bbox.Equals(new BBox(Vector3.zero, Vector3.zero));
+			if(hasBbox && otherHasBbox && !e.bbox.Overlaps(bbox)) return result;
+			if(!(this is ISegmentProvider) || !(e is ISegmentProvider)) return result;
+			var self = this as ISegmentProvider;
+			var entity = e as ISegmentProvider;
+			Vector3 selfPrev = Vector3.zero;
+			bool selfFirst = true;
+			foreach(var spl in self.segmentPoints) foreach(var sp in spl) {
+				if(!selfFirst) {
+					Vector3 otherPrev = Vector3.zero;
+					bool otherFirst = true;
+					foreach(var lp in entity.segmentPoints) foreach(var ep in lp) {
+						if(!otherFirst) {
+							Vector3 itr = Vector3.zero;
+							var cross = GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f);
+							if(cross == GeomUtils.Cross.INTERSECTION) {
+								result.Add(refine ? RefineIntersection(this, e, itr) : itr);
+							} else if(includeTouches) {
+								// isSegmentsCrossed misses endpoint-on-endpoint contacts (the ray cast
+								// returns distance=0 which Unity treats as no hit). Check directly:
+								// if an endpoint of the other segment lies ON the self segment, add it.
+								// Note: callers are expected to deduplicate (multiple segment pairs may
+								// report the same touch point at shared vertices).
+								var clA = GeomUtils.classify(otherPrev, selfPrev, sp, 1e-6f);
+								if(clA == GeomUtils.Classify.etTOUCHA || clA == GeomUtils.Classify.etTOUCHB || clA == GeomUtils.Classify.etBETWEEN)
+									result.Add(refine ? RefineIntersection(this, e, otherPrev) : otherPrev);
+								var clB = GeomUtils.classify(ep, selfPrev, sp, 1e-6f);
+								if(clB == GeomUtils.Classify.etTOUCHA || clB == GeomUtils.Classify.etTOUCHB || clB == GeomUtils.Classify.etBETWEEN)
+									result.Add(refine ? RefineIntersection(this, e, ep) : ep);
+							}
+						}
+						otherFirst = false;
+						otherPrev = ep;
+					}
+				}
+				selfFirst = false;
+				selfPrev = sp;
+			}
+			return result;
+		}
+
+		// Refine a rough segment-segment intersection using EquationSystem Newton steps.
+		// Solves entityA.PointOn(sa) == entityB.PointOn(tb) with 2 parameters and 2 equations.
+		// revertWhenNotConverged=false keeps the last Newton iterate (closest approach) rather than
+		// snapping back to the rough initial point when the solver hasn't fully converged.
+		static private Vector3 RefineIntersection(Entity entityA, Entity entityB, Vector3 roughPt) {
+			Param sa = new Param("sa");
+			Param tb = new Param("tb");
+			sa.value = entityA.FindParameter(roughPt);
+			tb.value = entityB.FindParameter(roughPt);
+			var ptA = entityA.PointOn(sa);
+			var ptB = entityB.PointOn(tb);
+			var diff = ptA - ptB;
+			var sys = new EquationSystem();
+			sys.revertWhenNotConverged = false;
+			sys.AddParameter(sa);
+			sys.AddParameter(tb);
+			sys.AddEquation(diff.x);
+			sys.AddEquation(diff.y);
+			sys.Solve();
+			return new Vector3((float)ptA.x.Eval(), (float)ptA.y.Eval(), 0f);
 		}
 
 		protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
