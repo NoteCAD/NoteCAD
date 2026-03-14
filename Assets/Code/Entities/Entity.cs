@@ -505,7 +505,11 @@ namespace NoteCAD {
 							Vector3 itr = Vector3.zero;
 							var cross = GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f);
 							if(cross == GeomUtils.Cross.INTERSECTION) {
-								result.Add(refine ? RefineIntersection(this, e, itr) : itr);
+								if(!refine) {
+									result.Add(itr);
+								} else if(RefineIntersection(this, e, ref itr)) {
+									result.Add(itr);
+								}
 							} else if(includeTouches) {
 								// isSegmentsCrossed misses endpoint-on-endpoint contacts (the ray cast
 								// returns distance=0 which Unity treats as no hit). Check directly:
@@ -513,11 +517,15 @@ namespace NoteCAD {
 								// Note: callers are expected to deduplicate (multiple segment pairs may
 								// report the same touch point at shared vertices).
 								var clA = GeomUtils.classify(otherPrev, selfPrev, sp, 1e-6f);
-								if(clA == GeomUtils.Classify.etTOUCHA || clA == GeomUtils.Classify.etTOUCHB || clA == GeomUtils.Classify.etBETWEEN)
-									result.Add(refine ? RefineIntersection(this, e, otherPrev) : otherPrev);
+								if(clA == GeomUtils.Classify.etTOUCHA || clA == GeomUtils.Classify.etTOUCHB || clA == GeomUtils.Classify.etBETWEEN) {
+									var ptA2 = otherPrev;
+									if(!refine || RefineIntersection(this, e, ref ptA2)) result.Add(ptA2);
+								}
 								var clB = GeomUtils.classify(ep, selfPrev, sp, 1e-6f);
-								if(clB == GeomUtils.Classify.etTOUCHA || clB == GeomUtils.Classify.etTOUCHB || clB == GeomUtils.Classify.etBETWEEN)
-									result.Add(refine ? RefineIntersection(this, e, ep) : ep);
+								if(clB == GeomUtils.Classify.etTOUCHA || clB == GeomUtils.Classify.etTOUCHB || clB == GeomUtils.Classify.etBETWEEN) {
+									var ptB2 = ep;
+									if(!refine || RefineIntersection(this, e, ref ptB2)) result.Add(ptB2);
+								}
 							}
 						}
 						otherFirst = false;
@@ -532,10 +540,10 @@ namespace NoteCAD {
 
 		// Refine a rough segment-segment intersection using EquationSystem Newton steps.
 		// Solves entityA.PointOn(sa) == entityB.PointOn(tb) with 2 parameters and 2 equations.
-		// Limited to 5 Newton steps: if the system does not converge within that budget,
-		// the rough intersection is returned unchanged (the caller should treat it as valid
-		// only when the solver reports OKAY).
-		static private Vector3 RefineIntersection(Entity entityA, Entity entityB, Vector3 roughPt) {
+		// Limited to 5 Newton steps. Returns true and updates roughPt to the refined position
+		// when the solver converges (OKAY); returns false when it does not converge, in which
+		// case the caller should discard the candidate intersection entirely.
+		static private bool RefineIntersection(Entity entityA, Entity entityB, ref Vector3 roughPt) {
 			Param sa = new Param("sa");
 			Param tb = new Param("tb");
 			sa.value = entityA.FindParameter(roughPt);
@@ -551,8 +559,9 @@ namespace NoteCAD {
 			sys.AddEquation(diff.x);
 			sys.AddEquation(diff.y);
 			var result = sys.Solve();
-			if(result != EquationSystem.SolveResult.OKAY) return roughPt;
-			return new Vector3((float)ptA.x.Eval(), (float)ptA.y.Eval(), 0f);
+			if(result != EquationSystem.SolveResult.OKAY) return false;
+			roughPt = new Vector3((float)ptA.x.Eval(), (float)ptA.y.Eval(), 0f);
+			return true;
 		}
 
 		protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
