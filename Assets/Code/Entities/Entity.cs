@@ -18,7 +18,8 @@ namespace NoteCAD {
 		Ellipse,
 		EllipticArc,
 		Sketch,
-		Offset
+		Offset,
+		Image
 	}
 
 	public interface IEntity : ICADObject {
