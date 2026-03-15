@@ -77,6 +77,7 @@ public class ExpParser {
         { "cosh",	Exp.Op.Cosh },
         { "sfres",	Exp.Op.SFres },
         { "cfres",	Exp.Op.CFres },
+        { "ellint",	Exp.Op.EllInt },
         { "if",		Exp.Op.If },
     };
     
@@ -290,10 +291,10 @@ public class ExpParser {
                         c = ParseMain();
                     }
                     Skip(')');
-					if((func == Exp.Op.Atan2 || func == Exp.Op.If) && b == null) {
+					if((func == Exp.Op.Atan2 || func == Exp.Op.If || func == Exp.Op.EllInt) && b == null) {
 						error("second function argument execpted");
 					}
-					if(func == Exp.Op.If && c == null) {
+					if((func == Exp.Op.If || func == Exp.Op.EllInt) && c == null) {
 						error("third function argument execpted");
 					}
                     return new Exp(func, a, b, c);

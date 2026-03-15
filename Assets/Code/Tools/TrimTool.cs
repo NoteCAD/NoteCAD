@@ -217,9 +217,17 @@ public class TrimTool : Tool {
 			if(style != null) arc.style = style;
 		} else if(entity is EllipseEntity ellipse) {
 			var arc = new EllipticArcEntity(sketch);
+			arc.c.pos = ellipse.center.pos;
+			arc.r0.value = ellipse.radius0;
+			arc.r1.value = ellipse.radius1;
+			arc.CopyBasisOrientationFrom(ellipse.basis);
+			// EllipseEntity maps t -> angle = t * 2*PI;
+			// arc starts at t_end, goes CCW to t_begin (wrapping if needed)
+			arc.startAngle.value = t_end * 2.0 * Math.PI;
+			double endT = t_begin < t_end ? t_begin + 1.0 : t_begin;
+			arc.deltaAngle.value = (endT - t_end) * 2.0 * Math.PI;
 			arc.p0.pos = arcP0;
 			arc.p1.pos = arcP1;
-			arc.center.pos = ellipse.center.pos;
 			if(style != null) arc.style = style;
 		}
 		entity.Destroy();

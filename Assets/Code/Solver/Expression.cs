@@ -120,6 +120,7 @@ public class Exp {
 		Cosh,
 		SFres,
 		CFres,
+		EllInt,
 		Equal,
 		LEqual,
 		GEqual,
@@ -282,6 +283,38 @@ public class Exp {
 	}
 
 	
+	// Incomplete elliptic integral: EllInt(phi, r0, r1) = integral_0^phi sqrt(r0^2*sin^2(t) + r1^2*cos^2(t)) dt
+	// Uses 8-point Gauss-Legendre quadrature with adaptive segments (one per pi/2 interval).
+	public static double EllInt(double phi, double r0, double r1) {
+		if(phi == 0.0) return 0.0;
+		// Split into segments no larger than pi/2 for accuracy over large angles
+		int n = Math.Max(1, (int)Math.Ceiling(Math.Abs(phi) / (Math.PI / 2.0)));
+		double dphi = phi / n;
+		double total = 0.0;
+		for(int s = 0; s < n; s++) {
+			total += EllIntSegment(s * dphi, (s + 1) * dphi, r0, r1);
+		}
+		return total;
+	}
+
+	static double EllIntSegment(double a, double b, double r0, double r1) {
+		// 8-point Gauss-Legendre quadrature on [a, b]
+		double[] nodes   = { -0.9602898564975363, -0.7966664774136267, -0.5255324099163290, -0.1834234663684831,
+		                      0.1834234663684831,  0.5255324099163290,  0.7966664774136267,  0.9602898564975363 };
+		double[] weights = {  0.1012285362903763,  0.2223810344533745,  0.3137066458778873,  0.3626837833783620,
+		                      0.3626837833783620,  0.3137066458778873,  0.2223810344533745,  0.1012285362903763 };
+		double half = (b - a) / 2.0;
+		double mid  = (b + a) / 2.0;
+		double sum  = 0.0;
+		for(int i = 0; i < 8; i++) {
+			double t  = mid + half * nodes[i];
+			double st = Math.Sin(t);
+			double ct = Math.Cos(t);
+			sum += weights[i] * Math.Sqrt(r0 * r0 * st * st + r1 * r1 * ct * ct);
+		}
+		return half * sum;
+	}
+
 	static public Exp Sin	(Exp x) { return new Exp(Op.Sin,	x, null); }
 	static public Exp Cos	(Exp x) { return new Exp(Op.Cos,	x, null); }
 	static public Exp ACos	(Exp x) { return new Exp(Op.ACos,	x, null); }
@@ -297,6 +330,7 @@ public class Exp {
 	static public Exp Cosh	(Exp x) { return new Exp(Op.Cosh,	x, null); }
 	static public Exp SFres	(Exp x) { return new Exp(Op.SFres,	x, null); }
 	static public Exp CFres	(Exp x) { return new Exp(Op.CFres,	x, null); }
+	static public Exp EllInt(Exp phi, Exp r0, Exp r1) { return new Exp(Op.EllInt, phi, r0, r1); }
 	//static public Exp Pow  (Exp x, Exp y) { return new Exp(Op.Pow,   x, y); }
 
 	public Exp Drag(Exp to) {
@@ -352,6 +386,7 @@ public class Exp {
 			case Op.Cosh:	return Math.Cosh(a.Eval());
 			case Op.SFres:	return SFres(a.Eval());
 			case Op.CFres:	return CFres(a.Eval());
+			case Op.EllInt:	return EllInt(a.Eval(), b.Eval(), c.Eval());
 			case Op.If:		return a.EvalBool() ? b.Eval() : c.Eval();
 			//case Op.Pow:	return Math.Pow(a.Eval(), b.Eval());
 		}
@@ -490,6 +525,7 @@ public class Exp {
 			case Op.Cosh:	return "cosh(" + a.ToString() + ")";
 			case Op.SFres:	return "sfres(" + a.ToString() + ")";
 			case Op.CFres:	return "cfres(" + a.ToString() + ")";
+			case Op.EllInt:	return "ellint(" + a.ToString() + ", " + b.ToString() + ", " + c.ToString() + ")";
 			case Op.If:		return "if(" + a.ToString() + ", " + b.ToString() + ", " + c.ToString() + ")";
 			//case Op.Pow:	return Quoted(a) + " ^ " + Quoted(b);
 		}
@@ -546,6 +582,7 @@ public class Exp {
 			case Op.Cosh:	return a.d(p) * Sinh(a);
 			case Op.SFres:	return a.d(p) * Sin(Math.PI * Sqr(a) / 2.0);
 			case Op.CFres:	return a.d(p) * Cos(Math.PI * Sqr(a) / 2.0);
+			case Op.EllInt:	return a.d(p) * Sqrt(Sqr(b) * Sqr(Sin(a)) + Sqr(c) * Sqr(Cos(a)));
 			case Op.Pos:	return a.d(p);
 			case Op.If:		return new Exp(Op.If, a, b.d(p), c.d(p));
 		}

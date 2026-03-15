@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections;
+ï»¿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Xml;
 using UnityEngine;
 using NoteCAD;
 
@@ -16,21 +17,23 @@ public class EllipticArcEntity : Entity, ISegmentaryEntity {
 	[NonSerialized]
 	public PointEntity c;
 
+	public Param r0 = new Param("r0");
+	public Param r1 = new Param("r1");
+	public Param startAngle = new Param("a0");
+	public Param deltaAngle = new Param("da");
+	public ExpBasis2d basis = new ExpBasis2d();
+
+	public override IEntityType type { get { return IEntityType.EllipticArc; } }
+
 	public EllipticArcEntity(Sketch sk) : base(sk) {
+		c  = AddChild(new PointEntity(sk));
 		p0 = AddChild(new PointEntity(sk));
 		p1 = AddChild(new PointEntity(sk));
-		c = AddChild(new PointEntity(sk));
+		basis.SetPosParams(c.x, c.y);
 	}
 
-	public override IEntityType type { get { return IEntityType.Arc; } }
-
-	public override IEnumerable<Exp> equations {
-		get {
-			if(!p0.IsCoincidentWith(p1)) {
-				yield return (p0.exp - c.exp).Magnitude() - (p1.exp - c.exp).Magnitude();
-			}
-		}
-	}
+	public double radius0 { get { return r0.value; } set { r0.value = value; } }
+	public double radius1 { get { return r1.value; } set { r1.value = value; } }
 
 	public override IEnumerable<PointEntity> points {
 		get {
@@ -41,127 +44,144 @@ public class EllipticArcEntity : Entity, ISegmentaryEntity {
 	}
 
 	public override bool IsChanged() {
-		return p0.IsChanged() || p1.IsChanged() || c.IsChanged();
+		return c.IsChanged() || r0.changed || r1.changed || startAngle.changed || deltaAngle.changed || basis.changed;
 	}
 
-	public Exp GetAngleExp() {
-		if(!p0.IsCoincidentWith(p1)) {
-			var d0 = p0.exp - c.exp;
-			var d1 = p1.exp - c.exp;
-			return ConstraintExp.angle2d(d0, d1, angle360: true);
+	public override IEnumerable<Param> parameters {
+		get {
+			yield return r0;
+			yield return r1;
+			yield return startAngle;
+			yield return deltaAngle;
+			foreach(var p in basis.parameters) yield return p;
 		}
-		return Math.PI * 2.0;
 	}
 
-	public double GetAngle() {
-		var angle = GeomUtils.GetAngle(p0.pos - c.pos, p1.pos - c.pos);
-		if(angle <= 0f) angle += 2f * Mathf.PI;
-		return angle;
+	public override IEnumerable<Exp> equations {
+		get {
+			foreach(var e in basis.equations) yield return e;
+			// Constrain p0 to start of arc
+			var ep0 = StartExp();
+			yield return p0.exp.x - ep0.x;
+			yield return p0.exp.y - ep0.y;
+			// Constrain p1 to end of arc
+			var ep1 = EndExp();
+			yield return p1.exp.x - ep1.x;
+			yield return p1.exp.y - ep1.y;
+		}
 	}
 
-	public PointEntity begin { get { return p0; } }
-	public PointEntity end { get { return p1; } }
-	public PointEntity center { get { return c; } }
+	ExpVector StartExp() {
+		return basis.TransformPosition(new ExpVector(
+			Exp.Cos(startAngle.exp) * Exp.Abs(r0),
+			Exp.Sin(startAngle.exp) * Exp.Abs(r1),
+			0.0));
+	}
+
+	ExpVector EndExp() {
+		var endAngle = startAngle.exp + deltaAngle.exp;
+		return basis.TransformPosition(new ExpVector(
+			Exp.Cos(endAngle) * Exp.Abs(r0),
+			Exp.Sin(endAngle) * Exp.Abs(r1),
+			0.0));
+	}
+
+	public PointEntity begin  { get { return p0; } }
+	public PointEntity end    { get { return p1; } }
+	public PointEntity center { get { return c;  } }
+
 	public IEnumerable<IEnumerable<Vector3>> segmentPoints {
 		get {
 			yield return getSegmentsUsingPointOn(36);
 		}
-	}	
-
-	public double radius {
-		get {
-			return (p1.pos - c.pos).magnitude;
-		}
 	}
 
-	public Exp radiusExp {
-		get {
-			return (p0.exp - c.exp).Magnitude();
-		}
+	public override BBox bbox {
+		get { return new BBox(c.pos, (float)Math.Max(Math.Abs(r0.value), Math.Abs(r1.value))); }
 	}
 
-	public override BBox bbox { get { return new BBox(center.pos, (float)radius); } }
-
-	protected override Entity OnSplit(Vector3 position) {
-		var part = new ArcEntity(sketch);
-		part.center.pos = center.pos;
-		part.p1.pos = p1.pos;
-		p1.pos = position;
-		part.p0.pos = p1.pos;
-		return part;
+	// Copy only the orientation vectors (u, v) from another basis; position comes from c.
+	public void CopyBasisOrientationFrom(ExpBasis2d src) {
+		var srcList = src.parameters.ToList();
+		var dstList = basis.parameters.ToList();
+		// Order in ExpBasis2d.parameters: ux, uy, vx, vy, px, py
+		dstList[0].value = srcList[0].value; // ux
+		dstList[1].value = srcList[1].value; // uy
+		dstList[2].value = srcList[2].value; // vx
+		dstList[3].value = srcList[3].value; // vy
+		// dstList[4] = c.x, dstList[5] = c.y — already linked via SetPosParams
 	}
 
-	public override double FindParameter(Vector3 pos) {
-		var toP0 = p0.pos - c.pos;
-		var toPos = pos - c.pos;
-		float arcAngle = (float)GetAngle();
-		if(arcAngle < 1e-6f) return 0.0;
-		float angleToPos = GeomUtils.GetAngle(toP0, toPos);
-		if(angleToPos < 0f) angleToPos += 2f * Mathf.PI;
-		return (double)Mathf.Clamp01(angleToPos / arcAngle);
+	protected override void OnWrite(Writer xml) {
+		xml.WriteAttribute("r0", Math.Abs(r0.value));
+		xml.WriteAttribute("r1", Math.Abs(r1.value));
+		xml.WriteAttribute("a0", startAngle.value);
+		xml.WriteAttribute("da", deltaAngle.value);
+		xml.WriteAttribute("basis", basis.ToString());
 	}
 
-	/*
-	protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
-		float angle = GetAngle() * Mathf.Rad2Deg;
-		Debug.Log(angle);
-		var cp = c.pos;
-		var rv = p0.pos - cp;
-		int subdiv = (int)Math.Ceiling(angle / 30);
-		var vz = Vector3.forward;
-		var rot = Quaternion.AngleAxis(angle / (subdiv - 1), vz);
-		var prev = Vector3.zero;
-		double min = -1;
-		for(int i = 0; i < subdiv; i++) {
-			var pos =  camera.WorldToScreenPoint(tf.MultiplyPoint(rv + cp));
-			if(i > 0) {
-				var dist = GeomUtils.DistancePointSegment2D(mouse, prev, pos);
-				if(min > 0 && dist > min) continue;
-				min = dist;
-			}
-			prev = pos;
-			rv = rot * rv;
-		}
-		return min;
+	protected override void OnRead(XmlNode xml) {
+		r0.value = xml.Attributes["r0"].Value.ToDouble();
+		r1.value = xml.Attributes["r1"].Value.ToDouble();
+		startAngle.value = xml.Attributes["a0"].Value.ToDouble();
+		deltaAngle.value = xml.Attributes["da"].Value.ToDouble();
+		basis.FromString(xml.Attributes["basis"].Value);
 	}
-	*/
 
 	public override ExpVector PointOn(Exp t) {
-		var angle = GetAngleExp();
-		var cos = Exp.Cos(angle * t);
-		var sin = Exp.Sin(angle * t);
-		var rv = p0.exp - c.exp;
-
-		return c.exp + new ExpVector(
-			cos * rv.x - sin * rv.y, 
-			sin * rv.x + cos * rv.y, 
-			0.0
-		);
+		var angle = startAngle.exp + t * deltaAngle.exp;
+		return basis.TransformPosition(new ExpVector(
+			Exp.Cos(angle) * Exp.Abs(r0),
+			Exp.Sin(angle) * Exp.Abs(r1),
+			0.0));
 	}
 
-	public override ExpVector TangentAt(Exp t) {
-		var angle = GetAngleExp();
-		var cos = Exp.Cos(angle * t + Math.PI / 2);
-		var sin = Exp.Sin(angle * t + Math.PI / 2);
-		var rv = p0.exp - c.exp;
-
-		return new ExpVector(
-			cos * rv.x - sin * rv.y, 
-			sin * rv.x + cos * rv.y, 
-			0.0
-		);
-	}
-	
 	public override Exp Length() {
-		return GetAngleExp() * Radius();
+		// Arc length = EllInt(endAngle, |r0|, |r1|) - EllInt(startAngle, |r0|, |r1|)
+		// EllInt(phi, r0, r1) = integral_0^phi sqrt(r0^2*sin^2(t) + r1^2*cos^2(t)) dt
+		var a0 = startAngle.exp;
+		var a1 = startAngle.exp + deltaAngle.exp;
+		return Exp.EllInt(a1, Exp.Abs(r0), Exp.Abs(r1)) - Exp.EllInt(a0, Exp.Abs(r0), Exp.Abs(r1));
 	}
 
 	public override Exp Radius() {
-		return (p0.exp - c.exp).Magnitude();
+		return null;
 	}
 
 	public override ExpVector Center() {
 		return c.exp;
+	}
+
+	protected override Entity OnSplit(Vector3 position) {
+		double t = FindParameter(position);
+		double splitAngle = startAngle.value + t * deltaAngle.value;
+		double oldEndAngle = startAngle.value + deltaAngle.value;
+
+		// Evaluate current end position before modifying params
+		var pOn = new Param("pOn");
+		var ptOn = PointOn(pOn);
+		pOn.value = 1.0;
+		var oldEndPos = ptOn.Eval();
+
+		var part = new EllipticArcEntity(sketch);
+		part.c.pos = c.pos;
+		part.r0.value = r0.value;
+		part.r1.value = r1.value;
+		part.CopyBasisOrientationFrom(basis);
+
+		// Part: from splitAngle to original end
+		part.startAngle.value = splitAngle;
+		part.deltaAngle.value = oldEndAngle - splitAngle;
+
+		// This arc: from startAngle to splitAngle
+		deltaAngle.value = splitAngle - startAngle.value;
+
+		// Set initial endpoint positions (solver will re-enforce via equations)
+		p1.pos = position;
+		part.p0.pos = position;
+		part.p1.pos = oldEndPos;
+
+		return part;
 	}
 
 }
