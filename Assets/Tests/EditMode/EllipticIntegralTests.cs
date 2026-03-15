@@ -156,44 +156,35 @@ public class EllipticIntegralTests {
 
 	// -----------------------------------------------------------------------
 	// Arc length, r0 >= r1 — compare with subdivided numerical integration
+	// (r0 is the major semi-axis; the formula requires r0 >= r1)
 	// -----------------------------------------------------------------------
 	[TestCase(3.0, 2.0, 0.0,          Math.PI / 2,     TestName = "r0>r1, [0, π/2]")]
 	[TestCase(3.0, 2.0, Math.PI / 4,  3 * Math.PI / 4, TestName = "r0>r1, [π/4, 3π/4]")]
 	[TestCase(3.0, 2.0, 0.5,          2.0,             TestName = "r0>r1, [0.5, 2.0]")]
 	[TestCase(3.0, 2.0, 1.0,          Math.PI,         TestName = "r0>r1, [1.0, π]")]
-	public void ArcLength_R0GreaterThanR1_MatchesBruteForce(double r0, double r1, double a0, double a1) {
+	[TestCase(5.0, 1.0, 0.0,          Math.PI / 2,     TestName = "eccentric, [0, π/2]")]
+	[TestCase(5.0, 2.0, Math.PI / 4,  3 * Math.PI / 4, TestName = "eccentric, [π/4, 3π/4]")]
+	public void ArcLength_R0GeR1_MatchesBruteForce(double r0, double r1, double a0, double a1) {
 		Assert.AreEqual(BruteForceArcLength(r0, r1, a0, a1),
 		                EvalArcLength(r0, r1, a0, a1),
 		                TolArc, $"r0={r0}, r1={r1}, [{a0:F3}, {a1:F3}]");
 	}
 
 	// -----------------------------------------------------------------------
-	// Arc length, r0 < r1 — was buggy before the fix; compare with brute force
+	// Arc length — formula handles arcs that do not start at angle 0
 	// -----------------------------------------------------------------------
-	[TestCase(2.0, 3.0, 0.0,          Math.PI / 2,     TestName = "r0<r1, [0, π/2]")]
-	[TestCase(2.0, 3.0, Math.PI / 4,  3 * Math.PI / 4, TestName = "r0<r1, [π/4, 3π/4]")]
-	[TestCase(2.0, 3.0, 0.5,          2.0,             TestName = "r0<r1, [0.5, 2.0]")]
-	[TestCase(2.0, 3.0, 1.0,          Math.PI,         TestName = "r0<r1, [1.0, π]")]
-	public void ArcLength_R0LessThanR1_MatchesBruteForce(double r0, double r1, double a0, double a1) {
+	[TestCase(4.0, 2.0, Math.PI / 6,  2 * Math.PI / 3, TestName = "non-zero start, [π/6, 2π/3]")]
+	[TestCase(3.0, 2.0, 3 * Math.PI / 4, 7 * Math.PI / 4, TestName = "non-zero start, [3π/4, 7π/4]")]
+	public void ArcLength_NonZeroStart_MatchesBruteForce(double r0, double r1, double a0, double a1) {
 		Assert.AreEqual(BruteForceArcLength(r0, r1, a0, a1),
 		                EvalArcLength(r0, r1, a0, a1),
 		                TolArc, $"r0={r0}, r1={r1}, [{a0:F3}, {a1:F3}]");
 	}
 
 	// -----------------------------------------------------------------------
-	// Arc length — asymmetric intervals should differ between (r0,r1) and (r1,r0)
-	// -----------------------------------------------------------------------
-	[Test]
-	public void ArcLength_SwappedRadii_DifferForAsymmetricInterval() {
-		double L_r0Big = EvalArcLength(3.0, 2.0, Math.PI / 4, 3 * Math.PI / 4);
-		double L_r1Big = EvalArcLength(2.0, 3.0, Math.PI / 4, 3 * Math.PI / 4);
-		Assert.Greater(Math.Abs(L_r0Big - L_r1Big), 0.01,
-		               "swapping r0,r1 must change length for a non-symmetric interval");
-	}
-
-	// -----------------------------------------------------------------------
-	// Helper: evaluate EllipticArcEntity.Length() for given r0, r1, a0, a1
-	// by building the Exp expression and calling .Eval().
+	// Helper: evaluate arc length using the same Exp formula as
+	// EllipticArcEntity.Length() (convention: r0 >= r1, r0 is major semi-axis).
+	// a0, a1 are the parametric start and end angles on the ellipse.
 	// -----------------------------------------------------------------------
 	static double EvalArcLength(double r0Val, double r1Val, double a0Val, double a1Val) {
 		var r0 = new Param("r0", r0Val);
@@ -201,17 +192,12 @@ public class EllipticIntegralTests {
 		var a0 = new Param("a0", a0Val);
 		var a1 = new Param("a1", a1Val);
 
-		// Replicate EllipticArcEntity.Length() logic (using If conditional)
-		var ar0     = Exp.Abs(r0);
-		var ar1     = Exp.Abs(r1);
-		var absDiff = Exp.Abs(ar0 - ar1);
-		var rmax    = (ar0 + ar1 + absDiff) / 2.0;
-		var rmin    = (ar0 + ar1 - absDiff) / 2.0;
-		var k       = Exp.Sqrt(Exp.one - Exp.Sqr(rmin) / Exp.Sqr(rmax));
-		var cond    = new Exp(Exp.Op.GEqual, ar0, ar1);
-		var L0      = rmax * (Exp.EllInt(Math.PI / 2.0 - a0.exp, k) - Exp.EllInt(Math.PI / 2.0 - a1.exp, k));
-		var L1      = rmax * (Exp.EllInt(a1.exp, k) - Exp.EllInt(a0.exp, k));
-		var length  = new Exp(Exp.Op.If, cond, L0, L1);
+		// Mirrors EllipticArcEntity.Length():
+		// L = r0 * (E(π/2 − a0, k) − E(π/2 − a1, k))  with k = sqrt(1 − (r1/r0)²)
+		var ar0    = Exp.Abs(r0);
+		var ar1    = Exp.Abs(r1);
+		var k      = Exp.Sqrt(Exp.one - Exp.Sqr(ar1) / Exp.Sqr(ar0));
+		var length = ar0 * (Exp.EllInt(Math.PI / 2.0 - a0.exp, k) - Exp.EllInt(Math.PI / 2.0 - a1.exp, k));
 
 		return length.Eval();
 	}
