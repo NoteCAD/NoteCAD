@@ -11,6 +11,7 @@ public class EntityConfig : MonoBehaviour {
 	public Text labelPrefab;
 	public Material meshMaterial;
 	public Material loopMaterial;
+	public Material imageMaterial;
 	public LineCanvas lineCanvas;
 	public StrokeStyles styles;
 	public Font systemFont;

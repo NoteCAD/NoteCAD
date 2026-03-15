@@ -233,7 +233,11 @@ public class SketchFeatureBase : Feature {
 	
 	public override void Draw(Matrix4x4 tf) {
 		base.Draw(tf);
-		canvas.DrawToGraphics(GetTransform() * tf);
+		var worldTF = GetTransform() * tf;
+		canvas.DrawToGraphics(worldTF);
+		foreach (var e in sketch.entityList) {
+			if (e.isVisible) e.DrawExtras(worldTF);
+		}
 	}
 
 	public override void Update() {

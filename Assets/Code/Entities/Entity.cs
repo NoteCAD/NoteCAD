@@ -18,7 +18,8 @@ namespace NoteCAD {
 		Ellipse,
 		EllipticArc,
 		Sketch,
-		Offset
+		Offset,
+		Image
 	}
 
 	public interface IEntity : ICADObject {
@@ -632,6 +633,8 @@ namespace NoteCAD {
 		public virtual ExpVector Center() {
 			return null;
 		}
+
+		public virtual void DrawExtras(UnityEngine.Matrix4x4 worldTF) { }
 
 		public static Entity New(string typeName, Sketch sk) {
 			Type[] types = { typeof(Sketch) };

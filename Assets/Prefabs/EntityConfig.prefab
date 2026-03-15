@@ -48,6 +48,7 @@ MonoBehaviour:
     type: 3}
   meshMaterial: {fileID: 2100000, guid: 82c18a980b0e93b48a2c4b3dcfe8fdcb, type: 2}
   loopMaterial: {fileID: 2100000, guid: 157f84b0f29ac604c9d00c0d976cd962, type: 2}
+  imageMaterial: {fileID: 2100000, guid: 7fab65b1ff4748ac86d672cd68a93e18, type: 2}
   lineCanvas: {fileID: 114912699884685590, guid: 92e6e26c1358f764ba4be1a1df8269c4,
     type: 3}
   styles: {fileID: 3446126984989665717, guid: 096c60f02a7666c4585c8831e0d52070, type: 3}
