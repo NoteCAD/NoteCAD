@@ -634,6 +634,8 @@ namespace NoteCAD {
 			return null;
 		}
 
+		public virtual void DrawExtras(UnityEngine.Matrix4x4 worldTF) { }
+
 		public static Entity New(string typeName, Sketch sk) {
 			Type[] types = { typeof(Sketch) };
 			object[] param = { sk };
