@@ -217,9 +217,11 @@ public class TrimTool : Tool {
 			if(style != null) arc.style = style;
 		} else if(entity is EllipseEntity ellipse) {
 			var arc = new EllipticArcEntity(sketch);
+			arc.r0.value = ellipse.r0.value;
+			arc.r1.value = ellipse.r1.value;
+			arc.basis.FromString(ellipse.basis.ToString());
 			arc.p0.pos = arcP0;
 			arc.p1.pos = arcP1;
-			arc.center.pos = ellipse.center.pos;
 			if(style != null) arc.style = style;
 		}
 		entity.Destroy();

@@ -120,6 +120,8 @@ public class Exp {
 		Cosh,
 		SFres,
 		CFres,
+		EllInt,
+		EllIntF,
 		Equal,
 		LEqual,
 		GEqual,
@@ -281,6 +283,48 @@ public class Exp {
 		);
 	}
 
+	// 10-point Gauss-Legendre quadrature nodes and weights on [-1, 1]
+	// Source: Abramowitz & Stegun, Table 25.4 (n=10)
+	static readonly double[] GL10Nodes = {
+		-0.9739065285171717, -0.8650633666889845, -0.6794095682990244, -0.4333953941292472, -0.1488743389816312,
+		 0.1488743389816312,  0.4333953941292472,  0.6794095682990244,  0.8650633666889845,  0.9739065285171717
+	};
+	static readonly double[] GL10Weights = {
+		0.0666713443086881, 0.1494513491505806, 0.2190863625159820, 0.2692667193099963, 0.2955242247147529,
+		0.2955242247147529, 0.2692667193099963, 0.2190863625159820, 0.1494513491505806, 0.0666713443086881
+	};
+
+	// E(phi, k) - incomplete elliptic integral of the second kind
+	// ∫[0 to phi] sqrt(1 - k²·sin²(t)) dt
+	public static double EllInt(double phi, double k) {
+		double half = phi / 2.0;
+		double k2 = k * k;
+		double sum = 0.0;
+		for(int i = 0; i < 10; i++) {
+			double t = half * (1.0 + GL10Nodes[i]);
+			double s = Math.Sin(t);
+			// Clamp to 0 to guard against tiny negative values from floating-point rounding when k≈1
+			sum += GL10Weights[i] * Math.Sqrt(Math.Max(0.0, 1.0 - k2 * s * s));
+		}
+		return half * sum;
+	}
+
+	// F(phi, k) - incomplete elliptic integral of the first kind
+	// ∫[0 to phi] 1/sqrt(1 - k²·sin²(t)) dt
+	public static double EllIntF(double phi, double k) {
+		double half = phi / 2.0;
+		double k2 = k * k;
+		double sum = 0.0;
+		for(int i = 0; i < 10; i++) {
+			double t = half * (1.0 + GL10Nodes[i]);
+			double s = Math.Sin(t);
+			// Tiny epsilon (1e-30) prevents division by zero at the singular point k=1, sin(t)=1
+			double denom = Math.Sqrt(Math.Max(1e-30, 1.0 - k2 * s * s));
+			sum += GL10Weights[i] / denom;
+		}
+		return half * sum;
+	}
+
 	
 	static public Exp Sin	(Exp x) { return new Exp(Op.Sin,	x, null); }
 	static public Exp Cos	(Exp x) { return new Exp(Op.Cos,	x, null); }
@@ -297,6 +341,8 @@ public class Exp {
 	static public Exp Cosh	(Exp x) { return new Exp(Op.Cosh,	x, null); }
 	static public Exp SFres	(Exp x) { return new Exp(Op.SFres,	x, null); }
 	static public Exp CFres	(Exp x) { return new Exp(Op.CFres,	x, null); }
+	static public Exp EllInt (Exp phi, Exp k) { return new Exp(Op.EllInt,  phi, k); }
+	static public Exp EllIntF(Exp phi, Exp k) { return new Exp(Op.EllIntF, phi, k); }
 	//static public Exp Pow  (Exp x, Exp y) { return new Exp(Op.Pow,   x, y); }
 
 	public Exp Drag(Exp to) {
@@ -352,6 +398,8 @@ public class Exp {
 			case Op.Cosh:	return Math.Cosh(a.Eval());
 			case Op.SFres:	return SFres(a.Eval());
 			case Op.CFres:	return CFres(a.Eval());
+			case Op.EllInt:  return EllInt(a.Eval(), b.Eval());
+			case Op.EllIntF: return EllIntF(a.Eval(), b.Eval());
 			case Op.If:		return a.EvalBool() ? b.Eval() : c.Eval();
 			//case Op.Pow:	return Math.Pow(a.Eval(), b.Eval());
 		}
@@ -409,6 +457,8 @@ public class Exp {
 			case Op.Sinh:
 			case Op.CFres:
 			case Op.SFres:
+			case Op.EllInt:
+			case Op.EllIntF:
 				return true;
 		}
 		var cus = CustomFunction.Get(op);
@@ -490,6 +540,8 @@ public class Exp {
 			case Op.Cosh:	return "cosh(" + a.ToString() + ")";
 			case Op.SFres:	return "sfres(" + a.ToString() + ")";
 			case Op.CFres:	return "cfres(" + a.ToString() + ")";
+			case Op.EllInt:  return "ellint("  + a.ToString() + ", " + b.ToString() + ")";
+			case Op.EllIntF: return "ellintf(" + a.ToString() + ", " + b.ToString() + ")";
 			case Op.If:		return "if(" + a.ToString() + ", " + b.ToString() + ", " + c.ToString() + ")";
 			//case Op.Pow:	return Quoted(a) + " ^ " + Quoted(b);
 		}
@@ -546,6 +598,22 @@ public class Exp {
 			case Op.Cosh:	return a.d(p) * Sinh(a);
 			case Op.SFres:	return a.d(p) * Sin(Math.PI * Sqr(a) / 2.0);
 			case Op.CFres:	return a.d(p) * Cos(Math.PI * Sqr(a) / 2.0);
+			case Op.EllInt: {
+				// ∂E/∂phi = sqrt(1 - k²·sin²(phi))
+				// ∂E/∂k   = (E(phi,k) - F(phi,k)) / k
+				var sqrtTerm = Sqrt(one - Sqr(b) * Sqr(Sin(a)));
+				var dEdk = (EllInt(a, b) - EllIntF(a, b)) / b;
+				return a.d(p) * sqrtTerm + b.d(p) * dEdk;
+			}
+			case Op.EllIntF: {
+				// ∂F/∂phi = 1/sqrt(1 - k²·sin²(phi))
+				// ∂F/∂k   = (E(phi,k) - (1-k²)·F(phi,k))/(k·(1-k²)) - k·sin(phi)·cos(phi)/((1-k²)·sqrt(1-k²·sin²(phi)))
+				var oneMinusK2 = one - Sqr(b);
+				var sqrtTerm = Sqrt(one - Sqr(b) * Sqr(Sin(a)));
+				var dFdk = (EllInt(a, b) - oneMinusK2 * EllIntF(a, b)) / (b * oneMinusK2)
+				           - b * Sin(a) * Cos(a) / (oneMinusK2 * sqrtTerm);
+				return a.d(p) * (one / sqrtTerm) + b.d(p) * dFdk;
+			}
 			case Op.Pos:	return a.d(p);
 			case Op.If:		return new Exp(Op.If, a, b.d(p), c.d(p));
 		}
