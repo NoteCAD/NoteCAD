@@ -83,7 +83,7 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 				rv = rot * rv;
 			}
 		}
-	}	
+	}
 
 	public double radius {
 		get {
@@ -108,7 +108,7 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		return part;
 	}
 
-	public override double FindParameter(Vector3 pos) {
+	public override double FindParameter(Vector3 pos, int subdiv) {
 		var toP0 = p0.pos - c.pos;
 		var toPos = pos - c.pos;
 		float arcAngle = (float)GetAngle();
@@ -150,8 +150,8 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		var rv = p0.exp - c.exp;
 
 		return c.exp + new ExpVector(
-			cos * rv.x - sin * rv.y, 
-			sin * rv.x + cos * rv.y, 
+			cos * rv.x - sin * rv.y,
+			sin * rv.x + cos * rv.y,
 			0.0
 		);
 	}
@@ -163,12 +163,12 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 		var rv = p0.exp - c.exp;
 
 		return new ExpVector(
-			cos * rv.x - sin * rv.y, 
-			sin * rv.x + cos * rv.y, 
+			cos * rv.x - sin * rv.y,
+			sin * rv.x + cos * rv.y,
 			0.0
 		);
 	}
-	
+
 	public override Exp Length() {
 		return GetAngleExp() * Radius();
 	}

@@ -6,7 +6,7 @@ using UnityEngine;
 
 [Serializable]
 public class ExpressionData {
-	
+
 	public SketchObject obj { get; private set; }
 	public bool isEquation { get; set; }
 
@@ -34,7 +34,7 @@ public class ExpressionData {
 	public bool Exist() {
 		return source != "" && source != null;
 	}
-	
+
 	Exp exp;
 	public Exp expression {
 		private set {
@@ -60,7 +60,7 @@ public class ExpressionData {
 }
 
 public class ExpParser {
-    
+
     Dictionary <string, Exp.Op> functions = new Dictionary<string, Exp.Op> {
         { "sin",	Exp.Op.Sin },
         { "cos",	Exp.Op.Cos },
@@ -79,7 +79,7 @@ public class ExpParser {
         { "cfres",	Exp.Op.CFres },
         { "if",		Exp.Op.If },
     };
-    
+
     Dictionary <string, Exp.Op> operators = new Dictionary<string, Exp.Op> {
         { "+", Exp.Op.Add },
         { "-", Exp.Op.Sub },
@@ -97,13 +97,13 @@ public class ExpParser {
 		{ "pi", Math.PI },
 		{ "e", Math.E },
 	};
-   
+
     string toParse;
     int index = 0;
-    
+
     public List<Param> parameters = new List<Param>();
     public List<Param> newParameters = new List<Param>();
-    
+
 	public static void Test() {
 		List<string> exps = new List<string> {
 			"a + b",
@@ -181,7 +181,7 @@ public class ExpParser {
 		toParse = Normalize(str);
 		index = 0;
 	}
-    
+
     char next {
 		get {
 			return toParse[index];
@@ -203,18 +203,18 @@ public class ExpParser {
 	bool IsAlpha(char c) {
 		return Char.IsLetter(c);
 	}
-    
+
     Param GetParam(string name) {
         return parameters.Find(p => p.name == name);
     }
-    
+
     void Skip(char c) {
 		if(!HasNext() || next != c) {
 			error("\"" + c + "\" excepted!");
 		}
         index++;
     }
-    
+
     bool SkipIf(char c) {
 		if(!HasNext() || next != c) {
 			return false;
@@ -222,7 +222,7 @@ public class ExpParser {
         index++;
 		return true;
     }
-    
+
     bool ParseDigits(ref double digits) {
 		if(!HasNext()) error("operand exepted");
         if(!IsDigit(next)) return false;
@@ -232,7 +232,7 @@ public class ExpParser {
         digits = str.ToDouble();
         return true;
     }
-    
+
     bool ParseAlphas(ref string alphas) {
 		if(!HasNext()) error("operand exepted");
         if(!IsAlpha(next) && next != '_') return false;
@@ -241,7 +241,7 @@ public class ExpParser {
         alphas = toParse.Substring(start, index - start);
 		return true;
     }
-    
+
     Exp.Op GetFunction(string name) {
         if(functions.ContainsKey(name)) {
             return functions[name];
@@ -257,7 +257,7 @@ public class ExpParser {
         }
         return null;
     }
-    
+
 	void error(string error = "") {
 		var str = toParse;
 		if(index < str.Length) {
@@ -267,14 +267,14 @@ public class ExpParser {
 		Debug.Log(msg);
 		throw new System.Exception(msg);
 	}
-    
+
     Exp ParseValue() {
-        
+
         double digits = 0.0;
         if(ParseDigits(ref digits)) {
             return new Exp(digits);
         }
-        
+
         string alphas = "";
         if(ParseAlphas(ref alphas)) {
             var func = GetFunction(alphas);
@@ -293,7 +293,7 @@ public class ExpParser {
 					if((func == Exp.Op.Atan2 || func == Exp.Op.If) && b == null) {
 						error("second function argument execpted");
 					}
-					if(func == Exp.Op.If && c == null) {
+					if((func == Exp.Op.If) && c == null) {
 						error("third function argument execpted");
 					}
                     return new Exp(func, a, b, c);
@@ -314,7 +314,7 @@ public class ExpParser {
 		error("valid operand excepted");
 		return null;
     }
-    
+
 	IEnumerable<KeyValuePair<string, Exp.Op>> allOperators => operators.Concat(CustomFunction.operatorNames.Select(on => new KeyValuePair<string, Exp.Op>(on.Key, on.Value.Op)));
 
 	Exp.Op CheckOp(Func<Exp.Op, bool> filter = null) {
@@ -356,9 +356,9 @@ public class ExpParser {
 			return cus != null && cus.ArgCount == 1;
 		});
 	}
-	
+
 	Exp ParseMain() {
-				
+
 		Exp a = ParseExp(0);
 		while(HasNext() && next != ')' && next != ',')  {
 			var op = CheckOp();
@@ -377,7 +377,7 @@ public class ExpParser {
     Exp ParseExp(int minOrder) {
 
 		var uop = ParseUnary();
-				
+
 		Exp a = null;
         if(SkipIf('(')) {
             a = ParseMain();
@@ -388,7 +388,7 @@ public class ExpParser {
 		if(uop != Exp.Op.Undefined) {
 			a = new Exp(uop, a, null);
 		}
-        
+
 		bool single = false;
 		while(HasNext() && next != ')' && next != ',')  {
 			var op = CheckOp();
@@ -403,12 +403,12 @@ public class ExpParser {
 			SkipOp(op);
 
 			var b = ParseExp(curOrder);
-        
+
 			a = new Exp(op, a, b);
 		}
 		return a;
     }
-    
+
 	public Exp Parse() {
 		try {
 			var result = ParseMain();

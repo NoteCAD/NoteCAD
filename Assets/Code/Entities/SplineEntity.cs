@@ -44,7 +44,7 @@ public class SplineEntity : Entity, ISegmentaryEntity {
 			yield return getSegments(32, t => PointOn(t));
 		}
 	}
-	
+
 	IEnumerable<Vector3> subdivision(double t0, double t1, Vector3 p0, Vector3 p1, float eps) {
 		if(p0 == p1) yield break;
 		double t = (t0 + t1) / 2.0;
@@ -57,7 +57,7 @@ public class SplineEntity : Entity, ISegmentaryEntity {
 			for(var e = subdivision(t, t1, p, p1, eps).GetEnumerator(); e.MoveNext(); ) yield return e.Current;
 		}
 	}
-	
+
 	public override BBox bbox {
 		get {
 			var box = new BBox(p[0].pos, p[1].pos);
@@ -85,31 +85,6 @@ public class SplineEntity : Entity, ISegmentaryEntity {
 		return part;
 	}
 
-	public override double FindParameter(Vector3 pos) {
-		int steps = 32;
-		double best_t = 0.0;
-		double best_dist = double.MaxValue;
-		for(int i = 0; i <= steps; i++) {
-			double t = (double)i / steps;
-			var pt = PointOn(t);
-			var d = (pt - pos).sqrMagnitude;
-			if(d < best_dist) {
-				best_dist = d;
-				best_t = t;
-			}
-		}
-		double lo = System.Math.Max(0.0, best_t - 1.0 / steps);
-		double hi = System.Math.Min(1.0, best_t + 1.0 / steps);
-		for(int iter = 0; iter < 20; iter++) {
-			double tl = lo + (hi - lo) / 3.0;
-			double tr = lo + 2.0 * (hi - lo) / 3.0;
-			var pl = PointOn(tl);
-			var pr = PointOn(tr);
-			if((pl - pos).sqrMagnitude < (pr - pos).sqrMagnitude) hi = tr;
-			else lo = tl;
-		}
-		return (lo + hi) / 2.0;
-	}
 	public override ExpVector PointOn(Exp t) {
 		var p0 = p[0].exp;
 		var p1 = p[1].exp;

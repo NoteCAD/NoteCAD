@@ -235,7 +235,7 @@ public class Exp {
 
 	// https://www.hindawi.com/journals/mpe/2018/4031793/
 	public static double CFres(double x) {
-		
+
 		var PI = Math.PI;
 		var ax = Math.Abs(x);
 		var ax2 = ax * ax;
@@ -243,14 +243,14 @@ public class Exp {
 		var x3 = x * x * x;
 		/*
 		return (
-			-Math.Sin(PI * ax2 / 2.0) / 
+			-Math.Sin(PI * ax2 / 2.0) /
 			(PI * (x + 20.0 * PI * Math.Exp(-200.0 * PI * Math.Sqrt(ax))))
 
 			+ 8.0 / 25.0 * (1.0 - Math.Exp(-69.0 / 100.0     * PI * x3))
 			+ 2.0 / 25.0 * (1.0 - Math.Exp(-9.0 / 2.0        * PI * ax2))
 			+ 1.0 / 10.0 * (1.0 - Math.Exp(-1.55294068198794 * PI * x ))
 		) * Math.Sign(x);
-		
+
 		*/
 		return Math.Sign(x) * (
 			 1.0 / 2.0 + ((1 + 0.926 * ax) / (2 + 1.792 * ax + 3.104 * ax2)) * Math.Sin(Math.PI * ax2 / 2)
@@ -259,7 +259,7 @@ public class Exp {
 	}
 
 	public static double SFres(double x) {
-		
+
 		var PI = Math.PI;
 		var ax = Math.Abs(x);
 		var ax2 = ax * ax;
@@ -267,7 +267,7 @@ public class Exp {
 
 		/*
 		return (
-			-Math.Cos(PI * ax2 / 2.0) / 
+			-Math.Cos(PI * ax2 / 2.0) /
 			(PI * (ax + 16.7312774552827 * PI * Math.Exp(-1.57638860756614 * PI * Math.Sqrt(ax))))
 
 			+ 8.0 / 25.0 * (1.0 - Math.Exp(-0.608707749430681 * PI * ax3))
@@ -281,7 +281,39 @@ public class Exp {
 		);
 	}
 
-	
+
+	// Incomplete elliptic integral: EllInt(phi, r0, r1) = integral_0^phi sqrt(r0^2*sin^2(t) + r1^2*cos^2(t)) dt
+	// Uses 8-point Gauss-Legendre quadrature with adaptive segments (one per pi/2 interval).
+	public static double EllInt(double phi, double r0, double r1) {
+		if(phi == 0.0) return 0.0;
+		// Split into segments no larger than pi/2 for accuracy over large angles
+		int n = Math.Max(1, (int)Math.Ceiling(Math.Abs(phi) / (Math.PI / 2.0)));
+		double dphi = phi / n;
+		double total = 0.0;
+		for(int s = 0; s < n; s++) {
+			total += EllIntSegment(s * dphi, (s + 1) * dphi, r0, r1);
+		}
+		return total;
+	}
+
+	static double EllIntSegment(double a, double b, double r0, double r1) {
+		// 8-point Gauss-Legendre quadrature on [a, b]
+		double[] nodes   = { -0.9602898564975363, -0.7966664774136267, -0.5255324099163290, -0.1834234663684831,
+		                      0.1834234663684831,  0.5255324099163290,  0.7966664774136267,  0.9602898564975363 };
+		double[] weights = {  0.1012285362903763,  0.2223810344533745,  0.3137066458778873,  0.3626837833783620,
+		                      0.3626837833783620,  0.3137066458778873,  0.2223810344533745,  0.1012285362903763 };
+		double half = (b - a) / 2.0;
+		double mid  = (b + a) / 2.0;
+		double sum  = 0.0;
+		for(int i = 0; i < 8; i++) {
+			double t  = mid + half * nodes[i];
+			double st = Math.Sin(t);
+			double ct = Math.Cos(t);
+			sum += weights[i] * Math.Sqrt(r0 * r0 * st * st + r1 * r1 * ct * ct);
+		}
+		return half * sum;
+	}
+
 	static public Exp Sin	(Exp x) { return new Exp(Op.Sin,	x, null); }
 	static public Exp Cos	(Exp x) { return new Exp(Op.Cos,	x, null); }
 	static public Exp ACos	(Exp x) { return new Exp(Op.ACos,	x, null); }
@@ -311,21 +343,21 @@ public class Exp {
 			case Op.Equal:
 			case Op.Drag:
 			case Op.Sub:	return a.Eval() - b.Eval();
-			
+
 			case Op.Less:
 			case Op.LEqual: {
 				var av = a.Eval();
 				var bv = b.Eval();
 				return Math.Abs(av - bv) - (bv - av);
 			}
-			
+
 			case Op.Greater:
 			case Op.GEqual: {
 				var av = a.Eval();
 				var bv = b.Eval();
 				return Math.Abs(av - bv) - (av - bv);
 			}
-							 
+
 			case Op.Mul:	return a.Eval() * b.Eval();
 			case Op.Div: {
 					var bv = b.Eval();
@@ -366,12 +398,12 @@ public class Exp {
 			case Op.Equal:
 			case Op.Drag:	return a.EvalBool() == b.EvalBool();
 			case Op.Sub:	return a.EvalBool() != b.EvalBool();
-			
+
 			case Op.Less:	return a.Eval() <  b.Eval();
 			case Op.LEqual: return a.Eval() <= b.Eval();
 			case Op.Greater:return a.Eval() >  b.Eval();
 			case Op.GEqual: return a.Eval() >= b.Eval();
-			
+
 			case Op.Mul:	return a.EvalBool() && b.EvalBool();
 			case Op.Div:	return a.EvalBool() && !b.EvalBool();
 			case Op.Neg:	return !a.EvalBool();
@@ -521,7 +553,7 @@ public class Exp {
 			case Op.Equal:
 			case Op.Drag:
 			case Op.Sub:	return a.d(p) - b.d(p);
-			
+
 			case Op.GEqual:
 			case Op.Greater: return (Abs(a - b) - Norm(a - b)).d(p);
 
@@ -647,7 +679,7 @@ public class Exp {
 		return result;
 	}
 
-	
+
 	public void ReduceParams(List<Param> pars) {
 		if(op == Op.Param) {
 			if(param.reduceable && !pars.Contains(param)) {
@@ -700,7 +732,7 @@ public class Exp {
 }
 
 namespace CustomFunctions {
-	
+
 	abstract class BoolBin : CustomFunction {
 		public override int ArgCount => 2;
 		public override bool IsFunction => false;
