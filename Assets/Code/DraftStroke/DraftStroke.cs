@@ -174,6 +174,8 @@ public class DraftStroke : MonoBehaviour {
 
 	Dictionary<StrokeStyle, Lines> lines = new Dictionary<StrokeStyle, Lines>();
 
+	List<GameObject> quadObjects = new List<GameObject>();
+
 	public void DrawToGraphics(Matrix4x4 tf) {
 		for (var li = lines.GetEnumerator(); li.MoveNext();) {
 			var material = li.Current.Value.material;
@@ -259,6 +261,41 @@ public class DraftStroke : MonoBehaviour {
 		currentLines.AddLine(a, b);
 	}
 
+	public void DrawQuadMesh(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, Texture2D texture) {
+		if(texture == null) return;
+
+		var go = new GameObject("imageQuad");
+		go.transform.SetParent(parent != null ? parent.transform : gameObject.transform, false);
+
+		var mesh = new Mesh();
+		mesh.name = "imageQuad";
+		// Vertices: p0=bottom-left, p1=bottom-right, p2=top-right, p3=top-left
+		mesh.vertices = new Vector3[] { p0, p1, p2, p3 };
+		mesh.uv = new Vector2[] {
+			new Vector2(0f, 0f),
+			new Vector2(1f, 0f),
+			new Vector2(1f, 1f),
+			new Vector2(0f, 1f)
+		};
+		// Two triangles, rendered from both sides
+		mesh.triangles = new int[] {
+			0, 1, 2,  0, 2, 3,  // front
+			0, 2, 1,  0, 3, 2   // back
+		};
+		mesh.RecalculateBounds();
+		mesh.RecalculateNormals();
+
+		var mf = go.AddComponent<MeshFilter>();
+		mf.sharedMesh = mesh;
+
+		var mr = go.AddComponent<MeshRenderer>();
+		var mat = new Material(Shader.Find("Unlit/Texture"));
+		mat.mainTexture = texture;
+		mr.material = mat;
+
+		quadObjects.Add(go);
+	}
+
 	private void LateUpdate() {
 		 UpdateDirty();
 	}
@@ -268,6 +305,19 @@ public class DraftStroke : MonoBehaviour {
 			l.Value.Clear();
 		}
 		lines.Clear();
+		ClearQuads();
+	}
+
+	void ClearQuads() {
+		foreach(var qo in quadObjects) {
+			if(qo == null) continue;
+			var mr = qo.GetComponent<MeshRenderer>();
+			if(mr != null) Destroy(mr.material);
+			var mf = qo.GetComponent<MeshFilter>();
+			if(mf != null) Destroy(mf.sharedMesh);
+			Destroy(qo);
+		}
+		quadObjects.Clear();
 	}
 
 	public void ClearStyle(string name) {
