@@ -10,10 +10,25 @@ public class TrimTool : Tool {
 	double trimEnd;
 	Vector3 trimPosBegin;
 	Vector3 trimPosEnd;
+	IntersectionInfo trimInfoBegin;
+	IntersectionInfo trimInfoEnd;
 	bool hasPreview;
 
 	const double ENDPOINT_TOLERANCE  = 1e-4;
 	const double DUPLICATE_TOLERANCE = 1e-3;
+
+	// Tracks the source of each detected intersection so the trim operation
+	// can create the right incidence constraint at the new endpoint.
+	struct IntersectionInfo {
+		public Vector3 pos;
+		public double t;
+		// Entity that crosses the trimmed entity at this point.
+		// Null when the intersection comes from an existing PointOn constraint (see onPoint).
+		public Entity other;
+		// Point already constrained on the trimmed entity via an existing PointOn constraint.
+		// When non-null, other is null and a PointsCoincident is used instead of a new PointOn.
+		public PointEntity onPoint;
+	}
 
 	TrimTool() {
 		enableHoverFilter = true;
@@ -28,12 +43,10 @@ public class TrimTool : Tool {
 	}
 
 	protected override void OnActivate() {
-		editor.toolPreviewDraw = DrawPreview;
 		hasPreview = false;
 	}
 
 	protected override void OnDeactivate() {
-		editor.toolPreviewDraw = null;
 		hasPreview = false;
 	}
 
@@ -51,10 +64,12 @@ public class TrimTool : Tool {
 
 		if(isLoop) {
 			ComputeLoopTrimSegment(intersections, t_mouse,
-				out trimBegin, out trimEnd, out trimPosBegin, out trimPosEnd);
+				out trimBegin, out trimEnd, out trimPosBegin, out trimPosEnd,
+				out trimInfoBegin, out trimInfoEnd);
 		} else {
 			ComputeTrimSegment(intersections, t_mouse,
-				out trimBegin, out trimEnd, out trimPosBegin, out trimPosEnd);
+				out trimBegin, out trimEnd, out trimPosBegin, out trimPosEnd,
+				out trimInfoBegin, out trimInfoEnd);
 		}
 
 		hoveredEntity = entity;
@@ -67,15 +82,15 @@ public class TrimTool : Tool {
 
 		editor.PushUndo();
 		if(hoveredEntity is ILoopEntity) {
-			PerformLoopTrim(hoveredEntity, trimBegin, trimEnd, trimPosBegin, trimPosEnd);
+			PerformLoopTrim(hoveredEntity, trimBegin, trimEnd, trimPosBegin, trimPosEnd, trimInfoBegin, trimInfoEnd);
 		} else {
-			PerformTrim(hoveredEntity, trimBegin, trimEnd, trimPosBegin, trimPosEnd);
+			PerformTrim(hoveredEntity, trimBegin, trimEnd, trimPosBegin, trimPosEnd, trimInfoBegin, trimInfoEnd);
 		}
 		hasPreview = false;
 		hoveredEntity = null;
 	}
 
-	void DrawPreview(ICanvas canvas) {
+	protected override void OnDrawPreview(ICanvas canvas) {
 		if(!hasPreview || hoveredEntity == null) return;
 		canvas.SetStyle("trimPreview");
 		double step = (hoveredEntity is FunctionEntity fe) ? fe.GetTrimPreviewStep() : 1.0 / 64.0;
@@ -92,49 +107,56 @@ public class TrimTool : Tool {
 	// Also includes PointOn constraint positions so adjacent endpoints act as boundaries.
 	// includeTouches=true in GetAllIntersections also captures endpoint-on-entity touches
 	// (PointsCoincident-based T-junctions) that plain INTERSECTION checks miss.
-	List<(Vector3 pos, double t)> CollectIntersections(Entity entity) {
-		var result = new List<(Vector3 pos, double t)>();
+	List<IntersectionInfo> CollectIntersections(Entity entity) {
+		var result = new List<IntersectionInfo>();
 		foreach(var other in entity.sketch.entityList) {
 			if(other == entity) continue;
 			foreach(var pt in entity.GetAllIntersections(other, refine: true, includeTouches: true)) {
-				AddIntersectionIfNew(entity, pt, result);
+				AddIntersectionIfNew(entity, new IntersectionInfo { pos = pt, other = other }, result);
 			}
 		}
-		// PointOn constraints where this entity is the "on" entity act as trim boundaries
+		// PointOn constraints where this entity is the "on" entity act as trim boundaries.
+		// The constrained point is stored so that a PointsCoincident can be added at trim time.
 		foreach(var c in entity.constraints) {
 			var pon = c as PointOn;
 			if(pon == null || pon.on != entity) continue;
-			AddIntersectionIfNew(entity, pon.pointPos, result);
+			var ptEntity = pon.point as PointEntity;
+			AddIntersectionIfNew(entity, new IntersectionInfo { pos = pon.pointPos, onPoint = ptEntity }, result);
 		}
 		result.Sort((a, b) => a.t.CompareTo(b.t));
 		return result;
 	}
 
-	void AddIntersectionIfNew(Entity entity, Vector3 pt, List<(Vector3 pos, double t)> result) {
-		double t = entity.FindParameter(pt);
+	void AddIntersectionIfNew(Entity entity, IntersectionInfo info, List<IntersectionInfo> result) {
+		info.t = entity.FindParameter(info.pos);
 		foreach(var existing in result) {
-			if(Math.Abs(existing.t - t) < DUPLICATE_TOLERANCE) return;
+			if(Math.Abs(existing.t - info.t) < DUPLICATE_TOLERANCE) return;
 		}
-		result.Add((pt, t));
+		result.Add(info);
 	}
 
 	// For segmentary entities: find the trim segment containing the mouse parameter
 	void ComputeTrimSegment(
-		List<(Vector3 pos, double t)> intersections, double t_mouse,
+		List<IntersectionInfo> intersections, double t_mouse,
 		out double t_begin, out double t_end,
-		out Vector3 pos_begin, out Vector3 pos_end)
+		out Vector3 pos_begin, out Vector3 pos_end,
+		out IntersectionInfo info_begin, out IntersectionInfo info_end)
 	{
 		t_begin = 0.0;
 		t_end = 1.0;
 		pos_begin = Vector3.zero;
 		pos_end = Vector3.zero;
+		info_begin = new IntersectionInfo();
+		info_end = new IntersectionInfo();
 		foreach(var itr in intersections) {
 			if(itr.t <= t_mouse) {
 				t_begin = itr.t;
 				pos_begin = itr.pos;
+				info_begin = itr;
 			} else {
 				t_end = itr.t;
 				pos_end = itr.pos;
+				info_end = itr;
 				break;
 			}
 		}
@@ -142,14 +164,17 @@ public class TrimTool : Tool {
 
 	// For loop entities: find the trim segment (with wraparound support)
 	void ComputeLoopTrimSegment(
-		List<(Vector3 pos, double t)> intersections, double t_mouse,
+		List<IntersectionInfo> intersections, double t_mouse,
 		out double t_begin, out double t_end,
-		out Vector3 pos_begin, out Vector3 pos_end)
+		out Vector3 pos_begin, out Vector3 pos_end,
+		out IntersectionInfo info_begin, out IntersectionInfo info_end)
 	{
 		t_begin = 0.0;
 		t_end = 1.0;
 		pos_begin = Vector3.zero;
 		pos_end = Vector3.zero;
+		info_begin = new IntersectionInfo();
+		info_end = new IntersectionInfo();
 		int n = intersections.Count;
 		if(n < 2) return;
 		for(int i = 0; i < n; i++) {
@@ -161,29 +186,35 @@ public class TrimTool : Tool {
 			if(inSeg) {
 				t_begin = tA;
 				pos_begin = intersections[i].pos;
+				info_begin = intersections[i];
 				t_end = tB;
 				pos_end = intersections[(i + 1) % n].pos;
+				info_end = intersections[(i + 1) % n];
 				return;
 			}
 		}
 	}
 
-	void PerformTrim(Entity entity, double t_begin, double t_end, Vector3 posBegin, Vector3 posEnd) {
+	void PerformTrim(Entity entity, double t_begin, double t_end, Vector3 posBegin, Vector3 posEnd,
+	                 IntersectionInfo infoBegin, IntersectionInfo infoEnd) {
 		bool fromStart = t_begin < ENDPOINT_TOLERANCE;
 		bool toEnd    = t_end   > 1.0 - ENDPOINT_TOLERANCE;
 
 		if(fromStart && toEnd) { entity.Destroy(); return; }
 
+		var sketch = entity.sketch;
 		if(fromStart) {
 			// Split at posEnd, keep second part, destroy first
 			var part = entity.Split(posEnd);
 			entity.Destroy();
+			if(part is ISegmentaryEntity seg) AddTrimConstraint(sketch, seg.begin, infoEnd);
 			return;
 		}
 		if(toEnd) {
 			// Split at posBegin, keep first part, destroy second
 			var part = entity.Split(posBegin);
 			if(part != null) part.Destroy();
+			if(entity is ISegmentaryEntity seg) AddTrimConstraint(sketch, seg.end, infoBegin);
 			return;
 		}
 		// Middle trim
@@ -191,9 +222,12 @@ public class TrimTool : Tool {
 		if(part1 == null) return;
 		var part2 = part1.Split(posEnd);
 		part1.Destroy();
+		if(entity is ISegmentaryEntity segA) AddTrimConstraint(sketch, segA.end, infoBegin);
+		if(part2 is ISegmentaryEntity segB) AddTrimConstraint(sketch, segB.begin, infoEnd);
 	}
 
-	void PerformLoopTrim(Entity entity, double t_begin, double t_end, Vector3 posBegin, Vector3 posEnd) {
+	void PerformLoopTrim(Entity entity, double t_begin, double t_end, Vector3 posBegin, Vector3 posEnd,
+	                     IntersectionInfo infoBegin, IntersectionInfo infoEnd) {
 		// If no valid pair of intersections, remove the whole loop
 		if(t_begin < ENDPOINT_TOLERANCE && t_end > 1.0 - ENDPOINT_TOLERANCE) {
 			entity.Destroy();
@@ -215,14 +249,43 @@ public class TrimTool : Tool {
 			arc.p1.pos = arcP1;
 			arc.center.pos = circle.center.pos;
 			if(style != null) arc.style = style;
+			AddTrimConstraint(sketch, arc.p0, infoEnd);
+			AddTrimConstraint(sketch, arc.p1, infoBegin);
 		} else if(entity is EllipseEntity ellipse) {
 			var arc = new EllipticArcEntity(sketch);
 			arc.p0.pos = arcP0;
 			arc.p1.pos = arcP1;
 			arc.center.pos = ellipse.center.pos;
 			if(style != null) arc.style = style;
+			AddTrimConstraint(sketch, arc.p0, infoEnd);
+			AddTrimConstraint(sketch, arc.p1, infoBegin);
 		}
 		entity.Destroy();
+	}
+
+	// Add the appropriate incidence constraint between a newly-created trim endpoint
+	// and the entity/point that defined the trim boundary at that location.
+	//   - If the boundary came from an existing PointOn constraint, the split point
+	//     is made coincident with that already-constrained point.
+	//   - If the boundary is an endpoint of the other entity, PointsCoincident is used.
+	//   - Otherwise a PointOn constraint places the split point on the other entity.
+	void AddTrimConstraint(Sketch sketch, PointEntity splitPoint, IntersectionInfo info) {
+		if(info.onPoint != null) {
+			new PointsCoincident(sketch, splitPoint, info.onPoint);
+		} else if(info.other != null) {
+			if(info.other is ISegmentaryEntity segOther) {
+				double tOther = info.other.FindParameter(info.pos);
+				if(tOther < ENDPOINT_TOLERANCE) {
+					new PointsCoincident(sketch, splitPoint, segOther.begin);
+					return;
+				}
+				if(tOther > 1.0 - ENDPOINT_TOLERANCE) {
+					new PointsCoincident(sketch, splitPoint, segOther.end);
+					return;
+				}
+			}
+			new PointOn(sketch, splitPoint, info.other);
+		}
 	}
 
 	protected override string OnGetDescription() {

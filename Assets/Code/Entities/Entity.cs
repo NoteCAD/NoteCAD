@@ -460,6 +460,30 @@ namespace NoteCAD {
 				if(dl < dr) hi = tr;
 				else lo = tl;
 			}
+			// For loop entities, PointOn(0)==PointOn(1): when best_t is at the boundary
+			// (near 0 or 1) the clamped range may miss the true closest parameter on the
+			// opposite side of the seam. Run a second ternary search from that side and
+			// keep whichever result is geometrically closer.
+			if(this is ILoopEntity && (best_t < 1.0 / steps || best_t > 1.0 - 1.0 / steps)) {
+				double lo2 = best_t < 0.5 ? 1.0 - 1.0 / steps : 0.0;
+				double hi2 = best_t < 0.5 ? 1.0 : 1.0 / steps;
+				for(int iter = 0; iter < 20; iter++) {
+					double tl = lo2 + (hi2 - lo2) / 3.0;
+					double tr = lo2 + 2.0 * (hi2 - lo2) / 3.0;
+					pOn.value = tl;
+					double dl = (on.Eval() - pos).sqrMagnitude;
+					pOn.value = tr;
+					double dr = (on.Eval() - pos).sqrMagnitude;
+					if(dl < dr) hi2 = tr;
+					else lo2 = tl;
+				}
+				double t_alt = (lo2 + hi2) / 2.0;
+				pOn.value = t_alt;
+				double d_alt = (on.Eval() - pos).sqrMagnitude;
+				pOn.value = (lo + hi) / 2.0;
+				double d_main = (on.Eval() - pos).sqrMagnitude;
+				if(d_alt < d_main) return t_alt;
+			}
 			return (lo + hi) / 2.0;
 		}
 
@@ -482,7 +506,11 @@ namespace NoteCAD {
 							Vector3 itr = Vector3.zero;
 							var cross = GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f);
 							if(cross == GeomUtils.Cross.INTERSECTION) {
-								result.Add(refine ? RefineIntersection(this, e, itr) : itr);
+								if(!refine) {
+									result.Add(itr);
+								} else if(RefineIntersection(this, e, ref itr)) {
+									result.Add(itr);
+								}
 							} else if(includeTouches) {
 								// isSegmentsCrossed misses endpoint-on-endpoint contacts (the ray cast
 								// returns distance=0 which Unity treats as no hit). Check directly:
@@ -490,11 +518,15 @@ namespace NoteCAD {
 								// Note: callers are expected to deduplicate (multiple segment pairs may
 								// report the same touch point at shared vertices).
 								var clA = GeomUtils.classify(otherPrev, selfPrev, sp, 1e-6f);
-								if(clA == GeomUtils.Classify.etTOUCHA || clA == GeomUtils.Classify.etTOUCHB || clA == GeomUtils.Classify.etBETWEEN)
-									result.Add(refine ? RefineIntersection(this, e, otherPrev) : otherPrev);
+								if(clA == GeomUtils.Classify.etTOUCHA || clA == GeomUtils.Classify.etTOUCHB || clA == GeomUtils.Classify.etBETWEEN) {
+									var ptA2 = otherPrev;
+									if(!refine || RefineIntersection(this, e, ref ptA2)) result.Add(ptA2);
+								}
 								var clB = GeomUtils.classify(ep, selfPrev, sp, 1e-6f);
-								if(clB == GeomUtils.Classify.etTOUCHA || clB == GeomUtils.Classify.etTOUCHB || clB == GeomUtils.Classify.etBETWEEN)
-									result.Add(refine ? RefineIntersection(this, e, ep) : ep);
+								if(clB == GeomUtils.Classify.etTOUCHA || clB == GeomUtils.Classify.etTOUCHB || clB == GeomUtils.Classify.etBETWEEN) {
+									var ptB2 = ep;
+									if(!refine || RefineIntersection(this, e, ref ptB2)) result.Add(ptB2);
+								}
 							}
 						}
 						otherFirst = false;
@@ -509,9 +541,10 @@ namespace NoteCAD {
 
 		// Refine a rough segment-segment intersection using EquationSystem Newton steps.
 		// Solves entityA.PointOn(sa) == entityB.PointOn(tb) with 2 parameters and 2 equations.
-		// revertWhenNotConverged=false keeps the last Newton iterate (closest approach) rather than
-		// snapping back to the rough initial point when the solver hasn't fully converged.
-		static private Vector3 RefineIntersection(Entity entityA, Entity entityB, Vector3 roughPt) {
+		// Limited to 5 Newton steps. Returns true and updates roughPt to the refined position
+		// when the solver converges (OKAY); returns false when it does not converge, in which
+		// case the caller should discard the candidate intersection entirely.
+		static private bool RefineIntersection(Entity entityA, Entity entityB, ref Vector3 roughPt) {
 			Param sa = new Param("sa");
 			Param tb = new Param("tb");
 			sa.value = entityA.FindParameter(roughPt);
@@ -520,13 +553,16 @@ namespace NoteCAD {
 			var ptB = entityB.PointOn(tb);
 			var diff = ptA - ptB;
 			var sys = new EquationSystem();
+			sys.maxSteps = 5;
 			sys.revertWhenNotConverged = false;
 			sys.AddParameter(sa);
 			sys.AddParameter(tb);
 			sys.AddEquation(diff.x);
 			sys.AddEquation(diff.y);
-			sys.Solve();
-			return new Vector3((float)ptA.x.Eval(), (float)ptA.y.Eval(), 0f);
+			var result = sys.Solve();
+			if(result != EquationSystem.SolveResult.OKAY) return false;
+			roughPt = new Vector3((float)ptA.x.Eval(), (float)ptA.y.Eval(), 0f);
+			return true;
 		}
 
 		protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
