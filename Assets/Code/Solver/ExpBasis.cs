@@ -134,6 +134,17 @@ public class ExpBasis2d {
 		v = new ExpVector(vx, vy, 0.0);
 	}
 
+	public void CopyFrom(ExpBasis2d other) {
+		px.value = other.px.value;
+		py.value = other.py.value;
+
+		ux.value = other.ux.value;
+		uy.value = other.uy.value;
+
+		vx.value = other.vx.value;
+		vy.value = other.vy.value;
+	}
+
 	public void SetPosParams(Param x, Param y) {
 		px = x;
 		py = y;

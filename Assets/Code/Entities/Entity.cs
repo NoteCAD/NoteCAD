@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml;
 using System;
 
-namespace NoteCAD { 
+namespace NoteCAD {
 
 	public enum IEntityType {
 		Point,
@@ -355,9 +355,11 @@ namespace NoteCAD {
 			}
 		}
 
-		public virtual bool IsCrossed(Entity e, ref Vector3 itr) {
+		public IEnumerable<Vector3> GetIntersections(Entity e, bool refine = false, bool includeTouches = false) {
 			var boxZero = new BBox(Vector3.zero, Vector3.zero);
-			if(!e.bbox.Overlaps(bbox) && !e.bbox.Equals(boxZero) && !bbox.Equals(boxZero)) return false;
+			if(!e.bbox.Overlaps(bbox) && !e.bbox.Equals(boxZero) && !bbox.Equals(boxZero)) {
+				yield break;
+			}
 			if(this is ISegmentProvider && e is ISegmentProvider) {
 				var self = this as ISegmentProvider;
 				var entity = e as ISegmentProvider;
@@ -368,26 +370,31 @@ namespace NoteCAD {
 					if(!selfFirst) {
 						Vector3 otherPrev = Vector3.zero;
 						bool otherFirst = true;
-						foreach(var lp in entity.segmentPoints) {
-							foreach(var ep in lp) {
-								if(!otherFirst) {
-									if(GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f) == GeomUtils.Cross.INTERSECTION) {
-										if(this as Entity == e && selfPrev == otherPrev && sp == ep) continue;
-										return true;
+						foreach(var lp in entity.segmentPoints) foreach(var ep in lp) {
+							if(!otherFirst) {
+								Vector3 itr = Vector3.zero;
+								var cross = GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f);
+								if(cross == GeomUtils.Cross.INTERSECTION || includeTouches && cross == GeomUtils.Cross.TOUCH) {
+									// this is located here because we also want to check self intersection, but don't want to waste
+									// time checking it every segment for checking different entities intersection
+									if(this as Entity == e && selfPrev == otherPrev && sp == ep) continue;
+									if (refine && !RefineIntersection(this, e, ref itr)) {
+										// no actual intesection happens?
+										continue;
 									}
+									yield return itr;
 								}
-								otherFirst = false;
-								otherPrev = ep;
 							}
+							otherFirst = false;
+							otherPrev = ep;
 						}
 					}
 					selfFirst = false;
 					selfPrev = sp;
 				}
 			}
-			return false;
 		}
-	
+
 		public bool ForEachSegment(Func<Vector3, Vector3, bool> action) {
 			foreach(var lp in segments) {
 				if(!ForEachSegment(lp, action)) return false;
@@ -432,14 +439,13 @@ namespace NoteCAD {
 			return part;
 		}
 
-		public virtual double FindParameter(Vector3 pos) {
+		public virtual double FindParameter(Vector3 pos, int subdiv = 32) {
 			Param pOn = new Param("pOn");
 			var on = PointOn(pOn);
-			int steps = 32;
 			double best_t = 0.0;
 			double best_dist = double.MaxValue;
-			for(int i = 0; i <= steps; i++) {
-				pOn.value = (double)i / steps;
+			for(int i = 0; i <= subdiv; i++) {
+				pOn.value = (double)i / subdiv;
 				var p = on.Eval();
 				var d = (p - pos).sqrMagnitude;
 				if(d < best_dist) {
@@ -447,8 +453,8 @@ namespace NoteCAD {
 					best_t = pOn.value;
 				}
 			}
-			double lo = Math.Max(0.0, best_t - 1.0 / steps);
-			double hi = Math.Min(1.0, best_t + 1.0 / steps);
+			double lo = Math.Max(0.0, best_t - 1.0 / subdiv);
+			double hi = Math.Min(1.0, best_t + 1.0 / subdiv);
 			for(int iter = 0; iter < 20; iter++) {
 				double tl = lo + (hi - lo) / 3.0;
 				double tr = lo + 2.0 * (hi - lo) / 3.0;
@@ -456,61 +462,24 @@ namespace NoteCAD {
 				double dl = (on.Eval() - pos).sqrMagnitude;
 				pOn.value = tr;
 				double dr = (on.Eval() - pos).sqrMagnitude;
-				if(dl < dr) hi = tr;
-				else lo = tl;
+				if(dl < dr) {
+					hi = tr;
+				} else {
+					lo = tl;
+				}
+				if (Math.Abs(dl - dr) < GaussianMethod.epsilon) {
+					break;
+				}
+
 			}
 			return (lo + hi) / 2.0;
-		}
-
-		public List<Vector3> GetAllIntersections(Entity e, bool refine = false, bool includeTouches = false) {
-			var result = new List<Vector3>();
-			bool hasBbox = !bbox.Equals(new BBox(Vector3.zero, Vector3.zero));
-			bool otherHasBbox = !e.bbox.Equals(new BBox(Vector3.zero, Vector3.zero));
-			if(hasBbox && otherHasBbox && !e.bbox.Overlaps(bbox)) return result;
-			if(!(this is ISegmentProvider) || !(e is ISegmentProvider)) return result;
-			var self = this as ISegmentProvider;
-			var entity = e as ISegmentProvider;
-			Vector3 selfPrev = Vector3.zero;
-			bool selfFirst = true;
-			foreach(var spl in self.segmentPoints) foreach(var sp in spl) {
-				if(!selfFirst) {
-					Vector3 otherPrev = Vector3.zero;
-					bool otherFirst = true;
-					foreach(var lp in entity.segmentPoints) foreach(var ep in lp) {
-						if(!otherFirst) {
-							Vector3 itr = Vector3.zero;
-							var cross = GeomUtils.isSegmentsCrossed(selfPrev, sp, otherPrev, ep, ref itr, 1e-6f);
-							if(cross == GeomUtils.Cross.INTERSECTION) {
-								result.Add(refine ? RefineIntersection(this, e, itr) : itr);
-							} else if(includeTouches) {
-								// isSegmentsCrossed misses endpoint-on-endpoint contacts (the ray cast
-								// returns distance=0 which Unity treats as no hit). Check directly:
-								// if an endpoint of the other segment lies ON the self segment, add it.
-								// Note: callers are expected to deduplicate (multiple segment pairs may
-								// report the same touch point at shared vertices).
-								var clA = GeomUtils.classify(otherPrev, selfPrev, sp, 1e-6f);
-								if(clA == GeomUtils.Classify.etTOUCHA || clA == GeomUtils.Classify.etTOUCHB || clA == GeomUtils.Classify.etBETWEEN)
-									result.Add(refine ? RefineIntersection(this, e, otherPrev) : otherPrev);
-								var clB = GeomUtils.classify(ep, selfPrev, sp, 1e-6f);
-								if(clB == GeomUtils.Classify.etTOUCHA || clB == GeomUtils.Classify.etTOUCHB || clB == GeomUtils.Classify.etBETWEEN)
-									result.Add(refine ? RefineIntersection(this, e, ep) : ep);
-							}
-						}
-						otherFirst = false;
-						otherPrev = ep;
-					}
-				}
-				selfFirst = false;
-				selfPrev = sp;
-			}
-			return result;
 		}
 
 		// Refine a rough segment-segment intersection using EquationSystem Newton steps.
 		// Solves entityA.PointOn(sa) == entityB.PointOn(tb) with 2 parameters and 2 equations.
 		// revertWhenNotConverged=false keeps the last Newton iterate (closest approach) rather than
 		// snapping back to the rough initial point when the solver hasn't fully converged.
-		static private Vector3 RefineIntersection(Entity entityA, Entity entityB, Vector3 roughPt) {
+		static private bool RefineIntersection(Entity entityA, Entity entityB, ref Vector3 roughPt) {
 			Param sa = new Param("sa");
 			Param tb = new Param("tb");
 			sa.value = entityA.FindParameter(roughPt);
@@ -524,8 +493,12 @@ namespace NoteCAD {
 			sys.AddParameter(tb);
 			sys.AddEquation(diff.x);
 			sys.AddEquation(diff.y);
-			sys.Solve();
-			return new Vector3((float)ptA.x.Eval(), (float)ptA.y.Eval(), 0f);
+			var result = sys.Solve() == EquationSystem.SolveResult.OKAY;
+			if(result) {
+				roughPt.x = (float)ptA.x.Eval();
+				roughPt.y = (float)ptA.y.Eval();
+			}
+			return result;
 		}
 
 		protected override double OnSelect(Vector3 mouse, Camera camera, Matrix4x4 tf) {
@@ -545,16 +518,16 @@ namespace NoteCAD {
 		protected static bool MarqueeSelectSegment(Rect rect, bool wholeObject, Vector3 ap, Vector3 bp) {
 			if(wholeObject) {
 				if(rect.Contains(ap) && rect.Contains(bp)) {
-					return true; 
+					return true;
 				}
 			} else {
 				if(rect.Contains(ap) || rect.Contains(bp)) {
-					return true; 
+					return true;
 				}
 				var line = Rect.MinMaxRect(
-					Mathf.Min(ap.x, bp.x), 
+					Mathf.Min(ap.x, bp.x),
 					Mathf.Min(ap.y, bp.y),
-					Mathf.Max(ap.x, bp.x), 
+					Mathf.Max(ap.x, bp.x),
 					Mathf.Max(ap.y, bp.y)
 				);
 				if(!rect.Overlaps(line)) {
@@ -587,7 +560,7 @@ namespace NoteCAD {
 				any = any || segSelected;
 				if(!wholeObject && any) {
 					// break for each loop
-					return false; 
+					return false;
 				}
 				whole = whole && segSelected;
 				if(wholeObject && !whole) {

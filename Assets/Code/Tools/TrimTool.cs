@@ -78,13 +78,20 @@ public class TrimTool : Tool {
 	void DrawPreview(ICanvas canvas) {
 		if(!hasPreview || hoveredEntity == null) return;
 		canvas.SetStyle("trimPreview");
-		double step = (hoveredEntity is FunctionEntity fe) ? fe.GetTrimPreviewStep() : 1.0 / 64.0;
+		Func<double, double, double> getStep = (p0, p1) => {
+			if(hoveredEntity is FunctionEntity fe) {
+				var subdiv = Math.Ceiling(Math.Abs(p1 - p0) * fe.GetTotalSubdivision());
+				return Math.Abs(p1 - p0) / (subdiv > 1e-6 ? subdiv : 1.0);
+			}
+			return 1.0 / 64.0;
+		};
+
 		// For loop entities the trim segment may wrap around past t=1
 		if(hoveredEntity is ILoopEntity && trimBegin > trimEnd + 1e-6) {
-			hoveredEntity.DrawParamRange(canvas, 0.0, trimBegin, 1.0, step, null);
-			hoveredEntity.DrawParamRange(canvas, 0.0, 0.0, trimEnd, step, null);
+			hoveredEntity.DrawParamRange(canvas, 0.0, trimBegin, 1.0, getStep(0.0 , trimBegin), null);
+			hoveredEntity.DrawParamRange(canvas, 0.0, 0.0, trimEnd, getStep(0.0, trimEnd), null);
 		} else {
-			hoveredEntity.DrawParamRange(canvas, 0.0, trimBegin, trimEnd, step, null);
+			hoveredEntity.DrawParamRange(canvas, 0.0, trimBegin, trimEnd, getStep(trimBegin, trimEnd), null);
 		}
 	}
 
@@ -96,7 +103,7 @@ public class TrimTool : Tool {
 		var result = new List<(Vector3 pos, double t)>();
 		foreach(var other in entity.sketch.entityList) {
 			if(other == entity) continue;
-			foreach(var pt in entity.GetAllIntersections(other, refine: true, includeTouches: true)) {
+			foreach(var pt in entity.GetIntersections(other, refine: true, includeTouches: true)) {
 				AddIntersectionIfNew(entity, pt, result);
 			}
 		}
@@ -217,13 +224,12 @@ public class TrimTool : Tool {
 			if(style != null) arc.style = style;
 		} else if(entity is EllipseEntity ellipse) {
 			var arc = new EllipticArcEntity(sketch);
-			arc.c.pos = ellipse.center.pos;
 			arc.r0.value = ellipse.radius0;
 			arc.r1.value = ellipse.radius1;
-			arc.CopyBasisOrientationFrom(ellipse.basis);
+			arc.basis.CopyFrom(ellipse.basis);
 			// EllipseEntity maps t -> angle = t * 2*PI;
 			// arc starts at t_end, goes CCW to t_begin (wrapping if needed)
-			arc.startAngle.value = t_end * 2.0 * Math.PI;
+			arc.beginAngle.value = t_end * 2.0 * Math.PI;
 			double endT = t_begin < t_end ? t_begin + 1.0 : t_begin;
 			arc.deltaAngle.value = (endT - t_end) * 2.0 * Math.PI;
 			arc.p0.pos = arcP0;

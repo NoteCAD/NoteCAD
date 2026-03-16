@@ -9,7 +9,7 @@ public class LineEntity : Entity, ISegmentaryEntity {
 
 	[NonSerialized]
 	public PointEntity p0;
-	
+
 	[NonSerialized]
 	public PointEntity p1;
 
@@ -57,7 +57,7 @@ public class LineEntity : Entity, ISegmentaryEntity {
 		return part;
 	}
 
-	public override double FindParameter(Vector3 pos) {
+	public override double FindParameter(Vector3 pos, int subdiv) {
 		var dir = p1.pos - p0.pos;
 		float len2 = Vector3.Dot(dir, dir);
 		if(len2 < 1e-10f) return 0.0;

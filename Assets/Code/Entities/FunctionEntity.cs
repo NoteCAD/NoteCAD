@@ -162,17 +162,24 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		}
 	}
 
+	public int GetTotalSubdivision(int subdiv = -1) {
+		if (subdiv < 0) {
+			subdiv = subdivision;
+		}
+		return (int)Math.Ceiling(subdiv * Math.Abs(t1.value - t0.value));
+	}
+
 	public IEnumerable<Vector3> segmentPts {
 		get {
 			Param pOn = new Param("pOn");
 			var on = PointOn(pOn);
-			var subdiv = (int)Math.Ceiling(subdivision * Math.Abs(t1.value - t0.value));
+			var subdiv = GetTotalSubdivision(subdivision);
 			for(int i = 0; i <= subdiv; i++) {
 				pOn.value = (double)i / subdiv;
 				yield return on.Eval();
 			}
 		}
-	}	
+	}
 
 	//public override BBox bbox { get { return new BBox(center.pos, (float)radius); } }
 
@@ -181,8 +188,8 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		part.x.source = x.source;
 		part.y.source = y.source;
 		part.subdivision = subdivision;
-		part.basis.FromString(basis.ToString());
-		double t_norm = FindParameter(position);
+		part.basis.CopyFrom(basis);
+		double t_norm = FindParameter(position, GetTotalSubdivision(subdivision) );
 		double t_actual = t0.value + (t1.value - t0.value) * t_norm;
 		part.tBegin = t_actual;
 		part.tEnd = t1.value;
@@ -195,46 +202,6 @@ public class FunctionEntity : Entity, ISegmentaryEntity {
 		tEndFixed = true;
 		p1.pos = position;
 		return part;
-	}
-
-	int GetSubdivisionSteps() {
-		double range = System.Math.Abs(tEnd - tBegin);
-		return System.Math.Max(64, subdivision * (int)System.Math.Ceiling(range > 0 ? range : 1.0));
-	}
-
-	public double GetTrimPreviewStep() {
-		return 1.0 / GetSubdivisionSteps();
-	}
-
-	public override double FindParameter(Vector3 pos) {
-		Param pOn = new Param("pOn");
-		var on = PointOn(pOn);
-		// Use subdivision-based steps so oscillating functions are sampled densely enough
-		int steps = GetSubdivisionSteps();
-		double best_t = 0.0;
-		double best_dist = double.MaxValue;
-		for(int i = 0; i <= steps; i++) {
-			pOn.value = (double)i / steps;
-			var p = on.Eval();
-			var d = (p - pos).sqrMagnitude;
-			if(d < best_dist) {
-				best_dist = d;
-				best_t = pOn.value;
-			}
-		}
-		double lo = System.Math.Max(0.0, best_t - 1.0 / steps);
-		double hi = System.Math.Min(1.0, best_t + 1.0 / steps);
-		for(int iter = 0; iter < 20; iter++) {
-			double tl = lo + (hi - lo) / 3.0;
-			double tr = lo + 2.0 * (hi - lo) / 3.0;
-			pOn.value = tl;
-			double dl = (on.Eval() - pos).sqrMagnitude;
-			pOn.value = tr;
-			double dr = (on.Eval() - pos).sqrMagnitude;
-			if(dl < dr) hi = tr;
-			else lo = tl;
-		}
-		return (lo + hi) / 2.0;
 	}
 
 	public override ExpVector PointOn(Exp t) {

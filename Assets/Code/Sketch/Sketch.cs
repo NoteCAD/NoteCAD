@@ -340,7 +340,7 @@ public class Sketch : CADObject  {
 		List<List<Entity>> loops = new List<List<Entity>>();
 		List<Entity> loop = new List<Entity>();
 		var all = entities.Where(e => !e.isConstruction).OfType<ISegmentaryEntity>().ToList();
-		
+
 		// process singleton loops
 		for (int i = 0; i < all.Count; i++) {
 			var e = all[i];
@@ -351,11 +351,11 @@ public class Sketch : CADObject  {
 				loop = new();
 			}
 		}
-			
+
 		// remove branches
 		var branchFound = false;
 		do {
-			var notConnected = all.Where(e => 
+			var notConnected = all.Where(e =>
 				Enumerable.Repeat(e.begin, 1).Concat(Enumerable.Repeat(e.end, 1))
 				.Any(p => p.GetConicidentPoints()
 					.Where(p => p.parent != null).Select(p => p.parent).OfType<ISegmentaryEntity>()
@@ -394,7 +394,7 @@ public class Sketch : CADObject  {
 					var justPoints = connected1.Where(p => p.parent == null);
 					points.AddRange(justPoints);
 
-					// inspect not-previous points with not-null parents and 
+					// inspect not-previous points with not-null parents and
 					// where point is ending of its parent
 					// and parent should not be already used in loop or equal to the first
 					var connected = connected1
@@ -405,7 +405,7 @@ public class Sketch : CADObject  {
 						.ToList();
 					if(connected.Any()) {
 						current = connected.First();
-						found = true;	
+						found = true;
 						prevPoint = point;
 						break;
 					} else {
@@ -423,7 +423,7 @@ public class Sketch : CADObject  {
 				continue;
 			}
 		}
-		
+
 		// add ILoopEntities as separate loops
 		loops.AddRange(entities
 			.Where(e => !e.isConstruction)
@@ -457,7 +457,7 @@ public class Sketch : CADObject  {
 					var next = loop[(i + 1) % loop.Count] as ISegmentaryEntity;
 					if(!next.begin.IsCoincidentWith(cur.begin) && !next.end.IsCoincidentWith(cur.begin)) {
 						AddToPolygon(segmentPoints, loop[i]);
-					} else 
+					} else
 					if(!next.begin.IsCoincidentWith(cur.end) && !next.end.IsCoincidentWith(cur.end)) {
 						AddToPolygon(segmentPoints.Reverse(), loop[i]);
 					} else if(next.begin.IsCoincidentWith(cur.end)) {
@@ -612,11 +612,11 @@ public class Sketch : CADObject  {
 					entity.Read(node);
 					objects[entity] = node;
 				}
-				
+
 				foreach(var obj in objects) {
 					obj.Key.AfterRead(obj.Value);
 				}
-				
+
 				var oldEntities = entities.Values.ToList();
 				entities.Clear();
 				foreach(var e in oldEntities) {
@@ -694,7 +694,8 @@ public class Sketch : CADObject  {
 		foreach(var en in entities) {
 			var e = en.Value;
 			if(e == entity) continue;
-			if(e.IsCrossed(entity, ref intersection)) {
+			foreach(var itr in e.GetIntersections(entity)) {
+				intersection = itr;
 				return true;
 			}
 		}

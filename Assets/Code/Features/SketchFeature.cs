@@ -139,7 +139,7 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 						if (e0 == e1) {
 							continue;
 						}
-						var cross = e0.IsCrossed(e1, ref itr);
+						var cross = e0.GetIntersections(e1).Any();
 						if (cross) {
 							e0.isError = true;
 							e1.isError = true;
@@ -154,7 +154,7 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 					var l1 = loops[j].OfType<Entity>();
 					foreach(var e0 in l0) {
 						foreach(var e1 in l1) {
-							var cross = e0.IsCrossed(e1, ref itr);
+							var cross = e0.GetIntersections(e1).Any();
 							if (cross) {
 								e0.isError = true;
 								e1.isError = true;
