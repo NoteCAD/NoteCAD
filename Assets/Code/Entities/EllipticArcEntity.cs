@@ -124,11 +124,7 @@ public class EllipticArcEntity : Entity, ISegmentaryEntity {
 	}
 
 	public override Exp Length() {
-		// Arc length = EllInt(endAngle, |r0|, |r1|) - EllInt(startAngle, |r0|, |r1|)
-		// EllInt(phi, r0, r1) = integral_0^phi sqrt(r0^2*sin^2(t) + r1^2*cos^2(t)) dt
-		var a0 = beginAngle.exp;
-		var a1 = beginAngle.exp + deltaAngle.exp;
-		return Exp.EllInt(a1, Exp.Abs(r0), Exp.Abs(r1)) - Exp.EllInt(a0, Exp.Abs(r0), Exp.Abs(r1));
+		return null;
 	}
 
 	public override Exp Radius() {

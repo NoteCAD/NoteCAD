@@ -120,7 +120,6 @@ public class Exp {
 		Cosh,
 		SFres,
 		CFres,
-		EllInt,
 		Equal,
 		LEqual,
 		GEqual,
@@ -236,7 +235,7 @@ public class Exp {
 
 	// https://www.hindawi.com/journals/mpe/2018/4031793/
 	public static double CFres(double x) {
-		
+
 		var PI = Math.PI;
 		var ax = Math.Abs(x);
 		var ax2 = ax * ax;
@@ -244,14 +243,14 @@ public class Exp {
 		var x3 = x * x * x;
 		/*
 		return (
-			-Math.Sin(PI * ax2 / 2.0) / 
+			-Math.Sin(PI * ax2 / 2.0) /
 			(PI * (x + 20.0 * PI * Math.Exp(-200.0 * PI * Math.Sqrt(ax))))
 
 			+ 8.0 / 25.0 * (1.0 - Math.Exp(-69.0 / 100.0     * PI * x3))
 			+ 2.0 / 25.0 * (1.0 - Math.Exp(-9.0 / 2.0        * PI * ax2))
 			+ 1.0 / 10.0 * (1.0 - Math.Exp(-1.55294068198794 * PI * x ))
 		) * Math.Sign(x);
-		
+
 		*/
 		return Math.Sign(x) * (
 			 1.0 / 2.0 + ((1 + 0.926 * ax) / (2 + 1.792 * ax + 3.104 * ax2)) * Math.Sin(Math.PI * ax2 / 2)
@@ -260,7 +259,7 @@ public class Exp {
 	}
 
 	public static double SFres(double x) {
-		
+
 		var PI = Math.PI;
 		var ax = Math.Abs(x);
 		var ax2 = ax * ax;
@@ -268,7 +267,7 @@ public class Exp {
 
 		/*
 		return (
-			-Math.Cos(PI * ax2 / 2.0) / 
+			-Math.Cos(PI * ax2 / 2.0) /
 			(PI * (ax + 16.7312774552827 * PI * Math.Exp(-1.57638860756614 * PI * Math.Sqrt(ax))))
 
 			+ 8.0 / 25.0 * (1.0 - Math.Exp(-0.608707749430681 * PI * ax3))
@@ -282,7 +281,7 @@ public class Exp {
 		);
 	}
 
-	
+
 	// Incomplete elliptic integral: EllInt(phi, r0, r1) = integral_0^phi sqrt(r0^2*sin^2(t) + r1^2*cos^2(t)) dt
 	// Uses 8-point Gauss-Legendre quadrature with adaptive segments (one per pi/2 interval).
 	public static double EllInt(double phi, double r0, double r1) {
@@ -330,7 +329,6 @@ public class Exp {
 	static public Exp Cosh	(Exp x) { return new Exp(Op.Cosh,	x, null); }
 	static public Exp SFres	(Exp x) { return new Exp(Op.SFres,	x, null); }
 	static public Exp CFres	(Exp x) { return new Exp(Op.CFres,	x, null); }
-	static public Exp EllInt(Exp phi, Exp r0, Exp r1) { return new Exp(Op.EllInt, phi, r0, r1); }
 	//static public Exp Pow  (Exp x, Exp y) { return new Exp(Op.Pow,   x, y); }
 
 	public Exp Drag(Exp to) {
@@ -345,21 +343,21 @@ public class Exp {
 			case Op.Equal:
 			case Op.Drag:
 			case Op.Sub:	return a.Eval() - b.Eval();
-			
+
 			case Op.Less:
 			case Op.LEqual: {
 				var av = a.Eval();
 				var bv = b.Eval();
 				return Math.Abs(av - bv) - (bv - av);
 			}
-			
+
 			case Op.Greater:
 			case Op.GEqual: {
 				var av = a.Eval();
 				var bv = b.Eval();
 				return Math.Abs(av - bv) - (av - bv);
 			}
-							 
+
 			case Op.Mul:	return a.Eval() * b.Eval();
 			case Op.Div: {
 					var bv = b.Eval();
@@ -386,7 +384,6 @@ public class Exp {
 			case Op.Cosh:	return Math.Cosh(a.Eval());
 			case Op.SFres:	return SFres(a.Eval());
 			case Op.CFres:	return CFres(a.Eval());
-			case Op.EllInt:	return EllInt(a.Eval(), b.Eval(), c.Eval());
 			case Op.If:		return a.EvalBool() ? b.Eval() : c.Eval();
 			//case Op.Pow:	return Math.Pow(a.Eval(), b.Eval());
 		}
@@ -401,12 +398,12 @@ public class Exp {
 			case Op.Equal:
 			case Op.Drag:	return a.EvalBool() == b.EvalBool();
 			case Op.Sub:	return a.EvalBool() != b.EvalBool();
-			
+
 			case Op.Less:	return a.Eval() <  b.Eval();
 			case Op.LEqual: return a.Eval() <= b.Eval();
 			case Op.Greater:return a.Eval() >  b.Eval();
 			case Op.GEqual: return a.Eval() >= b.Eval();
-			
+
 			case Op.Mul:	return a.EvalBool() && b.EvalBool();
 			case Op.Div:	return a.EvalBool() && !b.EvalBool();
 			case Op.Neg:	return !a.EvalBool();
@@ -525,7 +522,6 @@ public class Exp {
 			case Op.Cosh:	return "cosh(" + a.ToString() + ")";
 			case Op.SFres:	return "sfres(" + a.ToString() + ")";
 			case Op.CFres:	return "cfres(" + a.ToString() + ")";
-			case Op.EllInt:	return "ellint(" + a.ToString() + ", " + b.ToString() + ", " + c.ToString() + ")";
 			case Op.If:		return "if(" + a.ToString() + ", " + b.ToString() + ", " + c.ToString() + ")";
 			//case Op.Pow:	return Quoted(a) + " ^ " + Quoted(b);
 		}
@@ -557,7 +553,7 @@ public class Exp {
 			case Op.Equal:
 			case Op.Drag:
 			case Op.Sub:	return a.d(p) - b.d(p);
-			
+
 			case Op.GEqual:
 			case Op.Greater: return (Abs(a - b) - Norm(a - b)).d(p);
 
@@ -582,7 +578,6 @@ public class Exp {
 			case Op.Cosh:	return a.d(p) * Sinh(a);
 			case Op.SFres:	return a.d(p) * Sin(Math.PI * Sqr(a) / 2.0);
 			case Op.CFres:	return a.d(p) * Cos(Math.PI * Sqr(a) / 2.0);
-			case Op.EllInt:	return a.d(p) * Sqrt(Sqr(b) * Sqr(Sin(a)) + Sqr(c) * Sqr(Cos(a)));
 			case Op.Pos:	return a.d(p);
 			case Op.If:		return new Exp(Op.If, a, b.d(p), c.d(p));
 		}
@@ -684,7 +679,7 @@ public class Exp {
 		return result;
 	}
 
-	
+
 	public void ReduceParams(List<Param> pars) {
 		if(op == Op.Param) {
 			if(param.reduceable && !pars.Contains(param)) {
@@ -737,7 +732,7 @@ public class Exp {
 }
 
 namespace CustomFunctions {
-	
+
 	abstract class BoolBin : CustomFunction {
 		public override int ArgCount => 2;
 		public override bool IsFunction => false;
