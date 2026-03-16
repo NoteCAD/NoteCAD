@@ -91,7 +91,7 @@ public class ImageEntity : Entity, ILoopEntity {
 	void LoadTextureFromData() {
 		if(string.IsNullOrEmpty(imageData_)) return;
 		var bytes = Convert.FromBase64String(imageData_);
-		texture_ = new Texture2D(2, 2);
+		texture_ = new Texture2D(2, 2, TextureFormat.RGBA32, mipChain: false);
 		texture_.LoadImage(bytes);
 	}
 
