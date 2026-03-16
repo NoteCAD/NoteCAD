@@ -11711,7 +11711,7 @@ MonoBehaviour:
   hotkeys: 
   ctrl: 0
   text: Image
-  icon: {fileID: 21300000, guid: f8cd77d3b89181542b987d55881c0e8c, type: 3}
+  icon: {fileID: 21300000, guid: bc30b00e5dd38df48a69519aa067541f, type: 3}
   canActivateWhenActive: 0
 --- !u!114 &1545636148
 MonoBehaviour:

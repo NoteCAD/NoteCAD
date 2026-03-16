@@ -289,7 +289,7 @@ public class DraftStroke : MonoBehaviour {
 		mf.sharedMesh = mesh;
 
 		var mr = go.AddComponent<MeshRenderer>();
-		var mat = new Material(Shader.Find("Unlit/Texture"));
+		var mat = new Material(Shader.Find("NoteCAD/ImageEntity"));
 		mat.mainTexture = texture;
 		mr.material = mat;
 
