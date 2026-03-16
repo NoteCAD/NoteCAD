@@ -61,7 +61,7 @@ public class ImageTool : Tool {
 			editor.PushUndo();
 			var sk = DetailEditor.instance.currentSketch;
 			if(sk == null) return;
-			img = SpawnEntity(new ImageEntity(sk.GetSketch()));
+			img = SpawnEntity(new ImageEntity(sk.GetSketch()), construction: true);
 			img.scaleMode = options.scaleMode;
 			img.SetImage(pendingTexture, pendingBytes, pendingName);
 			img.p[0].pos = pos;

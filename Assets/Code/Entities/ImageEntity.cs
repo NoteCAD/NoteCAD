@@ -132,14 +132,11 @@ public class ImageEntity : Entity, ILoopEntity {
 
 	public IEnumerable<IEnumerable<Vector3>> loopPoints {
 		get {
-			yield return new Vector3[] {
-				p[0].pos, p[1].pos, p[2].pos, p[3].pos, p[0].pos
-			};
+			yield return p.Select(pt => pt.pos).Concat(Enumerable.Repeat(p[0].pos, 1));
 		}
 	}
 
-	public IEnumerable<IEnumerable<Vector3>> segmentPoints =>
-		loopPoints;
+	public IEnumerable<IEnumerable<Vector3>> segmentPoints => loopPoints;
 
 	protected override void OnDraw(ICanvas canvas) {
 		base.OnDraw(canvas);
