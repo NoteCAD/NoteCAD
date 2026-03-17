@@ -53,7 +53,7 @@ public class DetailEditor : MonoBehaviour {
 	bool meshDirty = true;
 
 	LineCanvas canvas;
-	public System.Action<ICanvas> toolPreviewDraw;
+	public Tool activeTool;
 	EquationSystem sys = new EquationSystem();
 	public HashSet<IdPath> selection = new HashSet<IdPath>();
 
@@ -410,7 +410,7 @@ public class DetailEditor : MonoBehaviour {
 		}
 
 		canvas.ClearStyle("trimPreview");
-		toolPreviewDraw?.Invoke(canvas);
+		activeTool?.DrawPreview(canvas);
 	}
 
 	void DrawCadObject(ICADObject obj, string style, bool drawPoints) {
