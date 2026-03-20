@@ -75,31 +75,46 @@ public static class GeomUtils {
 		COLLINEAR,
 	}
 
+	// Classifies point P relative to the directed line segment A→B in 2D.
+	// Returns one of the Classify enum values that describe P's spatial relationship to the segment.
+	// EPS is the tolerance used for squared-distance endpoint snapping and perpendicular-distance side tests.
 	public static Classify classify(Vector3 P, Vector3 A, Vector3 B, float EPS) {
-		
-		Vector3 l = B - A;
-	    l.z = 0;
-		l = l.normalized;
-		
-		Plane plane = new Plane(Vector3.Cross(l, Vector3.forward).normalized, A);
-		float ro = plane.GetDistanceToPoint(P);
 
+		// Check whether P is coincident with an endpoint.
+		// Uses squared distance directly (no sqrt), matching the original tolerance convention.
 		if ((P - A).sqrMagnitude < EPS) return Classify.etTOUCHA;
 		if ((P - B).sqrMagnitude < EPS) return Classify.etTOUCHB;
 
-		if (ro < -EPS) return Classify.etLEFT;
-		if (ro >  EPS)  return Classify.etRIGHT;
+		// 2D direction vector of the segment (z component is ignored throughout).
+		float dx = B.x - A.x;
+		float dy = B.y - A.y;
+		float len = Mathf.Sqrt(dx * dx + dy * dy);
 
-		plane = new Plane(l, P);
-	
-		float roA = plane.GetDistanceToPoint(A);
-		float roB = plane.GetDistanceToPoint(B);
-	
+		// Guard against degenerate zero-length segment (A == B): treat P as BETWEEN.
+		if (len == 0.0f) return Classify.etBETWEEN;
+
+		// Signed perpendicular distance from P to the directed line A→B, normalized by |AB|.
+		//   ro > 0  →  P is to the right of A→B
+		//   ro < 0  →  P is to the left  of A→B
+		// Computed as the z-component of cross(AB, AP) divided by |AB|, equivalent to
+		// the original Plane-based approach but without allocating a Plane object.
+		float ro = ((P.x - A.x) * dy - (P.y - A.y) * dx) / len;
+
+		if (ro < -EPS) return Classify.etLEFT;
+		if (ro >  EPS) return Classify.etRIGHT;
+
+		// P lies on (or very near) the infinite line through A and B.
+		// Determine where P falls along the segment by projecting onto the segment direction.
+		// We only need the signs of roA and roB, so no division by len is required.
+		//   roA = dot(A - P, AB):  > 0 means A is ahead of P in the AB direction
+		//   roB = dot(B - P, AB):  > 0 means B is ahead of P in the AB direction
+		float roA = (A.x - P.x) * dx + (A.y - P.y) * dy;
+		float roB = (B.x - P.x) * dx + (B.y - P.y) * dy;
+
 		if (roA > 0.0f && roB > 0.0f) return Classify.etBEYOND;
 		if (roA < 0.0f && roB < 0.0f) return Classify.etBEHIND;
-		
-		
-		return Classify.etBETWEEN;	
+
+		return Classify.etBETWEEN;
 	}
 	
 	
@@ -120,8 +135,12 @@ public static class GeomUtils {
 		return a == Classify.etTOUCHA || a == Classify.etTOUCHB || a == Classify.etBETWEEN || a == Classify.etBEHIND || a == Classify.etBEYOND;
 	}
 	
+	// Classifies whether two collinear segments cross, touch, or are disjoint,
+	// given the Classify results of the second segment's endpoints relative to the first segment.
 	public static Cross classifyCollinearSegmentCross(Classify a, Classify b) {
 
+		// Endpoint-to-endpoint touch cases: one end of segment 2 coincides with an endpoint of
+		// segment 1, while the other end of segment 2 lies completely outside segment 1.
 		if (a == Classify.etTOUCHA && b == Classify.etBEYOND) return Cross.TOUCH;
 		if (a == Classify.etTOUCHB && b == Classify.etBEHIND) return Cross.TOUCH;
 		if (b == Classify.etTOUCHA && a == Classify.etBEYOND) return Cross.TOUCH;
@@ -129,49 +148,65 @@ public static class GeomUtils {
 		if (a == Classify.etTOUCHA && b == Classify.etTOUCHA) return Cross.TOUCH;
 		if (a == Classify.etTOUCHB && b == Classify.etTOUCHB) return Cross.TOUCH;
 
-		
+		// If both endpoints of segment 2 lie on the line through segment 1 (collinear and overlapping),
+		// the segments intersect (share a common sub-interval).
 		if (isPointOnLine(a)) {
 			if (isPointOnLine(b)) return Cross.INTERSECTION;
 			return Cross.TOUCH;
 		}
 
-		if (isPointOnLine(b)) {
-			if (a == Classify.etBEYOND) return Cross.TOUCH;
-			if (isPointOnLine(a)) return Cross.INTERSECTION;
-			return Cross.TOUCH;
-		}
+		// One endpoint of segment 2 is on the line; the other is not → single touch point.
+		if (isPointOnLine(b)) return Cross.TOUCH;
 
 		return Cross.NONE;
 	}
 	
+	// Tests whether two 2D line segments A1→B1 and A2→B2 cross, touch, or are disjoint.
+	// On a proper intersection (Cross.INTERSECTION) the 2D intersection point is written to itr.
+	// USEEPS is the tolerance for bounding-box expansion, endpoint snapping, and parallel-line detection.
 	public static Cross isSegmentsCrossed(Vector3 A1, Vector3 B1, Vector3 A2, Vector3 B2, ref Vector3 itr, float USEEPS) {
+		// Quick rejection: non-overlapping bounding boxes guarantee no intersection.
 		if(!BBox.Overlaps2d(A1, B1, A2, B2, USEEPS)) return Cross.NONE;
 		Vector3 L1 = B1 - A1;
 		Vector3 L2 = B2 - A2;
-	
-		Classify A1C2 = classify(A1, A2, B2, USEEPS);
-		Classify B1C2 = classify(B1, A2, B2, USEEPS);
-	
-		Classify A2C1 = classify(A2, A1, B1, USEEPS);
-		Classify B2C1 = classify(B2, A1, B1, USEEPS);
+
+		// Classify each endpoint of one segment relative to the other segment's supporting line.
+		Classify A1C2 = classify(A1, A2, B2, USEEPS);   // A1 relative to line A2→B2
+		Classify B1C2 = classify(B1, A2, B2, USEEPS);   // B1 relative to line A2→B2
+
+		Classify A2C1 = classify(A2, A1, B1, USEEPS);   // A2 relative to line A1→B1
+		Classify B2C1 = classify(B2, A1, B1, USEEPS);   // B2 relative to line A1→B1
 		
+		// If both endpoints of one segment are strictly on the same side of the other segment's
+		// line (both left, both right, both behind, or both beyond), there is no crossing.
 		if (isSegmentOutside(A1C2, B1C2)) return Cross.NONE;
 		if (isSegmentOutside(A2C1, B2C1)) return Cross.NONE;
 		
 		/*Cross co_cross = classifyCollinearSegmentCross(A1C2, B1C2);
 		if (co_cross != Cross.NONE) return co_cross;*/
 
+		// Handle degenerate (collinear/touching) cases using segment 2 classified against segment 1.
 		Cross co_cross = classifyCollinearSegmentCross(A2C1, B2C1);
 		if (co_cross != Cross.NONE) return co_cross;
 
-		Vector3 N1 = Vector3.Cross(L1, Vector3.forward).normalized;
-		Plane plane = new Plane(N1, A1);
-		Ray ray = new Ray(A2, L2);
-		float enter = 0.0f;
-		
-		if (plane.Raycast(ray, out enter) == false) return Cross.NONE;
-		
-		itr = ray.GetPoint(enter);
+		// A proper (non-degenerate) crossing exists. Compute the intersection point using
+		// parametric line equations:
+		//   P = A1 + t·L1  and  P = A2 + s·L2
+		// Solving the 2×2 system for t gives:
+		//   denom = L1 × L2  (2D cross product; zero when lines are parallel)
+		//   t     = (A2 - A1) × L2 / denom
+		float denom = L1.x * L2.y - L1.y * L2.x;
+
+		// Guard against degenerate parallel lines (should be rare here given the classify checks above).
+		// denom is a cross-product magnitude that scales with |L1|·|L2|; use a relative epsilon so
+		// the test is independent of segment length rather than the distance-based USEEPS.
+		if (Mathf.Abs(denom) < 1e-10f * (L1.sqrMagnitude + L2.sqrMagnitude)) return Cross.NONE;
+
+		float diffX = A2.x - A1.x;
+		float diffY = A2.y - A1.y;
+		float t = (diffX * L2.y - diffY * L2.x) / denom;
+
+		itr = new Vector3(A1.x + t * L1.x, A1.y + t * L1.y, 0f);
 		
 		return Cross.INTERSECTION;
 	}
