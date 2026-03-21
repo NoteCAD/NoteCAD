@@ -754,4 +754,247 @@ public class Sketch : CADObject  {
 	public bool HasNonSolvable() {
 		return constraintList.OfType<ValueConstraint>().Any(c => !c.solvable);
 	}
+
+	/// <summary>
+	/// New contour detection algorithm:
+	/// 1) Intersect all entities between each other (split edges at crossing points).
+	/// 2) Build a planar subdivision graph (DCEL) and extract closed contours.
+	/// Hole detection (step 3 of the algorithm) is handled by <see cref="GroupPolygons"/>.
+	/// </summary>
+	public static List<List<Vector3>> GetPolygons(IEnumerable<Entity> entities, ref List<List<IdPath>> ids) {
+		if(ids != null) ids.Clear();
+
+		var allEntities = entities.Where(e => !e.isConstruction).ToList();
+		if(allEntities.Count == 0) return new List<List<Vector3>>();
+
+		// Collect all individual line segments from every entity, tagged by entity index.
+		var rawEdges = new List<(Vector3 a, Vector3 b, int entityIdx)>();
+		for(int ei = 0; ei < allEntities.Count; ei++) {
+			var e = allEntities[ei];
+			if(!(e is ISegmentProvider sp)) continue;
+			foreach(var loop in sp.segmentPoints) {
+				Vector3 prev = Vector3.zero;
+				bool first = true;
+				foreach(var pt in loop) {
+					if(!first) rawEdges.Add((prev, pt, ei));
+					first = false;
+					prev = pt;
+				}
+			}
+		}
+
+		if(rawEdges.Count == 0) return new List<List<Vector3>>();
+
+		// Step 1: Intersect all entities – split edges at pairwise intersection points.
+		var splitEdges = SplitEdgesAtIntersections(rawEdges);
+
+		// Step 2: Build planar subdivision graph and extract closed contours (polygonize).
+		var graph = new PlanarGraph();
+		foreach(var (a, b, _) in splitEdges) {
+			graph.AddEdge(a, b);
+		}
+		graph.SortEdges();
+		return graph.ExtractFaces();
+		// Note: hole detection (step 3) is handled by GroupPolygons.
+	}
+
+	// Split a flat list of directed segments at every pairwise intersection point
+	// between segments that originate from different entities.
+	// Handles both proper crossings and T-junctions (an endpoint of one segment
+	// lying on the interior of another segment from a different entity).
+	// Note: eps (1e-5) is smaller than PlanarGraph.NodeEps (1e-4) intentionally:
+	// the tighter tolerance prevents false-positive intersections while the looser
+	// node-merge tolerance absorbs floating-point accumulation from the intersection math.
+	static List<(Vector3 a, Vector3 b, int entityIdx)> SplitEdgesAtIntersections(
+		List<(Vector3 a, Vector3 b, int entityIdx)> edges) {
+
+		const float eps = 1e-5f;
+		var splits = new List<List<(float t, Vector3 pos)>>(edges.Count);
+		for(int i = 0; i < edges.Count; i++) splits.Add(new List<(float, Vector3)>());
+
+		for(int i = 0; i < edges.Count; i++) {
+			for(int j = i + 1; j < edges.Count; j++) {
+				if(edges[i].entityIdx == edges[j].entityIdx) continue; // same entity – skip
+
+				// Proper crossing: both parameters strictly interior to their segments.
+				var itr = Vector3.zero;
+				if(GeomUtils.isSegmentsCrossed(edges[i].a, edges[i].b,
+						edges[j].a, edges[j].b, ref itr, eps) == GeomUtils.Cross.INTERSECTION) {
+					var di = edges[i].b - edges[i].a;
+					float liSq = di.sqrMagnitude;
+					float ti = liSq > eps * eps ? Vector3.Dot(itr - edges[i].a, di) / liSq : 0.5f;
+					var dj = edges[j].b - edges[j].a;
+					float ljSq = dj.sqrMagnitude;
+					float tj = ljSq > eps * eps ? Vector3.Dot(itr - edges[j].a, dj) / ljSq : 0.5f;
+					if(ti > eps && ti < 1f - eps) splits[i].Add((ti, itr));
+					if(tj > eps && tj < 1f - eps) splits[j].Add((tj, itr));
+				}
+
+				// T-junctions: an endpoint of one segment lies on the interior of the other.
+				TryAddSplitAtEndpoint(edges[i], edges[j].a, splits[i], eps);
+				TryAddSplitAtEndpoint(edges[i], edges[j].b, splits[i], eps);
+				TryAddSplitAtEndpoint(edges[j], edges[i].a, splits[j], eps);
+				TryAddSplitAtEndpoint(edges[j], edges[i].b, splits[j], eps);
+			}
+		}
+
+		var result = new List<(Vector3, Vector3, int)>();
+		for(int i = 0; i < edges.Count; i++) {
+			splits[i].Sort((a, b) => a.t.CompareTo(b.t));
+			// Deduplicate split points with nearly equal t values.
+			var deduped = new List<(float t, Vector3 pos)>();
+			foreach(var sp in splits[i]) {
+				if(deduped.Count == 0 || sp.t - deduped[deduped.Count - 1].t > eps)
+					deduped.Add(sp);
+			}
+			Vector3 prev = edges[i].a;
+			foreach(var (_, pos) in deduped) {
+				if((pos - prev).sqrMagnitude > eps * eps)
+					result.Add((prev, pos, edges[i].entityIdx));
+				prev = pos;
+			}
+			if((edges[i].b - prev).sqrMagnitude > eps * eps)
+				result.Add((prev, edges[i].b, edges[i].entityIdx));
+		}
+		return result;
+	}
+
+	// If point P lies strictly on the interior of segment (edge.a, edge.b), add it as a split.
+	static void TryAddSplitAtEndpoint(
+		(Vector3 a, Vector3 b, int entityIdx) edge,
+		Vector3 P,
+		List<(float t, Vector3 pos)> splitList,
+		float eps) {
+		var d = edge.b - edge.a;
+		float lenSq = d.sqrMagnitude;
+		if(lenSq < eps * eps) return;
+		var ap = P - edge.a;
+		float t = Vector3.Dot(ap, d) / lenSq;
+		if(t <= eps || t >= 1f - eps) return;  // not strictly interior
+		var closest = edge.a + d * t;
+		if((closest - P).sqrMagnitude > eps * eps) return;  // not on the segment line
+		splitList.Add((t, P));
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Planar graph (DCEL) used for intersection-based contour detection.
+// ---------------------------------------------------------------------------
+
+/// <summary>
+/// Planar subdivision graph built from directed half-edges.
+/// Faces are extracted by following the DCEL "next edge" relation:
+/// for half-edge A→B the next edge in the CW (interior) face is the outgoing
+/// edge from B that comes just before the twin (B→A) in the CCW-sorted list
+/// of edges at B.
+/// </summary>
+class PlanarGraph {
+	// NodeEps is intentionally larger than the edge-split epsilon (1e-5) so that
+	// intersection points computed via floating-point arithmetic are reliably snapped
+	// to the same graph node even after accumulated rounding errors.
+	const float NodeEps = 1e-4f;
+	static readonly float NodeEpsSq = NodeEps * NodeEps;
+
+	readonly List<PGNode> nodes = new List<PGNode>();
+	readonly List<PGHalfEdge> halfEdges = new List<PGHalfEdge>();
+
+	PGNode FindOrCreate(Vector3 pos) {
+		// Only x and y are compared: the planar graph operates in the 2D sketch plane (z ≈ 0).
+		foreach(var n in nodes) {
+			float dx = n.pos.x - pos.x, dy = n.pos.y - pos.y;
+			if(dx * dx + dy * dy < NodeEpsSq) return n;
+		}
+		var node = new PGNode { pos = pos };
+		nodes.Add(node);
+		return node;
+	}
+
+	/// <summary>Add a directed edge (and its twin) between positions a and b.</summary>
+	public void AddEdge(Vector3 a, Vector3 b) {
+		var na = FindOrCreate(a);
+		var nb = FindOrCreate(b);
+		if(na == nb) return; // degenerate (zero-length) edge
+
+		// Reject duplicate edges so the DCEL remains valid.
+		if(na.outgoing.Any(e => e.to == nb)) return;
+
+		var fwd = new PGHalfEdge { from = na, to = nb };
+		var rev = new PGHalfEdge { from = nb, to = na };
+		fwd.twin = rev;
+		rev.twin = fwd;
+		na.outgoing.Add(fwd);
+		nb.outgoing.Add(rev);
+		halfEdges.Add(fwd);
+		halfEdges.Add(rev);
+	}
+
+	/// <summary>Sort the outgoing edges at every node by angle (CCW from east).</summary>
+	public void SortEdges() {
+		foreach(var node in nodes) {
+			node.outgoing.Sort((a, b) => {
+				float angA = Mathf.Atan2(a.to.pos.y - a.from.pos.y, a.to.pos.x - a.from.pos.x);
+				float angB = Mathf.Atan2(b.to.pos.y - b.from.pos.y, b.to.pos.x - b.from.pos.x);
+				return angA.CompareTo(angB);
+			});
+		}
+	}
+
+	// Returns the next half-edge in the CW face that contains h on its boundary.
+	PGHalfEdge NextEdge(PGHalfEdge h) {
+		var outgoing = h.to.outgoing;
+		int idx = outgoing.IndexOf(h.twin);
+		if(idx < 0) return null;
+		return outgoing[(idx - 1 + outgoing.Count) % outgoing.Count];
+	}
+
+	/// <summary>
+	/// Traverse all unvisited half-edges and collect the interior faces.
+	/// The "previous-in-CCW" DCEL traversal yields CCW interior faces and CW exterior faces.
+	/// Interior (CCW) faces are reversed to CW and returned; the CW exterior face is discarded.
+	/// Non-simple polygons (those that visit the same node twice) are also discarded.
+	/// </summary>
+	public List<List<Vector3>> ExtractFaces() {
+		var result = new List<List<Vector3>>();
+		var visited = new HashSet<PGHalfEdge>();
+
+		foreach(var start in halfEdges) {
+			if(visited.Contains(start)) continue;
+
+			var poly = new List<Vector3>();
+			var faceNodes = new HashSet<PGNode>(); // detect non-simple faces
+			var h = start;
+			bool valid = true;
+			int limit = halfEdges.Count + 1; // guard against infinite loops
+
+			do {
+				if(visited.Contains(h) || --limit <= 0) { valid = false; break; }
+				// A node visited twice in one face means a non-simple (self-touching) polygon.
+				if(!faceNodes.Add(h.from)) { valid = false; break; }
+				visited.Add(h);
+				poly.Add(h.from.pos);
+				h = NextEdge(h);
+				if(h == null) { valid = false; break; }
+			} while(h != start);
+
+			if(!valid || poly.Count < 3) continue;
+			// The DCEL "previous-in-CCW" traversal yields CCW interior faces and CW exterior faces.
+			// Discard the CW exterior/infinite face; reverse interior (CCW) faces to CW
+			// because the rest of the pipeline (GroupPolygons, TriangulateWithHoles) expects CW.
+			if(Triangulation.IsClockwise(poly)) continue;
+			poly.Reverse();
+			result.Add(poly);
+		}
+		return result;
+	}
+}
+
+class PGNode {
+	public Vector3 pos;
+	public readonly List<PGHalfEdge> outgoing = new List<PGHalfEdge>();
+}
+
+class PGHalfEdge {
+	public PGNode from;
+	public PGNode to;
+	public PGHalfEdge twin;
 }

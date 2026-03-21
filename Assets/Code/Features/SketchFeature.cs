@@ -170,7 +170,11 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 		mainMesh.Clear();
 		if(detail.settings.detectContours) {
 			List<List<IdPath>> ids = null;
-			var polygons = Sketch.GetPolygons(loops.Where(l => l.All(e => !(e is Entity) || !(e as Entity).isError)).ToList(), ref ids);
+			// Use the new intersection-based contour detection algorithm.
+			// All non-construction entities participate; intersections between
+			// entities define the polygon vertices rather than requiring explicit
+			// coincident constraints.
+			var polygons = Sketch.GetPolygons(sketch.entityList, ref ids);
 			MeshUtils.CreateMeshRegion(polygons, ref mainMesh);
 		}
 	}
