@@ -247,6 +247,7 @@ namespace NoteCAD {
 		public IEnumerable<Constraint> constraints { get { return usedInConstraints.AsEnumerable(); } }
 		public virtual IEnumerable<PointEntity> points { get { yield break; } }
 		public virtual BBox bbox { get { return new BBox(Vector3.zero, Vector3.zero); } }
+		public virtual OBB? obb { get { return null; } }
 		public abstract IEntityType type { get; }
 
 		public bool isConstruction {
@@ -359,6 +360,11 @@ namespace NoteCAD {
 		public IEnumerable<Vector3> GetIntersections(Entity e, bool refine = false, bool includeTouches = false) {
 			var boxZero = new BBox(Vector3.zero, Vector3.zero);
 			if(!e.bbox.Overlaps(bbox) && !e.bbox.Equals(boxZero) && !bbox.Equals(boxZero)) {
+				yield break;
+			}
+			var obbA = obb;
+			var obbB = e.obb;
+			if(obbA.HasValue && obbB.HasValue && !obbA.Value.Overlaps(obbB.Value)) {
 				yield break;
 			}
 			if(this is ISegmentProvider && e is ISegmentProvider) {

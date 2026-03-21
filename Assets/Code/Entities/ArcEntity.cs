@@ -99,6 +99,63 @@ public class ArcEntity : Entity, ISegmentaryEntity {
 
 	public override BBox bbox { get { return new BBox(center.pos, (float)radius); } }
 
+	public override OBB? obb {
+		get {
+			var p0v = new Vector2(p0.pos.x, p0.pos.y);
+			var p1v = new Vector2(p1.pos.x, p1.pos.y);
+			var cv  = new Vector2(c.pos.x,  c.pos.y);
+			float r = (float)radius;
+
+			Vector2 chord = p1v - p0v;
+			float chordLen = chord.magnitude;
+
+			if(chordLen < 1e-6f) {
+				// Full circle or degenerate: OBB is the circle's bounding square.
+				return new OBB(cv, Vector2.right, r, r);
+			}
+
+			Vector2 axisX = chord / chordLen;
+			Vector2 axisY = new Vector2(-axisX.y, axisX.x);
+
+			float a0angle = Mathf.Atan2(p0v.y - cv.y, p0v.x - cv.x);
+			// The arc always sweeps counter-clockwise (see ArcEntity.segmentPts / GetAngle).
+			float arcAngle = (float)GetAngle();
+
+			// Project both endpoints explicitly (math guarantees p0→Y=0, p1→Y=0).
+			float minX = Mathf.Min(Vector2.Dot(p0v - p0v, axisX), Vector2.Dot(p1v - p0v, axisX));
+			float maxX = Mathf.Max(Vector2.Dot(p0v - p0v, axisX), Vector2.Dot(p1v - p0v, axisX));
+			float minY = Mathf.Min(Vector2.Dot(p0v - p0v, axisY), Vector2.Dot(p1v - p0v, axisY));
+			float maxY = Mathf.Max(Vector2.Dot(p0v - p0v, axisY), Vector2.Dot(p1v - p0v, axisY));
+
+			// Extremal angles along axisX are at angle α and α+π;
+			// extremal angles along axisY are at α+π/2 and α+3π/2,
+			// where α is the world-space angle of axisX.
+			float alpha = Mathf.Atan2(axisX.y, axisX.x);
+			float[] extremalAngles = {
+				alpha,
+				alpha + Mathf.PI,
+				alpha + Mathf.PI / 2f,
+				alpha + 3f * Mathf.PI / 2f
+			};
+			foreach(float angle in extremalAngles) {
+				// Mathf.Repeat maps the signed difference into [0, 2π) for the CCW arc span check.
+				float diff = Mathf.Repeat(angle - a0angle, 2f * Mathf.PI);
+				if(diff < arcAngle) {
+					var pt = cv + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * r;
+					float px = Vector2.Dot(pt - p0v, axisX);
+					float py = Vector2.Dot(pt - p0v, axisY);
+					if(px < minX) minX = px;
+					if(px > maxX) maxX = px;
+					if(py < minY) minY = py;
+					if(py > maxY) maxY = py;
+				}
+			}
+
+			var obbCenter = p0v + axisX * ((minX + maxX) / 2f) + axisY * ((minY + maxY) / 2f);
+			return new OBB(obbCenter, axisX, (maxX - minX) / 2f, (maxY - minY) / 2f);
+		}
+	}
+
 	protected override Entity OnSplit(Vector3 position) {
 		var part = new ArcEntity(sketch);
 		part.center.pos = center.pos;

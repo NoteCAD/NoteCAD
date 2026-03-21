@@ -99,6 +99,24 @@ public class TextEntity : Entity, ILoopEntity {
 		return p.Any(po => po.IsChanged());
 	}
 
+	public override OBB? obb {
+		get {
+			// p[0]=origin, p[1]=p[0]+u, p[2]=p[0]+u+v, p[3]=p[0]+v
+			var p0v = new Vector2(p[0].pos.x, p[0].pos.y);
+			var uv  = new Vector2(p[1].pos.x - p[0].pos.x, p[1].pos.y - p[0].pos.y);
+			var vv  = new Vector2(p[3].pos.x - p[0].pos.x, p[3].pos.y - p[0].pos.y);
+			float uLen = uv.magnitude;
+			float vLen = vv.magnitude;
+			if(uLen < 1e-6f || vLen < 1e-6f) return null;
+			// Use average of all four corners as the center for robustness.
+			var center = (new Vector2(p[0].pos.x, p[0].pos.y)
+			            + new Vector2(p[1].pos.x, p[1].pos.y)
+			            + new Vector2(p[2].pos.x, p[2].pos.y)
+			            + new Vector2(p[3].pos.x, p[3].pos.y)) / 4f;
+			return new OBB(center, uv / uLen, uLen / 2f, vLen / 2f);
+		}
+	}
+
 	class FontRenderer : IFontRenderer {
 		public List<List<Vector3>> loops = new List<List<Vector3>>();
 		List<Vector3> points;
