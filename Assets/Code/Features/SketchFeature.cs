@@ -127,44 +127,11 @@ public class SketchFeature : SketchFeatureBase, IPlane {
 	}
 
 	void CreateLoops() {
-		if(detail.settings.checkSketchErrors) {
-			var itr = new Vector3();
-
-			// check self intersection
-			foreach(var l in loops) {
-				var loop = l.OfType<Entity>();
-				loop.ForEach(e => e.isError = false);
-				foreach(var e0 in loop) {
-					foreach(var e1 in loop) {
-						if (e0 == e1) {
-							continue;
-						}
-						var cross = e0.GetIntersections(e1).Any();
-						if (cross) {
-							e0.isError = true;
-							e1.isError = true;
-						}
-					}
-				}
-			}
-			// check cross-loop intersection
-			for(int i = 0; i < loops.Count; i++) {
-				for(int j = i + 1; j < loops.Count; j++) {
-					var l0 = loops[i].OfType<Entity>();
-					var l1 = loops[j].OfType<Entity>();
-					foreach(var e0 in l0) {
-						foreach(var e1 in l1) {
-							var cross = e0.GetIntersections(e1).Any();
-							if (cross) {
-								e0.isError = true;
-								e1.isError = true;
-							}
-						}
-					}
-				}
-			}
-
-
+		// The intersection-based contour detection algorithm intentionally uses
+		// entity crossings as polygon vertices, so crossing entities must not be
+		// flagged as errors.  Clear any stale error state on all sketch entities.
+		foreach(var e in sketch.entityList) {
+			e.isError = false;
 		}
 
 		mainMesh.Clear();
