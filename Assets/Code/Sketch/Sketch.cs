@@ -793,6 +793,10 @@ public class Sketch : CADObject  {
 		foreach(var (a, b, _) in splitEdges) {
 			graph.AddEdge(a, b);
 		}
+		// Remove dangling edges (degree-1 nodes) before face extraction.
+		// Dead-end segment tails can never be part of a closed contour and they
+		// cause the DCEL traversal to produce non-simple (self-touching) pseudo-faces.
+		graph.PruneDanglingEdges();
 		graph.SortEdges();
 		return graph.ExtractFaces();
 		// Note: hole detection (step 3) is handled by GroupPolygons.
@@ -928,6 +932,34 @@ class PlanarGraph {
 		halfEdges.Add(rev);
 	}
 
+	/// <summary>
+	/// Iteratively remove degree-1 nodes (dead-end / dangling edges) from the graph.
+	/// A node with only one outgoing edge can never be part of a closed face.
+	/// After pruning, every remaining node has degree ≥ 2 and participates in a cycle.
+	/// Uses a queue for O(n) amortized performance.
+	/// </summary>
+	public void PruneDanglingEdges() {
+		// Seed the queue with all current leaf nodes.
+		var queue = new Queue<PGNode>();
+		foreach(var node in nodes) {
+			if(node.outgoing.Count == 1) queue.Enqueue(node);
+		}
+		while(queue.Count > 0) {
+			var node = queue.Dequeue();
+			if(node.outgoing.Count != 1) continue; // may have been updated already
+			var fwd = node.outgoing[0];
+			var rev = fwd.twin;
+			var neighbour = fwd.to;
+			// Remove the reverse half-edge from the neighbour's outgoing list.
+			neighbour.outgoing.Remove(rev);
+			halfEdges.Remove(fwd);
+			halfEdges.Remove(rev);
+			node.outgoing.Clear();
+			// The neighbour may now be a leaf too.
+			if(neighbour.outgoing.Count == 1) queue.Enqueue(neighbour);
+		}
+	}
+
 	/// <summary>Sort the outgoing edges at every node by angle (CCW from east).</summary>
 	public void SortEdges() {
 		foreach(var node in nodes) {
@@ -955,28 +987,46 @@ class PlanarGraph {
 	/// </summary>
 	public List<List<Vector3>> ExtractFaces() {
 		var result = new List<List<Vector3>>();
-		var visited = new HashSet<PGHalfEdge>();
+		// globalVisited tracks half-edges that are already owned by a confirmed face.
+		// Half-edges from invalid traversals are NOT added here (except the starting edge),
+		// so they remain available as starting points for other valid faces.
+		var globalVisited = new HashSet<PGHalfEdge>();
 
 		foreach(var start in halfEdges) {
-			if(visited.Contains(start)) continue;
+			if(globalVisited.Contains(start)) continue;
 
 			var poly = new List<Vector3>();
-			var faceNodes = new HashSet<PGNode>(); // detect non-simple faces
+			// localEdges accumulates the edges of the current traversal.
+			// They are only promoted to globalVisited when the face is confirmed.
+			var localEdges = new HashSet<PGHalfEdge>();
+			var faceNodes = new HashSet<PGNode>();
 			var h = start;
 			bool valid = true;
 			int limit = halfEdges.Count + 1; // guard against infinite loops
 
 			do {
-				if(visited.Contains(h) || --limit <= 0) { valid = false; break; }
+				if(--limit <= 0) { valid = false; break; }
+				// Edge already belongs to a confirmed face – this traversal is invalid.
+				if(globalVisited.Contains(h)) { valid = false; break; }
+				// Intra-traversal edge cycle (not back to start) – invalid.
+				if(!localEdges.Add(h)) { valid = false; break; }
 				// A node visited twice in one face means a non-simple (self-touching) polygon.
 				if(!faceNodes.Add(h.from)) { valid = false; break; }
-				visited.Add(h);
 				poly.Add(h.from.pos);
 				h = NextEdge(h);
 				if(h == null) { valid = false; break; }
 			} while(h != start);
 
-			if(!valid || poly.Count < 3) continue;
+			if(!valid || poly.Count < 3) {
+				// Invalid traversal: only consume the starting edge so this start is not retried.
+				// Leave other traversed edges available for future (potentially valid) traversals.
+				globalVisited.Add(start);
+				continue;
+			}
+
+			// Confirmed face: mark every edge in it as globally consumed.
+			foreach(var e in localEdges) globalVisited.Add(e);
+
 			// The DCEL "previous-in-CCW" traversal yields CCW interior faces and CW exterior faces.
 			// Discard the CW exterior/infinite face; reverse interior (CCW) faces to CW
 			// because the rest of the pipeline (GroupPolygons, TriangulateWithHoles) expects CW.
