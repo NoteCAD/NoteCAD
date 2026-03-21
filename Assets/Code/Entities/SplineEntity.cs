@@ -66,6 +66,36 @@ public class SplineEntity : Entity, ISegmentaryEntity {
 			return box;
 		}
 	}
+
+	public override OBB? obb {
+		get {
+			var p0v = new Vector2(p[0].pos.x, p[0].pos.y);
+			var p3v = new Vector2(p[3].pos.x, p[3].pos.y);
+
+			Vector2 chord = p3v - p0v;
+			float chordLen = chord.magnitude;
+			// Degenerate chord (closed spline): skip OBB culling.
+			if(chordLen < 1e-6f) return null;
+
+			Vector2 axisX = chord / chordLen;
+			Vector2 axisY = new Vector2(-axisX.y, axisX.x);
+
+			float minX = float.MaxValue, maxX = float.MinValue;
+			float minY = float.MaxValue, maxY = float.MinValue;
+			for(int i = 0; i < 4; i++) {
+				var pt = new Vector2(p[i].pos.x, p[i].pos.y);
+				float px = Vector2.Dot(pt - p0v, axisX);
+				float py = Vector2.Dot(pt - p0v, axisY);
+				if(px < minX) minX = px;
+				if(px > maxX) maxX = px;
+				if(py < minY) minY = py;
+				if(py > maxY) maxY = py;
+			}
+
+			var obbCenter = p0v + axisX * ((minX + maxX) / 2f) + axisY * ((minY + maxY) / 2f);
+			return new OBB(obbCenter, axisX, (maxX - minX) / 2f, (maxY - minY) / 2f);
+		}
+	}
 		protected override Entity OnSplit(Vector3 position) {
 		double t = FindParameter(position);
 		var part = new SplineEntity(sketch);
