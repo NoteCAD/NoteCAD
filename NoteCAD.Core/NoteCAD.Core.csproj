@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>NoteCAD.Core</AssemblyName>
+    <RootNamespace>NoteCAD</RootNamespace>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <!-- Disable nullable warnings for ported Unity code -->
+    <NoWarn>CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8619;CS8620;CS8625;CS8765</NoWarn>
+  </PropertyGroup>
+
+  <!-- Disable default Compile items to avoid duplicates with explicit includes below -->
+  <PropertyGroup>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <!-- Unity compatibility shim (provides UnityEngine types without Unity dependency) -->
+  <ItemGroup>
+    <Compile Include="UnityCompat\*.cs" />
+  </ItemGroup>
+
+  <!-- Core CAD engine: Solver -->
+  <ItemGroup>
+    <Compile Include="..\Assets\Code\Solver\*.cs" />
+  </ItemGroup>
+
+  <!-- Core CAD engine: Entities (TextEntity excluded — needs SharpFont submodule) -->
+  <ItemGroup>
+    <Compile Include="..\Assets\Code\Entities\*.cs" Exclude="..\Assets\Code\Entities\TextEntity.cs" />
+  </ItemGroup>
+
+  <!-- Core CAD engine: Constraints -->
+  <ItemGroup>
+    <Compile Include="..\Assets\Code\Constraints\*.cs" />
+  </ItemGroup>
+
+  <!-- Core CAD engine: Sketch model -->
+  <ItemGroup>
+    <Compile Include="..\Assets\Code\Sketch\*.cs" />
+  </ItemGroup>
+
+  <!-- Core CAD engine: Geometry utilities -->
+  <ItemGroup>
+    <Compile Include="..\Assets\Code\Geometry\BBox.cs" />
+    <Compile Include="..\Assets\Code\Geometry\GeomUtils.cs" />
+    <Compile Include="..\Assets\Code\Geometry\Triangulation.cs" />
+  </ItemGroup>
+
+  <!-- Core utilities (no Unity rendering dependencies) -->
+  <ItemGroup>
+    <Compile Include="..\Assets\Code\Utils\CultureFixer.cs" />
+    <Compile Include="..\Assets\Code\Utils\Encrypton.cs" />
+    <Compile Include="..\Assets\Code\Utils\ExpParser.cs" />
+    <Compile Include="..\Assets\Code\Utils\SystemExt.cs" />
+    <Compile Include="..\Assets\Code\Utils\Writer.cs" />
+  </ItemGroup>
+
+  <!-- Stroke style definitions (data only, no rendering) -->
+  <ItemGroup>
+    <Compile Include="..\Assets\Code\DraftStroke\StrokeStyles.cs" />
+  </ItemGroup>
+
+</Project>

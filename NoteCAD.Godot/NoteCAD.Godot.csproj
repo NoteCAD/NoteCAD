@@ -1,0 +1,19 @@
+<Project Sdk="Godot.NET.Sdk/4.3.0">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks Condition=" '$(GodotTargetPlatform)' == 'android' ">net8.0</TargetFrameworks>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>NoteCAD.Godot</RootNamespace>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <!-- Suppress nullable warnings while porting Unity code -->
+    <NoWarn>CS8600;CS8601;CS8602;CS8603;CS8604;CS8618</NoWarn>
+  </PropertyGroup>
+
+  <!-- Reference to the engine-independent core CAD library -->
+  <ItemGroup>
+    <ProjectReference Include="..\NoteCAD.Core\NoteCAD.Core.csproj" />
+  </ItemGroup>
+
+</Project>
